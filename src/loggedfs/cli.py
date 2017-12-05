@@ -29,6 +29,8 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+from pprint import pformat as pf
+
 from .core import loggedfs_class
 
 import click
@@ -40,11 +42,48 @@ from fuse import FUSE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 @click.command()
-def cli_entry():
+@click.option(
+	'-f',
+	is_flag = True,
+	help = 'Do not start as a daemon. Write logs to stdout if no log file is specified.'
+	)
+@click.option(
+	'-p',
+	is_flag = True,
+	help = 'Allow every users to see the new loggedfs.'
+	)
+@click.option(
+	'-c',
+	type = click.File(mode = 'r'),
+	help = 'Use the "config-file" to filter what you want to log.'
+	)
+@click.option(
+	'-l',
+	type = click.File(mode = 'a'),
+	help = ('Use the "log-file" to write logs to. If no log file is specified'
+		'then logs are only written to syslog or to stdout, depending on -f.')
+	)
+@click.argument(
+	'directory',
+	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
+	)
+def cli_entry(f, p, c, l, directory):
+	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
+	every operations that happens in the backend filesystem. Logs can be written
+	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
+	configuration file in which you can choose exactly what you want to log and
+	what you don't want to log. You can add filters on users, operations (open,
+	read, write, chown, chmod, etc.), filenames and return code. Filename
+	filters are regular expressions.
+	"""
 
-	FUSE(
-		loggedfs_class(root),
-		mountpoint,
-		nothreads = True,
-		foreground = True
-		)
+	click.echo(pf((
+		f, p, c, l, directory
+		)))
+
+	# FUSE(
+	# 	loggedfs_class(directory),
+	# 	directory,
+	# 	nothreads = True,
+	# 	foreground = True
+	# 	)
