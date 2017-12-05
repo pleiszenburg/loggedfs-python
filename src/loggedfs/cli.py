@@ -34,6 +34,7 @@ from pprint import pformat as pf
 from .core import loggedfs_factory
 
 import click
+import xmltodict
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -80,4 +81,26 @@ def cli_entry(f, p, c, l, directory):
 		f, p, c, l, directory
 		)))
 
-	# loggedfs_factory
+	loggedfs_factory(
+		directory,
+		no_daemon_bool = f,
+		allow_other = p,
+		loggedfs_param_dict = __process_config__(c, f)
+		)
+
+
+def __process_config__(config_fh, no_daemon_bool):
+
+	def __process_xml__(in_xml):
+		return xmltodict.parse()['loggedFS']
+
+	if config_fh is not None:
+		param = __process_xml__(config_fh.read())
+	elif False: # TODO check /etc
+		param = {} # TODO fetch from /etc
+	else:
+		param = {}
+
+	param.update({'daemon': not no_daemon_bool})
+
+	return param

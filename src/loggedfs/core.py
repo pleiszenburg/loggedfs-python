@@ -46,13 +46,19 @@ import xmltodict
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def loggedfs_factory(directory, is_daemon_bool = False, loggedfs_param_dict = {}):
+def loggedfs_factory(
+	directory,
+	no_daemon_bool = False,
+	allow_other = False,
+	loggedfs_param_dict = {}
+	):
 
 	return FUSE(
 		loggedfs_class(directory, loggedfs_param_dict),
 		directory,
 		nothreads = True,
-		foreground = not is_daemon_bool
+		foreground = no_daemon_bool,
+		allow_other = allow_other
 		)
 
 
