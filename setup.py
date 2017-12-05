@@ -71,7 +71,6 @@ setup(
 	license = 'Apache License 2.0',
 	keywords = ['filesystem', 'fuse', 'logging', 'monitoring'],
 	include_package_data = True,
-	dependency_links = [],
 	install_requires = [
 		'click',
 		'fusepy',
