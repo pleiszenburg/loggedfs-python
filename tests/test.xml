@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<loggedFS logEnabled="true" printProcessName="true">
+	<includes>
+		<include extension=".*" uid="*" action=".*" retname=".*"/>
+	</includes>
+	<excludes>
+		<exclude extension=".*\.bak$" uid="*" action=".*" retname="SUCCESS"/>
+		<exclude extension=".*" uid="1000" action=".*" retname="FAILURE"/>
+		<exclude extension=".*" uid="*" action="getattr" retname=".*"/>
+	</excludes>
+</loggedFS>
