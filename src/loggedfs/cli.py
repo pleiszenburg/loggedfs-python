@@ -31,6 +31,8 @@ specific language governing rights and limitations under the License.
 
 import click
 
+from .core import loggedfs_class
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINE
