@@ -29,9 +29,10 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import click
-
 from .core import loggedfs_class
+
+import click
+from fuse import FUSE
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -41,4 +42,9 @@ from .core import loggedfs_class
 @click.command()
 def cli_entry():
 
-	click.echo('LoggedFS-python!')
+	FUSE(
+		loggedfs_class(root),
+		mountpoint,
+		nothreads = True,
+		foreground = True
+		)

@@ -34,7 +34,6 @@ import logging
 import os
 
 from fuse import (
-	FUSE,
 	fuse_get_context,
 	FuseOSError,
 	Operations
@@ -208,7 +207,7 @@ class loggedfs_class(Operations):
 
 		return self.flush(path, fh)
 
-	
+
 	def read(self, path, length, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
