@@ -31,10 +31,9 @@ specific language governing rights and limitations under the License.
 
 from pprint import pformat as pf
 
-from .core import loggedfs_class
+from .core import loggedfs_factory
 
 import click
-from fuse import FUSE
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -81,9 +80,4 @@ def cli_entry(f, p, c, l, directory):
 		f, p, c, l, directory
 		)))
 
-	# FUSE(
-	# 	loggedfs_class(directory),
-	# 	directory,
-	# 	nothreads = True,
-	# 	foreground = True
-	# 	)
+	# loggedfs_factory

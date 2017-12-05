@@ -34,11 +34,26 @@ import logging
 import os
 
 from fuse import (
+	FUSE,
 	fuse_get_context,
 	FuseOSError,
 	Operations
 	)
 import xmltodict
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def loggedfs_factory(directory, is_daemon_bool = False, loggedfs_param_dict = {}):
+
+	return FUSE(
+		loggedfs_class(directory, loggedfs_param_dict),
+		directory,
+		nothreads = True,
+		foreground = not is_daemon_bool
+		)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -48,9 +63,10 @@ import xmltodict
 class loggedfs_class(Operations):
 
 
-	def __init__(self, root):
+	def __init__(self, root, param_dict = {}):
 
 		self.root_path = root
+		self._p = param_dict
 
 
 	def _full_path(self, partial_path):
