@@ -101,6 +101,21 @@ class loggedfs_class(Operations):
 			)}
 
 
+	def link(self, target, name):
+
+		return os.link(self._full_path(name), self._full_path(target))
+
+
+	def mkdir(self, path, mode):
+
+		return os.mkdir(self._full_path(path), mode)
+
+
+	def mknod(self, path, mode, dev):
+
+		return os.mknod(self._full_path(path), mode, dev)
+
+
 	def readdir(self, path, fh):
 
 		full_path = self._full_path(path)
@@ -121,20 +136,15 @@ class loggedfs_class(Operations):
 			return pathname
 
 
-	def mknod(self, path, mode, dev):
+	def rename(self, old, new):
 
-		return os.mknod(self._full_path(path), mode, dev)
+		return os.rename(self._full_path(old), self._full_path(new))
 
 
 	def rmdir(self, path):
 
 		full_path = self._full_path(path)
 		return os.rmdir(full_path)
-
-
-	def mkdir(self, path, mode):
-
-		return os.mkdir(self._full_path(path), mode)
 
 
 	def statfs(self, path):
@@ -155,27 +165,17 @@ class loggedfs_class(Operations):
 			)}
 
 
-	def unlink(self, path):
-
-		return os.unlink(self._full_path(path))
-
-
 	def symlink(self, name, target):
 
 		return os.symlink(target, self._full_path(name))
 
 
-	def rename(self, old, new):
+	def unlink(self, path):
 
-		return os.rename(self._full_path(old), self._full_path(new))
-
-
-	def link(self, target, name):
-
-		return os.link(self._full_path(name), self._full_path(target))
+		return os.unlink(self._full_path(path))
 
 
-	def utimens(self, path, times=None):
+	def utimens(self, path, times = None):
 
 		return os.utime(self._full_path(path), times)
 
@@ -199,16 +199,25 @@ class loggedfs_class(Operations):
 		return fd
 
 
+	def flush(self, path, fh):
+
+		return os.fsync(fh)
+
+
+	def fsync(self, path, fdatasync, fh):
+
+		return self.flush(path, fh)
+
+	
 	def read(self, path, length, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.read(fh, length)
 
 
-	def write(self, path, buf, offset, fh):
+	def release(self, path, fh):
 
-		os.lseek(fh, offset, os.SEEK_SET)
-		return os.write(fh, buf)
+		return os.close(fh)
 
 
 	def truncate(self, path, length, fh = None):
@@ -218,16 +227,7 @@ class loggedfs_class(Operations):
 			f.truncate(length)
 
 
-	def flush(self, path, fh):
+	def write(self, path, buf, offset, fh):
 
-		return os.fsync(fh)
-
-
-	def release(self, path, fh):
-
-		return os.close(fh)
-
-
-	def fsync(self, path, fdatasync, fh):
-
-		return self.flush(path, fh)
+		os.lseek(fh, offset, os.SEEK_SET)
+		return os.write(fh, buf)
