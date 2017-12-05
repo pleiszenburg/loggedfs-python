@@ -54,11 +54,11 @@ class loggedfs_class(Operations):
 		self.root_path = root
 
 
-	def _full_path(self, partial):
+	def _full_path(self, partial_path):
 
-		if partial.startswith('/'):
-			partial = partial[1:]
-		path = os.path.join(self.root_path, partial)
+		if partial_path.startswith('/'):
+			partial_path = partial_path[1:]
+		path = os.path.join(self.root_path, partial_path)
 		return path
 
 
