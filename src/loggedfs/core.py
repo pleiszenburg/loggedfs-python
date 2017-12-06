@@ -188,6 +188,7 @@ class loggedfs_class(Operations):
 
 	def symlink(self, name, target):
 
+		# TODO Check order of arguments, possible bug in original LoggedFS
 		return os.symlink(target, self._full_path(name))
 
 
