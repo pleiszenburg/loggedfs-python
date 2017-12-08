@@ -30,6 +30,7 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import errno
+from functools import wraps
 import logging
 import os
 
@@ -62,6 +63,23 @@ def loggedfs_factory(
 		)
 
 
+def __log__(format_pattern = None):
+
+	def wrapper(func):
+
+		@wraps(func)
+		def wrapped(self, *func_args, **func_kwargs):
+
+			ret_value = func(self, *func_args, **func_kwargs)
+			# use format_pattern here
+
+			return ret_value
+
+		return wrapped
+
+	return wrapper
+
+
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -87,6 +105,7 @@ class loggedfs_class(Operations):
 # CORE CLASS: Filesystem methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+	@__log__()
 	def access(self, path, mode):
 
 		full_path = self._full_path(path)
@@ -94,18 +113,21 @@ class loggedfs_class(Operations):
 			raise FuseOSError(errno.EACCES)
 
 
+	@__log__()
 	def chmod(self, path, mode):
 
 		full_path = self._full_path(path)
 		return os.chmod(full_path, mode)
 
 
+	@__log__()
 	def chown(self, path, uid, gid):
 
 		full_path = self._full_path(path)
 		return os.chown(full_path, uid, gid)
 
 
+	@__log__()
 	def getattr(self, path, fh = None):
 
 		full_path = self._full_path(path)
@@ -123,21 +145,25 @@ class loggedfs_class(Operations):
 			)}
 
 
+	@__log__()
 	def link(self, target, name):
 
 		return os.link(self._full_path(name), self._full_path(target))
 
 
+	@__log__()
 	def mkdir(self, path, mode):
 
 		return os.mkdir(self._full_path(path), mode)
 
 
+	@__log__()
 	def mknod(self, path, mode, dev):
 
 		return os.mknod(self._full_path(path), mode, dev)
 
 
+	@__log__()
 	def readdir(self, path, fh):
 
 		full_path = self._full_path(path)
@@ -149,6 +175,7 @@ class loggedfs_class(Operations):
 			yield r
 
 
+	@__log__()
 	def readlink(self, path):
 
 		pathname = os.readlink(self._full_path(path))
@@ -158,17 +185,20 @@ class loggedfs_class(Operations):
 			return pathname
 
 
+	@__log__()
 	def rename(self, old, new):
 
 		return os.rename(self._full_path(old), self._full_path(new))
 
 
+	@__log__()
 	def rmdir(self, path):
 
 		full_path = self._full_path(path)
 		return os.rmdir(full_path)
 
 
+	@__log__()
 	def statfs(self, path):
 
 		full_path = self._full_path(path)
@@ -187,17 +217,20 @@ class loggedfs_class(Operations):
 			)}
 
 
+	@__log__()
 	def symlink(self, name, target):
 
 		# TODO Check order of arguments, possible bug in original LoggedFS
 		return os.symlink(target, self._full_path(name))
 
 
+	@__log__()
 	def unlink(self, path):
 
 		return os.unlink(self._full_path(path))
 
 
+	@__log__()
 	def utimens(self, path, times = None):
 
 		return os.utime(self._full_path(path), times)
@@ -207,12 +240,14 @@ class loggedfs_class(Operations):
 # CORE CLASS: File methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+	@__log__()
 	def open(self, path, flags):
 
 		full_path = self._full_path(path)
 		return os.open(full_path, flags)
 
 
+	@__log__()
 	def create(self, path, mode, fi = None):
 
 		uid, gid, pid = fuse_get_context()
@@ -222,27 +257,32 @@ class loggedfs_class(Operations):
 		return fd
 
 
+	@__log__()
 	def flush(self, path, fh):
 
 		return os.fsync(fh)
 
 
+	@__log__()
 	def fsync(self, path, fdatasync, fh):
 
 		return self.flush(path, fh)
 
 
+	@__log__()
 	def read(self, path, length, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.read(fh, length)
 
 
+	@__log__()
 	def release(self, path, fh):
 
 		return os.close(fh)
 
 
+	@__log__()
 	def truncate(self, path, length, fh = None):
 
 		full_path = self._full_path(path)
@@ -250,6 +290,7 @@ class loggedfs_class(Operations):
 			f.truncate(length)
 
 
+	@__log__()
 	def write(self, path, buf, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
