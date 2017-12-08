@@ -112,6 +112,7 @@ class loggedfs_class(Operations):
 		st = os.lstat(full_path)
 		return {key: getattr(st, key) for key in (
 			'st_atime',
+			'st_blocks',
 			'st_ctime',
 			'st_gid',
 			'st_mode',
