@@ -33,6 +33,7 @@ import errno
 from functools import wraps
 import logging
 import os
+from pprint import pformat as pf
 
 from fuse import (
 	FUSE,
@@ -110,6 +111,7 @@ def __log__(format_pattern = ''):
 				ret_value = None
 				self.logger.error(log_msg % '\{FAILURE\}')
 				self.logger.exception('Something just went terribly wrong ...')
+				raise FuseOSError
 
 			return ret_value
 
@@ -131,13 +133,20 @@ class loggedfs(Operations):
 		self.root_path_fd = root_fd
 		self._p = param_dict
 
-		logging.basicConfig(format = '%(asctime)s (%(name)s) %(message)s')
+		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
 		self.logger = logging.getLogger('LoggedFS-python')
 		self.logger.setLevel(logging.DEBUG)
 
+		ch = logging.StreamHandler()
+		ch.setLevel(logging.DEBUG)
+		ch.setFormatter(log_formater)
+		self.logger.addHandler(ch)
+
 		if log_file is not None:
+
 			fh = logging.FileHandler(os.path.join(log_file))
 			fh.setLevel(logging.DEBUG)
+			fh.setFormatter(log_formater)
 			self.logger.addHandler(fh)
 
 
@@ -147,6 +156,11 @@ class loggedfs(Operations):
 			partial_path = partial_path[1:]
 		path = os.path.join(self.root_path, partial_path)
 		return path
+
+
+	def _rel_path(self, partial_path):
+
+		return '.' + partial_path
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -178,8 +192,8 @@ class loggedfs(Operations):
 	@__log__('{0} {1}')
 	def getattr(self, path, fh = None):
 
-		full_path = self._full_path(path)
-		st = os.lstat(full_path)
+		rel_path = self._rel_path(path)
+		st = os.lstat(rel_path)
 		return {key: getattr(st, key) for key in (
 			'st_atime',
 			'st_blocks',
