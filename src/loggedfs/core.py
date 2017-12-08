@@ -56,7 +56,7 @@ def loggedfs_factory(
 	):
 
 	return FUSE(
-		loggedfs_class(directory, loggedfs_param_dict, log_file),
+		loggedfs(directory, loggedfs_param_dict, log_file),
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
@@ -117,7 +117,7 @@ def __log__(format_pattern = ''):
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class loggedfs_class(Operations):
+class loggedfs(Operations):
 
 
 	def __init__(self, root, param_dict = {}, log_file = None):
