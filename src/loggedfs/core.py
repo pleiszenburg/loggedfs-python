@@ -60,7 +60,9 @@ def loggedfs_factory(
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
-		allow_other = allow_other
+		# allow_other = allow_other,
+		nonempty = True, # common options taken from LoggedFS
+		use_ino = True # common options taken from LoggedFS
 		)
 
 
@@ -89,13 +91,14 @@ def __log__(format_pattern = ''):
 			uid, gid, pid = fuse_get_context()
 			p_cmdname = __get_process_cmdline__(pid)
 
-			log_msg = [
+			log_msg = ' '.join([
 				'%s %s' % (func.__name__, format_pattern.format(*func_args, **func_kwargs)),
-				' %s ',
+				'%s',
 				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
-				].join()
+				])
 
 			try:
+				self.logger.info(log_msg % '...')
 				ret_value = func(self, *func_args, **func_kwargs)
 				self.logger.info(log_msg % '\{SUCCESS\}')
 			except:
@@ -127,9 +130,7 @@ class loggedfs_class(Operations):
 		self.logger.setLevel(logging.DEBUG)
 
 		if log_file is not None:
-			fh = logging.FileHandler(
-				os.path.join(self.root_path, PATH_REPO, PATH_SUB_LOGS, FILE_DAEMON_LOG)
-				)
+			fh = logging.FileHandler(os.path.join(log_file))
 			fh.setLevel(logging.DEBUG)
 			self.logger.addHandler(fh)
 
@@ -168,7 +169,7 @@ class loggedfs_class(Operations):
 		return os.chown(full_path, uid, gid)
 
 
-	@__log__('{0} {fh}')
+	@__log__('{0} {1}')
 	def getattr(self, path, fh = None):
 
 		full_path = self._full_path(path)
@@ -271,7 +272,7 @@ class loggedfs_class(Operations):
 		return os.unlink(self._full_path(path))
 
 
-	@__log__('{0} {times}')
+	@__log__('{0} {1}')
 	def utimens(self, path, times = None):
 
 		return os.utime(self._full_path(path), times)
@@ -288,7 +289,7 @@ class loggedfs_class(Operations):
 		return os.open(full_path, flags)
 
 
-	@__log__('{0} {1} {fi}')
+	@__log__('{0} {1} {2}')
 	def create(self, path, mode, fi = None):
 
 		uid, gid, pid = fuse_get_context()
@@ -323,7 +324,7 @@ class loggedfs_class(Operations):
 		return os.close(fh)
 
 
-	@__log__('{0} {1} {fh}')
+	@__log__('{0} {1} {2}')
 	def truncate(self, path, length, fh = None):
 
 		full_path = self._full_path(path)

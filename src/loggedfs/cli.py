@@ -59,7 +59,8 @@ import xmltodict
 	)
 @click.option(
 	'-l',
-	type = click.File(mode = 'a'),
+	# type = click.File(mode = 'a'),
+	type = click.Path(file_okay = True, dir_okay = False, resolve_path = True),
 	help = ('Use the "log-file" to write logs to. If no log file is specified'
 		'then logs are only written to syslog or to stdout, depending on -f.')
 	)
