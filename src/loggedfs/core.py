@@ -143,12 +143,6 @@ class loggedfs(Operations):
 		return path
 
 
-	@__log__('{0}')
-	def init(self, path):
-
-		pass
-
-
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CORE CLASS: Filesystem methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -191,6 +185,12 @@ class loggedfs(Operations):
 			'st_size',
 			'st_uid'
 			)}
+
+
+	@__log__('{0}')
+	def init(self, path):
+
+		pass
 
 
 	@__log__('{0} {1}')
