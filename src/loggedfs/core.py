@@ -63,15 +63,44 @@ def loggedfs_factory(
 		)
 
 
-def __log__(format_pattern = None):
+def __get_process_cmdline__(pid):
+
+	try:
+
+		f = open('/proc/%d/cmdline' % pid, 'r')
+		cmdline = f.read()
+		f.close()
+
+		return cmdline
+
+	except FileNotFoundError:
+
+		return ''
+
+
+def __log__(format_pattern = ''):
 
 	def wrapper(func):
 
 		@wraps(func)
 		def wrapped(self, *func_args, **func_kwargs):
 
-			ret_value = func(self, *func_args, **func_kwargs)
-			# use format_pattern here
+			uid, gid, pid = fuse_get_context()
+			p_cmdname = __get_process_cmdline__(pid)
+
+			log_msg = [
+				'%s %s' % (func.__name__, format_pattern.format(*func_args, **func_kwargs)),
+				' %s ',
+				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
+				].join()
+
+			try:
+				ret_value = func(self, *func_args, **func_kwargs)
+				self.logger.info(log_msg % '\{SUCCESS\}')
+			except:
+				ret_value = None
+				self.logger.error(log_msg % '\{FAILURE\}')
+				self.logger.exception('Something just went terribly wrong ...')
 
 			return ret_value
 
@@ -91,6 +120,9 @@ class loggedfs_class(Operations):
 
 		self.root_path = root
 		self._p = param_dict
+
+		logging.basicConfig(format = '%(asctime)s (%(name)s) %(message)s')
+		self.logger = logging.getLogger('LoggedFS-python')
 
 
 	def _full_path(self, partial_path):
