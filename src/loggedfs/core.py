@@ -137,7 +137,7 @@ class loggedfs_class(Operations):
 # CORE CLASS: Filesystem methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@__log__()
+	@__log__('{0} {1}')
 	def access(self, path, mode):
 
 		full_path = self._full_path(path)
@@ -145,21 +145,21 @@ class loggedfs_class(Operations):
 			raise FuseOSError(errno.EACCES)
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def chmod(self, path, mode):
 
 		full_path = self._full_path(path)
 		return os.chmod(full_path, mode)
 
 
-	@__log__()
+	@__log__('{0} {1} {2}')
 	def chown(self, path, uid, gid):
 
 		full_path = self._full_path(path)
 		return os.chown(full_path, uid, gid)
 
 
-	@__log__()
+	@__log__('{0} {fh}')
 	def getattr(self, path, fh = None):
 
 		full_path = self._full_path(path)
@@ -177,25 +177,25 @@ class loggedfs_class(Operations):
 			)}
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def link(self, target, name):
 
 		return os.link(self._full_path(name), self._full_path(target))
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def mkdir(self, path, mode):
 
 		return os.mkdir(self._full_path(path), mode)
 
 
-	@__log__()
+	@__log__('{0} {1} {2}')
 	def mknod(self, path, mode, dev):
 
 		return os.mknod(self._full_path(path), mode, dev)
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def readdir(self, path, fh):
 
 		full_path = self._full_path(path)
@@ -207,7 +207,7 @@ class loggedfs_class(Operations):
 			yield r
 
 
-	@__log__()
+	@__log__('{0}')
 	def readlink(self, path):
 
 		pathname = os.readlink(self._full_path(path))
@@ -217,20 +217,20 @@ class loggedfs_class(Operations):
 			return pathname
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def rename(self, old, new):
 
 		return os.rename(self._full_path(old), self._full_path(new))
 
 
-	@__log__()
+	@__log__('{0}')
 	def rmdir(self, path):
 
 		full_path = self._full_path(path)
 		return os.rmdir(full_path)
 
 
-	@__log__()
+	@__log__('{0}')
 	def statfs(self, path):
 
 		full_path = self._full_path(path)
@@ -249,20 +249,20 @@ class loggedfs_class(Operations):
 			)}
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def symlink(self, name, target):
 
 		# TODO Check order of arguments, possible bug in original LoggedFS
 		return os.symlink(target, self._full_path(name))
 
 
-	@__log__()
+	@__log__('{0}')
 	def unlink(self, path):
 
 		return os.unlink(self._full_path(path))
 
 
-	@__log__()
+	@__log__('{0} {times}')
 	def utimens(self, path, times = None):
 
 		return os.utime(self._full_path(path), times)
@@ -272,14 +272,14 @@ class loggedfs_class(Operations):
 # CORE CLASS: File methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@__log__()
+	@__log__('{0} {1}')
 	def open(self, path, flags):
 
 		full_path = self._full_path(path)
 		return os.open(full_path, flags)
 
 
-	@__log__()
+	@__log__('{0} {1} {fi}')
 	def create(self, path, mode, fi = None):
 
 		uid, gid, pid = fuse_get_context()
@@ -289,32 +289,32 @@ class loggedfs_class(Operations):
 		return fd
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def flush(self, path, fh):
 
 		return os.fsync(fh)
 
 
-	@__log__()
+	@__log__('{0} {1} {2}')
 	def fsync(self, path, fdatasync, fh):
 
 		return self.flush(path, fh)
 
 
-	@__log__()
+	@__log__('{0} {1} {2} {3}')
 	def read(self, path, length, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.read(fh, length)
 
 
-	@__log__()
+	@__log__('{0} {1}')
 	def release(self, path, fh):
 
 		return os.close(fh)
 
 
-	@__log__()
+	@__log__('{0} {1} {fh}')
 	def truncate(self, path, length, fh = None):
 
 		full_path = self._full_path(path)
@@ -322,7 +322,7 @@ class loggedfs_class(Operations):
 			f.truncate(length)
 
 
-	@__log__()
+	@__log__('{0} {1} {2} {3}')
 	def write(self, path, buf, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
