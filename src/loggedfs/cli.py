@@ -85,7 +85,8 @@ def cli_entry(f, p, c, l, directory):
 		directory,
 		no_daemon_bool = f,
 		allow_other = p,
-		loggedfs_param_dict = __process_config__(c, f)
+		loggedfs_param_dict = __process_config__(c, f),
+		log_file = l
 		)
 
 

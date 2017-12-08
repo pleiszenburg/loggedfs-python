@@ -51,11 +51,12 @@ def loggedfs_factory(
 	directory,
 	no_daemon_bool = False,
 	allow_other = False,
-	loggedfs_param_dict = {}
+	loggedfs_param_dict = {},
+	log_file = None
 	):
 
 	return FUSE(
-		loggedfs_class(directory, loggedfs_param_dict),
+		loggedfs_class(directory, loggedfs_param_dict, log_file),
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
@@ -116,13 +117,21 @@ def __log__(format_pattern = ''):
 class loggedfs_class(Operations):
 
 
-	def __init__(self, root, param_dict = {}):
+	def __init__(self, root, param_dict = {}, log_file = None):
 
 		self.root_path = root
 		self._p = param_dict
 
 		logging.basicConfig(format = '%(asctime)s (%(name)s) %(message)s')
 		self.logger = logging.getLogger('LoggedFS-python')
+		self.logger.setLevel(logging.DEBUG)
+
+		if log_file is not None:
+			fh = logging.FileHandler(
+				os.path.join(self.root_path, PATH_REPO, PATH_SUB_LOGS, FILE_DAEMON_LOG)
+				)
+			fh.setLevel(logging.DEBUG)
+			self.logger.addHandler(fh)
 
 
 	def _full_path(self, partial_path):
