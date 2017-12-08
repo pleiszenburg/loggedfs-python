@@ -55,8 +55,13 @@ def loggedfs_factory(
 	log_file = None
 	):
 
+	# Change into mountpoint (must be abs path!)
+	os.chdir(directory)
+	# Open mount point
+	directory_fd = os.open('.', os.O_RDONLY);
+
 	return FUSE(
-		loggedfs(directory, loggedfs_param_dict, log_file),
+		loggedfs(directory, directory_fd, loggedfs_param_dict, log_file),
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
@@ -120,9 +125,10 @@ def __log__(format_pattern = ''):
 class loggedfs(Operations):
 
 
-	def __init__(self, root, param_dict = {}, log_file = None):
+	def __init__(self, root, root_fd, param_dict = {}, log_file = None):
 
 		self.root_path = root
+		self.root_path_fd = root_fd
 		self._p = param_dict
 
 		logging.basicConfig(format = '%(asctime)s (%(name)s) %(message)s')
@@ -190,7 +196,8 @@ class loggedfs(Operations):
 	@__log__('{0}')
 	def init(self, path):
 
-		pass
+		os.fchdir(self.root_path_fd)
+		os.close(self.root_path_fd)
 
 
 	@__log__('{0} {1}')
