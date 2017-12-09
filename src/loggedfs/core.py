@@ -243,14 +243,14 @@ class loggedfs(Operations):
 		return os.mknod(self._full_path(path), mode, dev)
 
 
-	@__log__('{0} {1}')
-	def readdir(self, path, fh):
+	@__log__('{0}', [0])
+	def readdir(self, path, fh): # HACK
 
-		full_path = self._full_path(path)
+		rel_path = self._rel_path(path)
 
 		dirents = ['.', '..']
-		if os.path.isdir(full_path):
-			dirents.extend(os.listdir(full_path))
+		if os.path.isdir(rel_path):
+			dirents.extend(os.listdir(rel_path))
 		for r in dirents:
 			yield r
 
