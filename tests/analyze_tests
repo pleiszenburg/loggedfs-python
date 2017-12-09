@@ -4,6 +4,21 @@
 from pprint import pprint as pp
 
 
+def __compile_stats__(in_list):
+
+	tests_total = 0
+	tests_failed = 0
+
+	for item in in_list:
+		tests_total += item['int_tests']
+		tests_failed += item['int_failed']
+
+	return {
+		'int_tests': tests_total,
+		'int_failed': tests_failed
+		}
+
+
 def __process_raw_result_item__(in_str):
 
 	lines = in_str.split('\n')
@@ -45,6 +60,7 @@ def __process_raw_results__(in_str):
 
 
 def __read_file__(filename):
+
 	f = open(filename, 'r')
 	data = f.read()
 	f.close()
@@ -59,3 +75,4 @@ if __name__ == '__main__':
 
 	test_results = __process_raw_results__(__read_file__(test_results_fn))
 	pp(test_results)
+	pp(__compile_stats__(test_results))
