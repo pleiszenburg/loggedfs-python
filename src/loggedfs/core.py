@@ -151,16 +151,16 @@ def __log__(
 				self.logger.info(log_msg % '\{SUCCESS\}')
 				return ret_value
 
-			except FuseOSError:
+			except FuseOSError as e:
 
 				self.logger.error(log_msg % '\{FAILURE\}')
-				raise FuseOSError
+				raise e
 
 			except:
 
 				self.logger.exception('Something just went terribly wrong unexpectedly ...')
 				self.logger.error(log_msg % '\{FAILURE\}')
-				raise FuseOSError
+				raise FuseOSError(errno.EIO) # HACK this probably is not the right kind of error ...
 
 		return wrapped
 
@@ -255,9 +255,13 @@ class loggedfs(Operations):
 				'st_uid'
 				)}
 
-		except (FileNotFoundError, OSError):
+		except FileNotFoundError:
 
-			raise FuseOSError
+			raise FuseOSError(errno.ENOENT)
+
+		except OSError:
+
+			raise
 
 
 	@__log__(format_pattern = '{0}')
