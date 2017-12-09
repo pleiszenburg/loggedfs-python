@@ -255,11 +255,12 @@ class loggedfs(Operations):
 			yield r
 
 
-	@__log__('{0}')
-	def readlink(self, path):
+	@__log__('{0}', [0])
+	def readlink(self, path): # HACK
 
-		pathname = os.readlink(self._full_path(path))
-		if pathname.startswith('/'):
+		pathname = os.readlink(self._rel_path(path))
+
+		if pathname.startswith('/'): # TODO check this ... actually required?
 			return os.path.relpath(pathname, self.root_path)
 		else:
 			return pathname
