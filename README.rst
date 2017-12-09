@@ -6,8 +6,8 @@ Description
 
 LoggedFS-python is a fuse-based filesystem which can log every operation that
 happens in it. It is a pure Python re-implementation of
-`LoggedFS by Rémi Flament`_ - heavily inspired by Stavros Korokithakis' 2013
-blog post entitled "`Writing a FUSE filesystem in Python`_"
+`LoggedFS`_ by `Rémi Flament`_ - heavily inspired by `Stavros Korokithakis`_'
+2013 blog post entitled "`Writing a FUSE filesystem in Python`_"
 (`source code repository`_).
 
 How does it work?
@@ -15,7 +15,9 @@ How does it work?
 Fuse does almost everything. LoggedFS-python only sends a message to ``syslog``
 when called by fuse and then let the real filesystem do the rest of the job.
 
-.. _LoggedFS by Rémi Flament: https://github.com/rflament/loggedfs
+.. _LoggedFS: https://github.com/rflament/loggedfs
+.. _Rémi Flament: https://github.com/rflament
+.. _Stavros Korokithakis: https://github.com/skorokithakis
 .. _Writing a FUSE filesystem in Python: https://www.stavros.io/posts/python-fuse-filesystem/
 .. _source code repository: https://github.com/skorokithakis/python-fuse-sample
 
