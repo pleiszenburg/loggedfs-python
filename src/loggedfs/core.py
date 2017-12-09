@@ -262,6 +262,10 @@ class loggedfs(Operations):
 		if os.path.isdir(rel_path):
 			dirents.extend(os.listdir(rel_path))
 
+		# TODO
+		# https://github.com/rflament/loggedfs/blob/master/src/loggedfs.cpp#L248
+		# The original loggedfs does some inode number stuff here
+
 		return dirents
 
 
