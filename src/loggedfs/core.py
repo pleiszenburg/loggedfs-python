@@ -238,10 +238,20 @@ class loggedfs(Operations):
 		os.close(self.root_path_fd)
 
 
-	@__log__('{0} {1}')
-	def link(self, target, name):
+	@__log__('{1} to {0}', [0, 1])
+	def link(self, target_path, source_path): # HACK
 
-		return os.link(self._full_path(name), self._full_path(target))
+		# TODO Check order of arguments, possible bug in original LoggedFS
+
+		# PYTHON:
+		# 	os.link(src, dst, *, src_dir_fd=None, dst_dir_fd=None, follow_symlinks=True)
+		# 	Create a hard link to a file.
+		# 	(From symlink: Create a symbolic link pointing to src named dst.)
+		# FUSEPY:
+		# 	def link(self, target, source):
+		# 		'creates a hard link `target -> source` (e.g. ln source target)'
+
+		return os.link(self._rel_path(source_path), self._rel_path(target_path))
 
 
 	@__log__('{0} {1}', [0])
