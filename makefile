@@ -41,11 +41,19 @@ upload_test:
 
 install:
 	pip install --process-dependency-links .[dev]
+	make install_fstest
 
 install_link:
 	pip install --process-dependency-links -e .[dev]
+	make install_fstest
+
+install_fstest:
+	git clone https://github.com/zfsonlinux/fstest.git tests/fstest
+	sed -i -e 's/\"ZFS\"/\"ext3\"/g' tests/fstest/tests/conf
+	@(cd tests/fstest; make fstest)
 
 test:
-	make docu
-	-rm tests/__pycache__/*.pyc
-	pytest
+	@(cd tests;./run_tests)
+	# make docu
+	# -rm tests/__pycache__/*.pyc
+	# pytest
