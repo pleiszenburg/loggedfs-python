@@ -460,8 +460,11 @@ class loggedfs(Operations):
 		return os.read(fh, length)
 
 
-	@__log__(format_pattern = '{0} {1}')
-	def release(self, path, fh):
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def release(self, path, fh): # HACK
+
+		# The original LoggedFS has a stub, only:
+		# "This method is optional and can safely be left unimplemented"
 
 		return os.close(fh)
 
