@@ -31,9 +31,11 @@ specific language governing rights and limitations under the License.
 
 import errno
 from functools import wraps
+import grp
 import logging
 import os
 from pprint import pformat as pf
+import pwd
 
 from fuse import (
 	FUSE,
@@ -85,6 +87,16 @@ def __get_process_cmdline__(pid):
 	except FileNotFoundError:
 
 		return ''
+
+
+def __get_group_name_from_gid__(gid):
+
+	return grp.getgrgid(gid).gr_name
+
+
+def __get_user_name_from_uid__(uid):
+
+	return pwd.getpwuid(uid).pw_name
 
 
 def __log__(format_pattern = '', abs_path_fields = [], is_generator = False):
