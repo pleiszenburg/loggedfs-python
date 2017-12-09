@@ -142,24 +142,24 @@ def __log__(
 				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
 				])
 
-			self.logger.info(log_msg % '\{...\}')
+			# self.logger.info(log_msg % '{...}') # Helper for debugging ... if things hang or loop or ...
 
 			try:
 
 				ret_value = func(self, *func_args, **func_kwargs)
 
-				self.logger.info(log_msg % '\{SUCCESS\}')
+				self.logger.info(log_msg % '{SUCCESS}')
 				return ret_value
 
 			except FuseOSError as e:
 
-				self.logger.error(log_msg % '\{FAILURE\}')
+				self.logger.error(log_msg % '{FAILURE}')
 				raise e
 
 			except:
 
 				self.logger.exception('Something just went terribly wrong unexpectedly ...')
-				self.logger.error(log_msg % '\{FAILURE\}')
+				self.logger.error(log_msg % '{FAILURE}')
 				raise FuseOSError(errno.EIO) # HACK this probably is not the right kind of error ...
 
 		return wrapped
