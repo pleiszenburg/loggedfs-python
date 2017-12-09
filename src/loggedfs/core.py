@@ -416,10 +416,10 @@ class loggedfs(Operations):
 		return os.unlink(self._rel_path(path))
 
 
-	@__log__(format_pattern = '{0} {1}')
-	def utimens(self, path, times = None):
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def utimens(self, path, times = None): # HACK
 
-		return os.utime(self._full_path(path), times)
+		return os.utime(self._rel_path(path), times)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
