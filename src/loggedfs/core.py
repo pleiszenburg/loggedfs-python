@@ -29,6 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+from copy import deepcopy
 import errno
 from functools import wraps
 import grp
@@ -78,9 +79,9 @@ def __format_args__(args_list, kwargs_dict, items_list, format_func):
 
 	for item in items_list:
 		if isinstance(item, int):
-			func_args_format[item] = format_func(func_args_format[item])
+			args_list[item] = format_func(args_list[item])
 		elif isinstance(item, str):
-			func_kwargs_format[item] = format_func(func_kwargs_format[item])
+			kwargs_dict[item] = format_func(kwargs_dict[item])
 
 
 def __get_process_cmdline__(pid):
@@ -113,8 +114,7 @@ def __log__(
 	abs_path_fields = [],
 	length_fields = [],
 	uid_fields = [],
-	gid_fields = [],
-	is_generator = False
+	gid_fields = []
 	):
 
 	def wrapper(func):
@@ -125,8 +125,8 @@ def __log__(
 			uid, gid, pid = fuse_get_context()
 			p_cmdname = __get_process_cmdline__(pid)
 
-			func_args_f = func_args.copy()
-			func_kwargs_f = func_kwargs.copy()
+			func_args_f = list(deepcopy(func_args))
+			func_kwargs_f = deepcopy(func_kwargs)
 
 			for field_list, format_func in [
 				(abs_path_fields, lambda x: self._full_path(x)),
@@ -142,23 +142,14 @@ def __log__(
 				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
 				])
 
-			try:
+			self.logger.info(log_msg % '\{...\}')
 
-				self.logger.info(log_msg % '\{...\}')
+			try:
 
 				ret_value = func(self, *func_args, **func_kwargs)
 
-				if not ret_value:
-					raise FuseOSError
-
-				if is_generator:
-					for index, ret_item in enumerate(ret_value):
-						if index + 1 == len(ret_value):
-							self.logger.info(log_msg % '\{SUCCESS\}')
-						yield ret_item
-				else:
-					self.logger.info(log_msg % '\{SUCCESS\}')
-					return ret_value
+				self.logger.info(log_msg % '\{SUCCESS\}')
+				return ret_value
 
 			except FuseOSError:
 
@@ -325,7 +316,7 @@ class loggedfs(Operations):
 		return res
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0], is_generator = True)
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def readdir(self, path, fh):
 
 		rel_path = self._rel_path(path)
