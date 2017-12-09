@@ -454,8 +454,8 @@ class loggedfs(Operations):
 		return self.flush(path, fh)
 
 
-	@__log__(format_pattern = '{0} {1} {2} {3}')
-	def read(self, path, length, offset, fh):
+	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
+	def read(self, path, length, offset, fh): # HACK
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.read(fh, length)
