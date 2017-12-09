@@ -144,7 +144,7 @@ def __log__(
 
 			try:
 
-				self.logger.info(log_msg % '...')
+				self.logger.info(log_msg % '\{...\}')
 
 				ret_value = func(self, *func_args, **func_kwargs)
 
