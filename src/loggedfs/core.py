@@ -303,11 +303,10 @@ class loggedfs(Operations):
 		return os.rename(self._full_path(old), self._full_path(new))
 
 
-	@__log__('{0}')
-	def rmdir(self, path):
+	@__log__('{0}', [0])
+	def rmdir(self, path): # HACK
 
-		full_path = self._full_path(path)
-		return os.rmdir(full_path)
+		return os.rmdir(self._rel_path(path))
 
 
 	@__log__('{0}')
