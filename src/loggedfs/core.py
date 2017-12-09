@@ -102,6 +102,7 @@ def __get_user_name_from_uid__(uid):
 def __log__(
 	format_pattern = '',
 	abs_path_fields = [],
+	length_fields = [],
 	uid_fields = [],
 	gid_fields = [],
 	is_generator = False
@@ -123,6 +124,11 @@ def __log__(
 					func_args_format[item] = self._full_path(func_args_format[item])
 				elif isinstance(item, str):
 					func_kwargs_format[item] = self._full_path(func_kwargs_format[item])
+			for item in length_fields:
+				if isinstance(item, int):
+					func_args_format[item] = len(func_args_format[item])
+				elif isinstance(item, str):
+					func_kwargs_format[item] = len(func_kwargs_format[item])
 			for item in uid_fields:
 				if isinstance(item, int):
 					func_args_format[item] = '%s(%d)' % (
@@ -479,8 +485,8 @@ class loggedfs(Operations):
 			f.truncate(length)
 
 
-	@__log__(format_pattern = '{0} {1} {2} {3}')
-	def write(self, path, buf, offset, fh):
+	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
+	def write(self, path, buf, offset, fh): # HACK
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.write(fh, buf)
