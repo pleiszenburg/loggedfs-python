@@ -447,8 +447,11 @@ class loggedfs(Operations):
 		return os.fsync(fh)
 
 
-	@__log__(format_pattern = '{0} {1} {2}')
-	def fsync(self, path, fdatasync, fh):
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def fsync(self, path, fdatasync, fh): # HACK
+
+		# The original LoggedFS has a stub, only:
+		# "This method is optional and can safely be left unimplemented"
 
 		return self.flush(path, fh)
 
