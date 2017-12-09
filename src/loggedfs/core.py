@@ -192,11 +192,10 @@ class loggedfs(Operations):
 			raise FuseOSError(errno.EACCES)
 
 
-	@__log__('{0} {1}')
-	def chmod(self, path, mode):
+	@__log__('{0} to {1}', [0])
+	def chmod(self, path, mode): # HACK
 
-		full_path = self._full_path(path)
-		return os.chmod(full_path, mode)
+		return os.chmod(self._rel_path(path), mode)
 
 
 	@__log__('{0} {1} {2}')
