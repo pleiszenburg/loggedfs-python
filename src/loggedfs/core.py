@@ -435,7 +435,7 @@ class loggedfs(Operations):
 		return fd
 
 
-	@__log__(format_pattern = '{0} {1}')
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def flush(self, path, fh):
 
 		return os.fsync(fh)
