@@ -336,10 +336,10 @@ class loggedfs(Operations):
 		return os.symlink(target, self._full_path(name))
 
 
-	@__log__('{0}')
-	def unlink(self, path):
+	@__log__('{0}', [0])
+	def unlink(self, path): # HACK
 
-		return os.unlink(self._full_path(path))
+		return os.unlink(self._rel_path(path))
 
 
 	@__log__('{0} {1}')
