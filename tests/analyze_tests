@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+
+
+from pprint import pprint as pp
+
+
+def __process_raw_result_item__(in_str):
+
+	lines = in_str.split('\n')
+
+	test_group = lines[0].split('fstest/tests/')[1].split('(')[0].strip()
+	stats = lines[0].split('(Wstat:')[1].split(')')[0]
+	lines[1] = lines[1].replace('Failed tests:', '').replace('Failed test:', '')
+
+	failed_list = []
+
+	for line in lines[1:]:
+
+		if line.startswith('Files=') or line.startswith('Result: ') or line.strip() == '':
+			continue
+
+		line = line.strip()
+		sections = line.split(', ')
+		for section in sections:
+			section_el = [int(el) for el in section.split('-')]
+			if len(section_el) == 1:
+				failed_list.append(int(section_el[0]))
+			else:
+				failed_list += list(range(section_el[0], section_el[1] + 1))
+
+	return {
+		'test_fld': test_group.split('/')[0],
+		'test_file': test_group.split('/')[1],
+		'int_wstat': int(stats.split('Tests')[0].strip()),
+		'int_tests': int(stats.split('Tests:')[1].split('Failed')[0].strip()),
+		'int_failed': int(stats.split('Failed:')[1].strip()),
+		'failed_list': failed_list
+		}
+
+
+def __process_raw_results__(in_str):
+
+	items = in_str.split('-------------------')[1].split('\n/')
+	return [__process_raw_result_item__(item) for item in items if item != '']
+
+
+def __read_file__(filename):
+	f = open(filename, 'r')
+	data = f.read()
+	f.close()
+	return data
+
+
+if __name__ == '__main__':
+
+	test_log_fn = 'test.log'
+	test_results_fn = 'test_results.log'
+	test_errors_fn = 'test_errors.log'
+
+	test_results = __process_raw_results__(__read_file__(test_results_fn))
+	pp(test_results)
