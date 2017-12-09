@@ -468,11 +468,10 @@ class loggedfs(Operations):
 		return os.close(fh)
 
 
-	@__log__(format_pattern = '{0} {1} {2}')
-	def truncate(self, path, length, fh = None):
+	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
+	def truncate(self, path, length, fh = None): # HACK
 
-		full_path = self._full_path(path)
-		with open(full_path, 'r+') as f:
+		with open(self._rel_path(path), 'r+') as f:
 			f.truncate(length)
 
 
