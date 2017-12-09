@@ -30,7 +30,7 @@ fi
 # Remove folder
 if [ -d "$fs_root" ]; then rm -rf $fs_root; fi
 # Remove old log
-rm -f $logfile
+rm -f $log_file
 
 # Create folder for test file system
 mkdir $fs_root
