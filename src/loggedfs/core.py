@@ -109,6 +109,9 @@ def __log__(format_pattern = '', abs_path_fields = [], is_generator = False):
 
 				ret_value = func(self, *func_args, **func_kwargs)
 
+				if not ret_value:
+					raise FuseOSError
+
 				if is_generator:
 					for index, ret_item in enumerate(ret_value):
 						if index + 1 == len(ret_value):
@@ -247,10 +250,17 @@ class loggedfs(Operations):
 		return os.mkdir(self._full_path(path), mode)
 
 
-	@__log__('{0} {1} {2}')
-	def mknod(self, path, mode, dev):
+	@__log__('{0} {1}', [0])
+	def mknod(self, path, mode, dev): # HACK
 
-		return os.mknod(self._full_path(path), mode, dev)
+		rel_path = self._rel_path(path)
+
+		res = os.mknod(rel_path, mode, dev)
+
+		uid, gid, pid = fuse_get_context()
+		os.lchown(rel_path, uid, gid)
+
+		return res
 
 
 	@__log__('{0}', [0], is_generator = True)
