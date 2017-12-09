@@ -104,20 +104,29 @@ def __log__(format_pattern = '', abs_path_fields = [], is_generator = False):
 				])
 
 			try:
+
 				self.logger.info(log_msg % '...')
 				ret_value = func(self, *func_args, **func_kwargs)
-				self.logger.info(log_msg % '\{SUCCESS\}')
+
+				if is_generator:
+					for index, ret_item in enumerate(ret_value):
+						if index + 1 == len(ret_value):
+							self.logger.info(log_msg % '\{SUCCESS\}')
+						yield ret_item
+				else:
+					self.logger.info(log_msg % '\{SUCCESS\}')
+					return ret_value
+
 			except FuseOSError:
-				ret_value = None
-				self.logger.error(log_msg % '\{FAILURE\}')
-				raise FuseOSError
-			except:
-				ret_value = None
-				self.logger.exception('Something just went terribly wrong unexpectedly ...')
+
 				self.logger.error(log_msg % '\{FAILURE\}')
 				raise FuseOSError
 
-			return ret_value
+			except:
+
+				self.logger.exception('Something just went terribly wrong unexpectedly ...')
+				self.logger.error(log_msg % '\{FAILURE\}')
+				raise FuseOSError
 
 		return wrapped
 
@@ -251,8 +260,8 @@ class loggedfs(Operations):
 		dirents = ['.', '..']
 		if os.path.isdir(rel_path):
 			dirents.extend(os.listdir(rel_path))
-		for r in dirents:
-			yield r
+
+		return dirents
 
 
 	@__log__('{0}', [0])
