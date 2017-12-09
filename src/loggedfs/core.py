@@ -225,7 +225,7 @@ class loggedfs(Operations):
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def access(self, path, mode): # HACK
+	def access(self, path, mode):
 
 		rel_path = self._rel_path(path)
 		if not os.access(rel_path, mode):
@@ -233,19 +233,19 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0])
-	def chmod(self, path, mode): # HACK
+	def chmod(self, path, mode):
 
 		return os.chmod(self._rel_path(path), mode)
 
 
 	@__log__(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
-	def chown(self, path, uid, gid): # HACK
+	def chown(self, path, uid, gid):
 
 		return os.chown(self._rel_path(path), uid, gid)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def getattr(self, path, fh = None): # HACK
+	def getattr(self, path, fh = None):
 
 		rel_path = self._rel_path(path)
 
@@ -270,14 +270,14 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}')
-	def init(self, path): # HACK
+	def init(self, path):
 
 		os.fchdir(self.root_path_fd)
 		os.close(self.root_path_fd)
 
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
-	def link(self, target_path, source_path): # HACK
+	def link(self, target_path, source_path):
 
 		# TODO Check order of arguments, possible bug in original LoggedFS
 
@@ -300,7 +300,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
-	def mkdir(self, path, mode): # HACK
+	def mkdir(self, path, mode):
 
 		rel_path = self._rel_path(path)
 
@@ -313,7 +313,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
-	def mknod(self, path, mode, dev): # HACK
+	def mknod(self, path, mode, dev):
 
 		rel_path = self._rel_path(path)
 
@@ -326,7 +326,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0], is_generator = True)
-	def readdir(self, path, fh): # HACK
+	def readdir(self, path, fh):
 
 		rel_path = self._rel_path(path)
 
@@ -342,7 +342,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def readlink(self, path): # HACK
+	def readlink(self, path):
 
 		pathname = os.readlink(self._rel_path(path))
 
@@ -353,19 +353,19 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
-	def rename(self, old, new): # HACK
+	def rename(self, old, new):
 
 		return os.rename(self._rel_path(old), self._rel_path(new))
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def rmdir(self, path): # HACK
+	def rmdir(self, path):
 
 		return os.rmdir(self._rel_path(path))
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def statfs(self, path): # HACK
+	def statfs(self, path):
 
 		stv = os.statvfs(self._rel_path(path))
 		return {key: getattr(stv, key) for key in (
@@ -383,7 +383,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = 'from {1} to {0}', abs_path_fields = [1])
-	def symlink(self, target_path, source_path): # HACK
+	def symlink(self, target_path, source_path):
 
 		# TODO Check order of arguments, possible bug in original LoggedFS
 
@@ -405,13 +405,13 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def unlink(self, path): # HACK
+	def unlink(self, path):
 
 		return os.unlink(self._rel_path(path))
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def utimens(self, path, times = None): # HACK
+	def utimens(self, path, times = None):
 
 		return os.utime(self._rel_path(path), times)
 
@@ -421,13 +421,13 @@ class loggedfs(Operations):
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	def open(self, path, flags): # HACK
+	def open(self, path, flags):
 
 		return os.open(self._rel_path(path), flags)
 
 
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	def create(self, path, mode, fi = None): # HACK
+	def create(self, path, mode, fi = None):
 
 		# NOT provided by original LoggedFS
 
@@ -439,7 +439,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def flush(self, path, fh): # HACK
+	def flush(self, path, fh):
 
 		# NOT provided by original LoggedFS
 
@@ -447,7 +447,7 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def fsync(self, path, fdatasync, fh): # HACK
+	def fsync(self, path, fdatasync, fh):
 
 		# The original LoggedFS has a stub, only:
 		# "This method is optional and can safely be left unimplemented"
@@ -456,14 +456,14 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
-	def read(self, path, length, offset, fh): # HACK
+	def read(self, path, length, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.read(fh, length)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def release(self, path, fh): # HACK
+	def release(self, path, fh):
 
 		# The original LoggedFS has a stub, only:
 		# "This method is optional and can safely be left unimplemented"
@@ -472,14 +472,14 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
-	def truncate(self, path, length, fh = None): # HACK
+	def truncate(self, path, length, fh = None):
 
 		with open(self._rel_path(path), 'r+') as f:
 			f.truncate(length)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
-	def write(self, path, buf, offset, fh): # HACK
+	def write(self, path, buf, offset, fh):
 
 		os.lseek(fh, offset, os.SEEK_SET)
 		return os.write(fh, buf)
