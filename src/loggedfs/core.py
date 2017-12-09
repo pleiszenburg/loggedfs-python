@@ -111,10 +111,8 @@ def __get_user_name_from_uid__(uid):
 
 def __log__(
 	format_pattern = '',
-	abs_path_fields = [],
-	length_fields = [],
-	uid_fields = [],
-	gid_fields = []
+	abs_path_fields = [], length_fields = [], uid_fields = [], gid_fields = [],
+	path_filter_field = 0
 	):
 
 	def wrapper(func):
