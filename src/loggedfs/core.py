@@ -425,13 +425,13 @@ class loggedfs(Operations):
 		return os.open(self._rel_path(path), flags)
 
 
-	@__log__(format_pattern = '{0} {1} {2}')
-	def create(self, path, mode, fi = None):
+	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
+	def create(self, path, mode, fi = None): # HACK
 
 		uid, gid, pid = fuse_get_context()
-		full_path = self._full_path(path)
-		fd = os.open(full_path, os.O_WRONLY | os.O_CREAT, mode)
-		os.chown(full_path, uid, gid)
+		rel_path = self._rel_path(path)
+		fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
+		os.chown(rel_path, uid, gid)
 		return fd
 
 
