@@ -115,8 +115,35 @@ def __log__(
 			uid, gid, pid = fuse_get_context()
 			p_cmdname = __get_process_cmdline__(pid)
 
+			func_args_format = func_args.copy()
+			func_kwargs_format = func_kwargs.copy()
+
+			for item in abs_path_fields:
+				if isinstance(item, int):
+					func_args_format[item] = self._full_path(func_args_format[item])
+				elif isinstance(item, str):
+					func_kwargs_format[item] = self._full_path(func_kwargs_format[item])
+			for item in uid_fields:
+				if isinstance(item, int):
+					func_args_format[item] = '%s(%d)' % (
+						__get_user_name_from_uid__(func_args_format[item]), func_args_format[item]
+						)
+				elif isinstance(item, str):
+					func_kwargs_format[item] = '%s(%d)' % (
+						__get_user_name_from_uid__(func_kwargs_format[item]), func_kwargs_format[item]
+						)
+			for item in gid_fields:
+				if isinstance(item, int):
+					func_args_format[item] = '%s(%d)' % (
+						__get_group_name_from_gid__(func_args_format[item]), func_args_format[item]
+						)
+				elif isinstance(item, str):
+					func_kwargs_format[item] = '%s(%d)' % (
+						__get_group_name_from_gid__(func_kwargs_format[item]), func_kwargs_format[item]
+						)
+
 			log_msg = ' '.join([
-				'%s %s' % (func.__name__, format_pattern.format(*func_args, **func_kwargs)),
+				'%s %s' % (func.__name__, format_pattern.format(*func_args_format, **func_kwargs_format)),
 				'%s',
 				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
 				])
