@@ -426,11 +426,10 @@ class loggedfs(Operations):
 # CORE CLASS: File methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@__log__(format_pattern = '{0} {1}')
-	def open(self, path, flags):
+	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
+	def open(self, path, flags): # HACK
 
-		full_path = self._full_path(path)
-		return os.open(full_path, flags)
+		return os.open(self._rel_path(path), flags)
 
 
 	@__log__(format_pattern = '{0} {1} {2}')
