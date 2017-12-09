@@ -369,11 +369,10 @@ class loggedfs(Operations):
 		return os.rmdir(self._rel_path(path))
 
 
-	@__log__(format_pattern = '{0}')
-	def statfs(self, path):
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def statfs(self, path): # HACK
 
-		full_path = self._full_path(path)
-		stv = os.statvfs(full_path)
+		stv = os.statvfs(self._rel_path(path))
 		return {key: getattr(stv, key) for key in (
 			'f_bavail',
 			'f_bfree',
