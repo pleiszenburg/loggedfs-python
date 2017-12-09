@@ -251,7 +251,14 @@ class loggedfs(Operations):
 		# 	def link(self, target, source):
 		# 		'creates a hard link `target -> source` (e.g. ln source target)'
 
-		return os.link(self._rel_path(source_path), self._rel_path(target_path))
+		target_rel_path = self._rel_path(target_path)
+
+		res = os.link(self._rel_path(source_path), target_rel_path)
+
+		uid, gid, pid = fuse_get_context()
+		os.lchown(target_rel_path, uid, gid)
+
+		return res
 
 
 	@__log__('{0} {1}', [0])
@@ -350,7 +357,14 @@ class loggedfs(Operations):
 		# 	def symlink(self, target, source):
 		# 		'creates a symlink `target -> source` (e.g. ln -s source target)'
 
-		return os.symlink(source_path, self._rel_path(target_path))
+		target_rel_path = self._rel_path(target_path)
+
+		res = os.symlink(source_path, target_rel_path)
+
+		uid, gid, pid = fuse_get_context()
+		os.lchown(target_rel_path, uid, gid)
+
+		return res
 
 
 	@__log__('{0}', [0])
