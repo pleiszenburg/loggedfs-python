@@ -328,11 +328,19 @@ class loggedfs(Operations):
 			)}
 
 
-	@__log__('{0} {1}')
-	def symlink(self, name, target):
+	@__log__('from {1} to {0}', [1])
+	def symlink(self, target_path, source_path): # HACK
 
 		# TODO Check order of arguments, possible bug in original LoggedFS
-		return os.symlink(target, self._full_path(name))
+
+		# PYTHON:
+		# 	os.symlink(src, dst, target_is_directory=False, *, dir_fd=None)
+		# 	Create a symbolic link pointing to src named dst.
+		# FUSEPY:
+		# 	def symlink(self, target, source):
+		# 		'creates a symlink `target -> source` (e.g. ln -s source target)'
+
+		return os.symlink(source_path, self._rel_path(target_path))
 
 
 	@__log__('{0}', [0])
