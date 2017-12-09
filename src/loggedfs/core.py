@@ -244,10 +244,17 @@ class loggedfs(Operations):
 		return os.link(self._full_path(name), self._full_path(target))
 
 
-	@__log__('{0} {1}')
-	def mkdir(self, path, mode):
+	@__log__('{0} {1}', [0])
+	def mkdir(self, path, mode): # HACK
 
-		return os.mkdir(self._full_path(path), mode)
+		rel_path = self._rel_path(path)
+
+		res = os.mkdir(rel_path, mode)
+
+		uid, gid, pid = fuse_get_context()
+		os.lchown(rel_path, uid, gid)
+
+		return res
 
 
 	@__log__('{0} {1}', [0])
