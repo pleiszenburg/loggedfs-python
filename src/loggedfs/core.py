@@ -297,10 +297,10 @@ class loggedfs(Operations):
 			return pathname
 
 
-	@__log__('{0} {1}')
-	def rename(self, old, new):
+	@__log__('{0} to {1}', [0, 1])
+	def rename(self, old, new): # HACK
 
-		return os.rename(self._full_path(old), self._full_path(new))
+		return os.rename(self._rel_path(old), self._rel_path(new))
 
 
 	@__log__('{0}', [0])
