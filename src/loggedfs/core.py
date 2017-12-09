@@ -214,7 +214,8 @@ class loggedfs(Operations):
 		return path
 
 
-	def _rel_path(self, partial_path):
+	@staticmethod
+	def _rel_path(partial_path):
 
 		return '.' + partial_path
 
