@@ -428,6 +428,8 @@ class loggedfs(Operations):
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
 	def create(self, path, mode, fi = None): # HACK
 
+		# NOT provided by original LoggedFS
+
 		uid, gid, pid = fuse_get_context()
 		rel_path = self._rel_path(path)
 		fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
@@ -436,7 +438,9 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def flush(self, path, fh):
+	def flush(self, path, fh): # HACK
+
+		# NOT provided by original LoggedFS
 
 		return os.fsync(fh)
 
