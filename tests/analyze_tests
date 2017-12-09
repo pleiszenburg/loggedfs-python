@@ -39,7 +39,7 @@ def __process_raw_result_item__(in_str):
 		for section in sections:
 			section_el = [int(el) for el in section.split('-')]
 			if len(section_el) == 1:
-				failed_list.append(int(section_el[0]))
+				failed_list.append(section_el[0])
 			else:
 				failed_list += list(range(section_el[0], section_el[1] + 1))
 
