@@ -87,7 +87,7 @@ def __get_process_cmdline__(pid):
 		return ''
 
 
-def __log__(format_pattern = ''):
+def __log__(format_pattern = '', abs_path_fields = []):
 
 	def wrapper(func):
 
@@ -171,11 +171,11 @@ class loggedfs(Operations):
 # CORE CLASS: Filesystem methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@__log__('{0} {1}')
-	def access(self, path, mode):
+	@__log__('{0}', [0])
+	def access(self, path, mode): # HACK
 
-		full_path = self._full_path(path)
-		if not os.access(full_path, mode):
+		rel_path = self._rel_path(path)
+		if not os.access(rel_path, mode):
 			raise FuseOSError(errno.EACCES)
 
 
@@ -193,26 +193,33 @@ class loggedfs(Operations):
 		return os.chown(full_path, uid, gid)
 
 
-	@__log__('{0} {1}')
-	def getattr(self, path, fh = None):
+	@__log__('{0}', [0])
+	def getattr(self, path, fh = None): # HACK
 
 		rel_path = self._rel_path(path)
-		st = os.lstat(rel_path)
-		return {key: getattr(st, key) for key in (
-			'st_atime',
-			'st_blocks',
-			'st_ctime',
-			'st_gid',
-			'st_mode',
-			'st_mtime',
-			'st_nlink',
-			'st_size',
-			'st_uid'
-			)}
+
+		try:
+
+			st = os.lstat(rel_path)
+			return {key: getattr(st, key) for key in (
+				'st_atime',
+				'st_blocks',
+				'st_ctime',
+				'st_gid',
+				'st_mode',
+				'st_mtime',
+				'st_nlink',
+				'st_size',
+				'st_uid'
+				)}
+
+		except (FileNotFoundError, OSError):
+
+			raise FuseOSError
 
 
 	@__log__('{0}')
-	def init(self, path):
+	def init(self, path): # HACK
 
 		os.fchdir(self.root_path_fd)
 		os.close(self.root_path_fd)
