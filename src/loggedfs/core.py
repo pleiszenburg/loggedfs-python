@@ -107,10 +107,14 @@ def __log__(format_pattern = ''):
 				self.logger.info(log_msg % '...')
 				ret_value = func(self, *func_args, **func_kwargs)
 				self.logger.info(log_msg % '\{SUCCESS\}')
-			except:
+			except FuseOSError:
 				ret_value = None
 				self.logger.error(log_msg % '\{FAILURE\}')
-				self.logger.exception('Something just went terribly wrong ...')
+				raise FuseOSError
+			except:
+				ret_value = None
+				self.logger.exception('Something just went terribly wrong unexpectedly ...')
+				self.logger.error(log_msg % '\{FAILURE\}')
 				raise FuseOSError
 
 			return ret_value
