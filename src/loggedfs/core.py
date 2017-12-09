@@ -106,6 +106,7 @@ def __log__(format_pattern = '', abs_path_fields = [], is_generator = False):
 			try:
 
 				self.logger.info(log_msg % '...')
+
 				ret_value = func(self, *func_args, **func_kwargs)
 
 				if is_generator:
