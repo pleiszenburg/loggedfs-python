@@ -87,7 +87,7 @@ def __get_process_cmdline__(pid):
 		return ''
 
 
-def __log__(format_pattern = '', abs_path_fields = []):
+def __log__(format_pattern = '', abs_path_fields = [], is_generator = False):
 
 	def wrapper(func):
 
@@ -243,7 +243,7 @@ class loggedfs(Operations):
 		return os.mknod(self._full_path(path), mode, dev)
 
 
-	@__log__('{0}', [0])
+	@__log__('{0}', [0], is_generator = True)
 	def readdir(self, path, fh): # HACK
 
 		rel_path = self._rel_path(path)
