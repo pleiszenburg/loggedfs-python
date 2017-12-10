@@ -56,6 +56,12 @@ install: make install
 # command to run tests
 script: make test
 
+# Show some logs ...
+after_script:
+  - cat tests/test_loggedfs.log
+  - cat tests/test_loggedfs_out.log
+  - cat tests/test_loggedfs_err.log
+
 # Notify developers
 notifications:
   email:

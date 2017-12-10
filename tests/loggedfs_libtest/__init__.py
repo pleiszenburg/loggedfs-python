@@ -54,6 +54,8 @@ TEST_MOUNT_PATH = 'loggedfs_mount'
 
 TEST_CFG_FN = 'test_loggedfs_cfg.xml' # TODO unused
 TEST_LOG_FN = 'test_loggedfs.log'
+TEST_LOGGEDFS_OUT_FN = 'test_loggedfs_out.log'
+TEST_LOGGEDFS_ERR_FN = 'test_loggedfs_err.log'
 TEST_RESULTS_FN = 'test_fstest_results.log'
 TEST_ERRORS_FN = 'test_fstest_errors.log'
 TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
@@ -85,7 +87,11 @@ def run_fstest():
 	__pre_test_cleanup_logfiles__(test_root_abs_path)
 	os.mkdir(test_mount_abs_path)
 
-	loggedfs_status = __mount_loggedfs_python__(test_mount_abs_path, os.path.join(test_root_abs_path, TEST_LOG_FN))
+	loggedfs_status, loggedfs_out, loggedfs_err = __mount_loggedfs_python__(
+		test_mount_abs_path, os.path.join(test_root_abs_path, TEST_LOG_FN)
+		)
+	__write_file__(os.path.join(test_root_abs_path, TEST_LOGGEDFS_OUT_FN), loggedfs_out)
+	__write_file__(os.path.join(test_root_abs_path, TEST_LOGGEDFS_ERR_FN), loggedfs_err)
 	assert loggedfs_status
 	assert __is_path_mountpoint__(test_mount_abs_path)
 
