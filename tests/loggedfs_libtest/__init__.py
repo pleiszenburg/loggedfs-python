@@ -264,14 +264,14 @@ def __process_raw_results__(in_str):
 # ROUTINES: I/O
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def __dump_yaml__(filename, data):
+def dump_yaml(filename, data):
 
 	f = open(filename, 'w+')
 	dump(data, f, Dumper = Dumper, default_flow_style = False)
 	f.close()
 
 
-def __load_yaml__(filename):
+def load_yaml(filename):
 
 	f = open(filename, 'r')
 	data = load(f)
