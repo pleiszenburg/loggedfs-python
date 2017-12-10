@@ -31,7 +31,7 @@ specific language governing rights and limitations under the License.
 
 from pprint import pprint as pp
 
-from libtest import get_results
+from loggedfs_libtest import get_results
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
