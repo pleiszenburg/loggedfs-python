@@ -225,6 +225,7 @@ def compare_results(old_results, new_results):
 		'new_dict': {key: old_results_keys[val] for key in new_keys}
 		}
 
+
 def compile_stats(in_dict):
 
 	tests_total = 0
