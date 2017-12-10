@@ -1,3 +1,13 @@
+.. |build_master| image:: https://img.shields.io/travis/pleiszenburg/loggedfs-python/master.svg?style=flat-square
+	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
+	:alt: Build Status: master / release
+
+.. |build_develop| image:: https://img.shields.io/travis/pleiszenburg/loggedfs-python/develop.svg?style=flat-square
+	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
+	:alt: Build Status: development branch
+
+|build_master| |build_develop|
+
 LoggedFS-python - Filesystem monitoring with Fuse and Python
 ============================================================
 
@@ -7,7 +17,7 @@ NOTABLY:
 
 * LOG FILTER RULES ARE NOT PARSED AND THEREFORE BEING IGNORED.
 * CLI SWITCHES ARE NEITHER FULLY IMPLEMENTED NOR TESTED. EDGE CASES ...
-* SYSTEMATIC TESTING OF FUSE ROUTINES HAS YET NOT BEEN DONE OR IMPLEMENTED.
+* SYSTEMATIC TESTING OF FUSE ROUTINES HAS STARTED ... MANY ISSUES ...
 * SOME ACTIONS CAN THROW PLAIN WRONG ERRORS.
 
 KNOWN 'WORKING' CONFIGURATION: ``loggedfs -p -f -l logfile directory``

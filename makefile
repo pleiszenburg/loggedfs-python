@@ -41,11 +41,20 @@ upload_test:
 
 install:
 	pip install --process-dependency-links .[dev]
+	make install_fstest
 
 install_link:
 	pip install --process-dependency-links -e .[dev]
+	make install_fstest
+
+install_fstest:
+	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fstest()'
 
 test:
-	make docu
+	# make docu
 	-rm tests/__pycache__/*.pyc
+	-rm tests/loggedfs_libtest/__pycache__/*.pyc
 	pytest
+
+test_freeze:
+	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.freeze_results()'

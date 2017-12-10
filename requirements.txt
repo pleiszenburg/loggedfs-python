@@ -1,2 +1,2 @@
 --index-url https://pypi.python.org/simple/
---process-dependency-links -e .[dev]
+-e .[dev]
