@@ -4,19 +4,32 @@
 from pprint import pprint as pp
 
 
-def __compile_stats__(in_list):
+def __compile_stats__(in_dict):
 
 	tests_total = 0
 	tests_failed = 0
 
-	for item in in_list:
-		tests_total += item['int_tests']
-		tests_failed += item['int_failed']
+	for item_key in in_dict.keys():
+		tests_total += 1
+		if not in_dict[item_key]:
+			tests_failed += 1
 
 	return {
 		'int_tests': tests_total,
 		'int_failed': tests_failed
 		}
+
+
+def __process_dict_result__(in_dict):
+
+	ret_list = []
+	for test_item in range(1, in_dict['int_tests'] + 1):
+		ret_list.append((
+			'%s/%s:%d' % (in_dict['test_fld'], in_dict['test_file'], test_item),
+			test_item not in in_dict['failed_list']
+			))
+
+	return ret_list
 
 
 def __process_raw_result_item__(in_str):
@@ -43,10 +56,12 @@ def __process_raw_result_item__(in_str):
 			else:
 				failed_list += list(range(section_el[0], section_el[1] + 1))
 
+	wstat = int(stats.split('Tests')[0].strip())
+	assert wstat == 0 # No sure what this value says ... usually 0, so raise an error if not
+
 	return {
 		'test_fld': test_group.split('/')[0],
 		'test_file': test_group.split('/')[1],
-		'int_wstat': int(stats.split('Tests')[0].strip()),
 		'int_tests': int(stats.split('Tests:')[1].split('Failed')[0].strip()),
 		'int_failed': int(stats.split('Failed:')[1].strip()),
 		'failed_list': failed_list
@@ -56,7 +71,13 @@ def __process_raw_result_item__(in_str):
 def __process_raw_results__(in_str):
 
 	items = in_str.split('-------------------')[1].split('\n/')
-	return [__process_raw_result_item__(item) for item in items if item != '']
+	items = [__process_raw_result_item__(item) for item in items if item != '']
+
+	tuple_items = []
+	for item in items:
+		tuple_items += __process_dict_result__(item)
+
+	return {key: value for (key, value) in tuple_items}
 
 
 def __read_file__(filename):
