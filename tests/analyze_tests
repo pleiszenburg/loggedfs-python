@@ -20,7 +20,7 @@ def __compile_stats__(in_dict):
 		}
 
 
-def __process_dict_result__(in_dict):
+def __process_dict_result_fail__(in_dict):
 
 	ret_list = []
 	for test_item in range(1, in_dict['int_tests'] + 1):
@@ -32,7 +32,7 @@ def __process_dict_result__(in_dict):
 	return ret_list
 
 
-def __process_raw_result_item__(in_str):
+def __process_raw_result_item_fail__(in_str):
 
 	lines = in_str.split('\n')
 
@@ -68,16 +68,23 @@ def __process_raw_result_item__(in_str):
 		}
 
 
-def __process_raw_results__(in_str):
+def __process_raw_results_fail__(in_str):
 
 	items = in_str.split('-------------------')[1].split('\n/')
-	items = [__process_raw_result_item__(item) for item in items if item != '']
+	items = [__process_raw_result_item_fail__(item) for item in items if item != '']
 
 	tuple_items = []
 	for item in items:
-		tuple_items += __process_dict_result__(item)
+		tuple_items += __process_dict_result_fail__(item)
 
 	return {key: value for (key, value) in tuple_items}
+
+
+def __process_raw_results_pass__(in_str):
+
+
+
+	return {}
 
 
 def __read_file__(filename):
@@ -94,6 +101,9 @@ if __name__ == '__main__':
 	test_results_fn = 'test_results.log'
 	test_errors_fn = 'test_errors.log'
 
-	test_results = __process_raw_results__(__read_file__(test_results_fn))
+	test_results_raw_log = __read_file__(test_results_fn)
+	test_results = __process_raw_results_fail__(test_results_raw_log)
+	test_results.update(__process_raw_results_pass__(test_results_raw_log))
+
 	pp(test_results)
 	pp(__compile_stats__(test_results))
