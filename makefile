@@ -48,9 +48,7 @@ install_link:
 	make install_fstest
 
 install_fstest:
-	git clone https://github.com/zfsonlinux/fstest.git tests/fstest
-	sed -i -e 's/\"ZFS\"/\"ext3\"/g' tests/fstest/tests/conf
-	@(cd tests/fstest; make fstest)
+	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fstest()'
 
 test:
 	# make docu

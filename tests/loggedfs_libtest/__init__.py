@@ -42,6 +42,8 @@ import subprocess
 TEST_ROOT_PATH = 'tests'
 
 TEST_FSTEST_PATH = 'fstest'
+TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
+TEST_FSTEST_MAKE_SUBPATH = 'Makefile'
 TEST_MOUNT_PATH = 'loggedfs_mount'
 
 TEST_CFG_FN = 'test_loggedfs_cfg.xml' # TODO unused
@@ -53,6 +55,15 @@ TEST_ERRORS_FN = 'test_fstest_errors.log'
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES: FSTEST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def install_fstest():
+
+	install_path = os.path.join(TEST_ROOT_PATH, TEST_FSTEST_PATH)
+	if os.path.isdir(install_path):
+		shutil.rmtree(install_path, ignore_errors = True)
+	__run_command__(['git', 'clone', 'https://github.com/zfsonlinux/fstest.git', install_path])
+	__build_fstest__(install_path)
+
 
 def run_fstest():
 
@@ -80,6 +91,29 @@ def run_fstest():
 	assert not __is_path_mountpoint__(test_mount_abs_path)
 
 	os.chdir('..') # return to project root
+
+
+def __build_fstest__(abs_in_path, filesystem = 'ext3'):
+
+	old_path = os.getcwd()
+	os.chdir(abs_in_path)
+
+	fstest_conf = __read_file__(TEST_FSTEST_CONF_SUBPATH).split('\n')
+	for index, line in enumerate(fstest_conf):
+		if line.startswith('fs='):
+			fstest_conf[index] = 'fs="%s"' % filesystem
+			break
+	__write_file__(TEST_FSTEST_CONF_SUBPATH, '\n'.join(fstest_conf))
+
+	# ftest_make = __read_file__(TEST_FSTEST_MAKE_SUBPATH)
+	# __write_file__(TEST_FSTEST_MAKE_SUBPATH, ftest_make.replace('#CFLAGS', 'CFLAGS'))
+
+	__run_command__(['make', 'clean'])
+	build_status, out, err = __run_command__(['make', 'fstest'], return_output = True)
+	print(build_status, out, err)
+	assert build_status
+
+	os.chdir(old_path)
 
 
 def __is_path_mountpoint__(in_abs_path):
