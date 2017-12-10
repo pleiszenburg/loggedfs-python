@@ -32,8 +32,9 @@ specific language governing rights and limitations under the License.
 from pprint import pprint as pp
 
 from loggedfs_libtest import (
-	get_results,
-	run_fstest
+	get_processed_results,
+	run_fstest,
+	store_results
 	)
 
 
@@ -44,4 +45,4 @@ from loggedfs_libtest import (
 def test_fstest_run():
 
 	run_fstest()
-	pp(get_results())
+	store_results(get_processed_results())

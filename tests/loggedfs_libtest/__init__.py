@@ -56,6 +56,8 @@ TEST_CFG_FN = 'test_loggedfs_cfg.xml' # TODO unused
 TEST_LOG_FN = 'test_loggedfs.log'
 TEST_RESULTS_FN = 'test_fstest_results.log'
 TEST_ERRORS_FN = 'test_fstest_errors.log'
+TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
+TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -242,10 +244,15 @@ def compile_stats(in_dict):
 		}
 
 
-def get_results():
+def get_processed_results():
 
 	test_results_raw_log = __read_file__(os.path.join(TEST_ROOT_PATH, TEST_RESULTS_FN))
 	return __process_raw_results__(test_results_raw_log)
+
+
+def store_results(in_dict):
+
+	__dump_yaml__(os.path.join(TEST_ROOT_PATH, TEST_STATUS_CURRENT_FN), in_dict)
 
 
 def __process_raw_results__(in_str):
@@ -291,14 +298,14 @@ def __process_raw_results__(in_str):
 # ROUTINES: I/O
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def dump_yaml(filename, data):
+def __dump_yaml__(filename, data):
 
 	f = open(filename, 'w+')
 	dump(data, f, Dumper = Dumper, default_flow_style = False)
 	f.close()
 
 
-def load_yaml(filename):
+def __load_yaml__(filename):
 
 	f = open(filename, 'r')
 	data = load(f)
