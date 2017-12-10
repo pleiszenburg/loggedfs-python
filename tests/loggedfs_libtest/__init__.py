@@ -34,6 +34,12 @@ from pprint import pprint as pp
 import shutil
 import subprocess
 
+from yaml import load, dump
+try:
+	from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+	from yaml import Loader, Dumper
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CONST
@@ -257,6 +263,21 @@ def __process_raw_results__(in_str):
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES: I/O
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def __dump_yaml__(filename, data):
+
+	f = open(filename, 'w+')
+	dump(data, f, Dumper = Dumper, default_flow_style = False)
+	f.close()
+
+
+def __load_yaml__(filename):
+
+	f = open(filename, 'r')
+	data = load(f)
+	f.close()
+	return data
+
 
 def __read_file__(filename):
 
