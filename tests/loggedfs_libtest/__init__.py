@@ -251,7 +251,7 @@ def get_processed_results():
 	return __process_raw_results__(test_results_raw_log)
 
 
-def freeze_results(auto_commit = True):
+def freeze_results(auto_commit = False):
 
 	current_path = os.path.join(TEST_ROOT_PATH, TEST_STATUS_CURRENT_FN)
 	frozen_path = os.path.join(TEST_ROOT_PATH, TEST_STATUS_FROZEN_FN)
@@ -263,8 +263,7 @@ def freeze_results(auto_commit = True):
 	shutil.copyfile(current_path, frozen_path)
 
 	if auto_commit:
-		commit_status, out, err = __run_command__(['git', 'commit', '-am', 'TEST_FREEZE'], return_output = True)
-		print(commit_status, out, err)
+		commit_status = __run_command__(['git', 'commit', '-am', 'TEST_FREEZE'])
 		assert commit_status
 
 
