@@ -251,6 +251,22 @@ def get_processed_results():
 	return __process_raw_results__(test_results_raw_log)
 
 
+def freeze_results(auto_commit = True):
+
+	current_path = os.path.join(TEST_ROOT_PATH, TEST_STATUS_CURRENT_FN)
+	frozen_path = os.path.join(TEST_ROOT_PATH, TEST_STATUS_FROZEN_FN)
+
+	if not os.path.isfile(current_path):
+		raise
+	if os.path.isfile(frozen_path):
+		os.remove(frozen_path)
+	shutil.copyfile(current_path, frozen_path)
+
+	if auto_commit:
+		commit_status = __run_command__(['git', 'commit', '-am', 'TEST_FREEZE'])
+		assert commit_status
+
+
 def load_results(filename):
 
 	return __load_yaml__(os.path.join(TEST_ROOT_PATH, filename))
