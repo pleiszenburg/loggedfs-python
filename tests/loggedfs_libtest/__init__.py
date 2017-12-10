@@ -56,8 +56,9 @@ TEST_CFG_FN = 'test_loggedfs_cfg.xml' # TODO unused
 TEST_LOG_FN = 'test_loggedfs.log'
 TEST_RESULTS_FN = 'test_fstest_results.log'
 TEST_ERRORS_FN = 'test_fstest_errors.log'
-TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
 TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
+TEST_STATUS_DIFF_FN = 'test_status_diff.yaml'
+TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -250,9 +251,14 @@ def get_processed_results():
 	return __process_raw_results__(test_results_raw_log)
 
 
-def store_results(in_dict):
+def load_results(filename):
 
-	__dump_yaml__(os.path.join(TEST_ROOT_PATH, TEST_STATUS_CURRENT_FN), in_dict)
+	return __load_yaml__(os.path.join(TEST_ROOT_PATH, filename))
+
+
+def store_results(in_dict, filename):
+
+	__dump_yaml__(os.path.join(TEST_ROOT_PATH, filename), in_dict)
 
 
 def __process_raw_results__(in_str):

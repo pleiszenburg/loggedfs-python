@@ -32,7 +32,12 @@ specific language governing rights and limitations under the License.
 from pprint import pprint as pp
 
 from loggedfs_libtest import (
+	TEST_STATUS_CURRENT_FN,
+	TEST_STATUS_DIFF_FN,
+	TEST_STATUS_FROZEN_FN,
+	compare_results,
 	get_processed_results,
+	load_results,
 	run_fstest,
 	store_results
 	)
@@ -45,4 +50,11 @@ from loggedfs_libtest import (
 def test_fstest_run():
 
 	run_fstest()
-	store_results(get_processed_results())
+	processed_results = get_processed_results()
+	store_results(processed_results, TEST_STATUS_CURRENT_FN)
+	frozen_results = load_results(TEST_STATUS_FROZEN_FN)
+	result_diff = compare_results(frozen_results, processed_results)
+	store_results(result_diff, TEST_STATUS_DIFF_FN)
+
+	assert len(result_diff['ch_to_fail_set']) == 0
+	assert len(result_diff['dropped_dict'].keys()) == 0
