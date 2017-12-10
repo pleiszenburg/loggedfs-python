@@ -29,12 +29,15 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import os
 from pprint import pprint as pp
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CONST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+TEST_ROOT_PATH = 'tests'
 
 TEST_LOG_FN = 'test.log'
 TEST_RESULTS_FN = 'test_results.log'
@@ -63,7 +66,7 @@ def compile_stats(in_dict):
 
 def get_results():
 
-	test_results_raw_log = __read_file__(TEST_RESULTS_FN)
+	test_results_raw_log = __read_file__(os.path.join(TEST_ROOT_PATH, TEST_RESULTS_FN))
 	return __process_raw_results__(test_results_raw_log)
 
 
