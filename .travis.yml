@@ -22,7 +22,7 @@
 # Check this file at:
 # http://lint.travis-ci.org/
 
-# A virtual machine is not required ... - is it?
+# A virtual machine is not required ... is it?
 sudo: false
 
 # Go for more 'recent' version of Ubuntu
