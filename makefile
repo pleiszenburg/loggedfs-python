@@ -53,7 +53,7 @@ install_fstest:
 	@(cd tests/fstest; make fstest)
 
 test:
-	@(cd tests;./run_tests)
 	# make docu
-	# -rm tests/__pycache__/*.pyc
-	# pytest
+	-rm tests/__pycache__/*.pyc
+	-rm tests/lib/__pycache__/*.pyc
+	pytest
