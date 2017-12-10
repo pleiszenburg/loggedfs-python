@@ -199,6 +199,32 @@ def __umount_fuse__(in_abs_path):
 # ROUTINES: FSTEST ANALYSIS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def compare_results(old_results, new_results):
+
+	old_results_keys = set(old_results.keys())
+	new_results_keys = set(new_results.keys())
+	common_keys = old_results_keys & new_results_keys
+
+	dropped_keys = old_results_keys - common_keys
+	new_keys = new_results_keys - common_keys
+
+	ch_to_fail = {}
+	ch_to_pass = {}
+	for key in common_keys:
+		if old_results[key] == new_results[key]:
+			continue
+		if new_results[key]:
+			ch_to_pass.add(key)
+		else:
+			ch_to_fail.add(key)
+
+	return {
+		'ch_to_fail_set': ch_to_pass,
+		'ch_to_pass_set': ch_to_fail,
+		'dropped_dict': {key: old_results_keys[val] for key in dropped_keys},
+		'new_dict': {key: old_results_keys[val] for key in new_keys}
+		}
+
 def compile_stats(in_dict):
 
 	tests_total = 0
