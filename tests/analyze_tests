@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import os
 from pprint import pprint as pp
 
 
@@ -82,9 +83,35 @@ def __process_raw_results_fail__(in_str):
 
 def __process_raw_results_pass__(in_str):
 
+	lines = in_str.split('Test Summary Report')[0].split('\n')
+	tuple_items = []
 
+	for line in lines:
 
-	return {}
+		line = line.strip()
+		if not line.endswith(' ok'):
+			continue
+
+		test_path = line.split('fstest/tests/')[1].split(' ')[0]
+		test_file_raw = __read_file__(os.path.join('fstest/tests', test_path))
+		test_file_lines = test_file_raw.split('\n')
+
+		for test_line in test_file_lines:
+
+			if test_line.startswith('echo '):
+
+				test_range = [int(el) for el in test_line.split('"')[1].split('..')]
+				for index in range(test_range[0], test_range[1] + 1):
+					tuple_items.append((
+						'%s:%d' % (test_path, index), True
+						))
+
+				break
+
+			if test_line.strip().startswith('echo '):
+				break # Likely only relevant for FreeBSD/UFS
+
+	return {key: value for (key, value) in tuple_items}
 
 
 def __read_file__(filename):
