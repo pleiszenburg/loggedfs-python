@@ -42,7 +42,7 @@ import subprocess
 TEST_ROOT_PATH = 'tests'
 
 TEST_FSTEST_PATH = 'fstest'
-TEST_MOUNT_PATH = 'loggedfs_test_root'
+TEST_MOUNT_PATH = 'loggedfs_mount'
 
 TEST_CFG_FN = 'test.xml' # TODO unused
 TEST_LOG_FN = 'test.log'
