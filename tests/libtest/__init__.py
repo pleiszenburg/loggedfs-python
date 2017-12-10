@@ -33,10 +33,19 @@ from pprint import pprint as pp
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES
+# CONST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def __compile_stats__(in_dict):
+TEST_LOG_FN = 'test.log'
+TEST_RESULTS_FN = 'test_results.log'
+TEST_ERRORS_FN = 'test_errors.log'
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES: FSTEST ANALYSIS
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def compile_stats(in_dict):
 
 	tests_total = 0
 	tests_failed = 0
@@ -50,6 +59,12 @@ def __compile_stats__(in_dict):
 		'int_tests': tests_total,
 		'int_failed': tests_failed
 		}
+
+
+def get_results():
+
+	test_results_raw_log = __read_file__(TEST_RESULTS_FN)
+	return __process_raw_results__(test_results_raw_log)
 
 
 def __process_raw_results__(in_str):
@@ -91,22 +106,13 @@ def __process_raw_results__(in_str):
 	return ret_dict
 
 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES: I/O
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 def __read_file__(filename):
 
 	f = open(filename, 'r')
 	data = f.read()
 	f.close()
 	return data
-
-
-if __name__ == '__main__':
-
-	test_log_fn = 'test.log'
-	test_results_fn = 'test_results.log'
-	test_errors_fn = 'test_errors.log'
-
-	test_results_raw_log = __read_file__(test_results_fn)
-	test_results = __process_raw_results__(test_results_raw_log)
-
-	pp(test_results)
-	pp(__compile_stats__(test_results))
