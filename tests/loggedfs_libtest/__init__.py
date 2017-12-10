@@ -31,6 +31,8 @@ specific language governing rights and limitations under the License.
 
 import os
 from pprint import pprint as pp
+import shutil
+import subprocess
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,9 +41,118 @@ from pprint import pprint as pp
 
 TEST_ROOT_PATH = 'tests'
 
+TEST_FSTEST_PATH = 'fstest'
+TEST_MOUNT_PATH = 'loggedfs_test_root'
+
+TEST_CFG_FN = 'test.xml' # TODO unused
 TEST_LOG_FN = 'test.log'
 TEST_RESULTS_FN = 'test_results.log'
 TEST_ERRORS_FN = 'test_errors.log'
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES: FSTEST
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def run_fstest():
+
+	os.chdir(TEST_ROOT_PATH) # tests usually run from project root
+
+	test_root_abs_path = os.path.abspath(os.getcwd())
+	test_mount_abs_path = os.path.join(test_root_abs_path, TEST_MOUNT_PATH)
+
+	__pre_test_cleanup_mountpoint__(test_mount_abs_path)
+	__pre_test_cleanup_logfiles__(test_root_abs_path)
+	os.mkdir(test_mount_abs_path)
+
+	loggedfs_status = __mount_loggedfs_python__(test_mount_abs_path, os.path.join(test_root_abs_path, TEST_LOG_FN))
+	assert loggedfs_status
+	assert __is_path_mountpoint__(test_mount_abs_path)
+
+	prove_status, prove_out, prove_err = __run_fstest__(
+		os.path.join(test_root_abs_path, TEST_FSTEST_PATH), test_mount_abs_path
+		)
+	__write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
+	__write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
+
+	umount_fuse_status = __umount_fuse__(test_mount_abs_path)
+	assert umount_fuse_status
+	assert not __is_path_mountpoint__(test_mount_abs_path)
+
+	os.chdir('..') # return to project root
+
+
+def __is_path_mountpoint__(in_abs_path):
+
+	return __run_command__(['mountpoint', '-q', in_abs_path])
+
+
+def __mount_loggedfs_python__(in_abs_path, logfile):
+
+	return __run_command__(['loggedfs', '-l', logfile, in_abs_path])
+
+
+def __pre_test_cleanup_logfiles__(in_abs_path):
+
+	for filename in [TEST_LOG_FN, TEST_RESULTS_FN, TEST_ERRORS_FN]:
+		try:
+			os.remove(os.path.join(in_abs_path, filename))
+		except FileNotFoundError:
+			pass
+
+
+def __pre_test_cleanup_mountpoint__(in_abs_path):
+
+	if __is_path_mountpoint__(in_abs_path):
+		umount_status = __umount__(in_abs_path, sudo = True, force = True)
+		assert umount_status
+
+	if os.path.isdir(in_abs_path):
+		shutil.rmtree(in_abs_path, ignore_errors = True)
+	assert not os.path.isdir(in_abs_path)
+
+
+def __run_command__(cmd_list, return_output = False):
+
+	proc = subprocess.Popen(
+		cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
+		)
+	outs, errs = proc.communicate()
+
+	if return_output:
+		return (not bool(proc.returncode), outs.decode('utf-8'), errs.decode('utf-8'))
+	return not bool(proc.returncode)
+
+
+def __run_fstest__(abs_test_path, abs_mountpoint_path):
+
+	old_cwd = os.getcwd()
+	os.chdir(abs_mountpoint_path)
+
+	ret_tuple = __run_command__(
+		['prove', '-v', '-r', abs_test_path], return_output = True
+		)
+
+	os.chdir(old_cwd)
+	return ret_tuple
+
+
+def __umount__(in_abs_path, sudo = False, force = False):
+
+	cmd_list = []
+	if sudo:
+		cmd_list.append('sudo')
+	cmd_list.append('umount')
+	if force:
+		cmd_list.append('-f')
+	cmd_list.append(in_abs_path)
+
+	return __run_command__(cmd_list)
+
+
+def __umount_fuse__(in_abs_path):
+
+	return __run_command__(['fusermount', '-u', in_abs_path])
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -119,3 +230,10 @@ def __read_file__(filename):
 	data = f.read()
 	f.close()
 	return data
+
+
+def __write_file__(filename, data):
+
+	f = open(filename, 'w+')
+	f.write(data)
+	f.close()

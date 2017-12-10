@@ -55,5 +55,5 @@ install_fstest:
 test:
 	# make docu
 	-rm tests/__pycache__/*.pyc
-	-rm tests/lib/__pycache__/*.pyc
+	-rm tests/loggedfs_libtest/__pycache__/*.pyc
 	pytest
