@@ -217,8 +217,8 @@ def compare_results(old_results, new_results):
 	dropped_keys = old_results_keys - common_keys
 	new_keys = new_results_keys - common_keys
 
-	ch_to_fail = {}
-	ch_to_pass = {}
+	ch_to_fail = set()
+	ch_to_pass = set()
 	for key in common_keys:
 		if old_results[key] == new_results[key]:
 			continue
