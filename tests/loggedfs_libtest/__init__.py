@@ -138,7 +138,7 @@ def __is_path_mountpoint__(in_abs_path):
 
 def __mount_loggedfs_python__(in_abs_path, logfile):
 
-	return __run_command__(['loggedfs', '-l', logfile, in_abs_path])
+	return __run_command__(['loggedfs', '-l', logfile, in_abs_path], return_output = True)
 
 
 def __pre_test_cleanup_logfiles__(in_abs_path):

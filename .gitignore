@@ -91,6 +91,6 @@ ENV/
 
 # Project specific stuff
 fstest
-loggedfs_test_root
+loggedfs_mount
 test_status_current.yaml
 test_status_diff.yaml
