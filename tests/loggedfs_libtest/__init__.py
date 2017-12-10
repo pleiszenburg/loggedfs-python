@@ -45,9 +45,9 @@ TEST_FSTEST_PATH = 'fstest'
 TEST_MOUNT_PATH = 'loggedfs_mount'
 
 TEST_CFG_FN = 'test.xml' # TODO unused
-TEST_LOG_FN = 'test.log'
-TEST_RESULTS_FN = 'test_results.log'
-TEST_ERRORS_FN = 'test_errors.log'
+TEST_LOG_FN = 'test_loggedfs.log'
+TEST_RESULTS_FN = 'test_fstest_results.log'
+TEST_ERRORS_FN = 'test_fstest_errors.log'
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
