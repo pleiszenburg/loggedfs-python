@@ -55,7 +55,7 @@ echo "$prefix In: \"$(pwd)\""
 # Verbosity
 echo "$prefix \"prove -r ../fstest/tests/\" ..."
 # Run tests
-prove -r $test_root_fullpath/fstest/ > ../test_results.log 2> ../test_errors.log
+prove -v -r $test_root_fullpath/fstest/ > ../test_results.log 2> ../test_errors.log
 if ! [ $? == 0 ]
 then
 	echo "$prefix  ... failed!"
