@@ -22,8 +22,9 @@
 # Check this file at:
 # http://lint.travis-ci.org/
 
-# A virtual machine is not required ... is it?
-sudo: false
+# A virtual machine IS required for loading FUSE kernel module:
+# https://github.com/travis-ci/travis-ci/issues/1100#issuecomment-160169121
+sudo: required
 
 # Go for more 'recent' version of Ubuntu
 dist: trusty
@@ -47,6 +48,9 @@ addons:
 
 # Get debug output
 before_install:
+  - sudo modprobe fuse
+  - sudo chmod 666 /dev/fuse
+  - sudo chown root:$USER /etc/fuse.conf
   - python --version
   - uname -a
 
