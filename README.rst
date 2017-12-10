@@ -1,3 +1,13 @@
+.. |build_master| image:: https://img.shields.io/travis/pleiszenburg/loggedfs-python/master.svg?style=flat-square
+	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
+	:alt: Build Status: master / release
+
+.. |build_develop| image:: https://img.shields.io/travis/pleiszenburg/loggedfs-python/develop.svg?style=flat-square
+	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
+	:alt: Build Status: development branch
+
+|build_master| |build_develop|
+
 LoggedFS-python - Filesystem monitoring with Fuse and Python
 ============================================================
 
