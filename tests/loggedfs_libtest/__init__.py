@@ -263,7 +263,8 @@ def freeze_results(auto_commit = True):
 	shutil.copyfile(current_path, frozen_path)
 
 	if auto_commit:
-		commit_status = __run_command__(['git', 'commit', '-am', 'TEST_FREEZE'])
+		commit_status, out, err = __run_command__(['git', 'commit', '-am', 'TEST_FREEZE'], return_output = True)
+		print(commit_status, out, err)
 		assert commit_status
 
 
