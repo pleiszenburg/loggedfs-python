@@ -228,8 +228,8 @@ def compare_results(old_results, new_results):
 			ch_to_fail.add(key)
 
 	return {
-		'ch_to_fail_set': ch_to_pass,
-		'ch_to_pass_set': ch_to_fail,
+		'ch_to_fail_set': ch_to_fail,
+		'ch_to_pass_set': ch_to_pass,
 		'dropped_dict': {key: old_results_keys[val] for key in dropped_keys},
 		'new_dict': {key: old_results_keys[val] for key in new_keys}
 		}
