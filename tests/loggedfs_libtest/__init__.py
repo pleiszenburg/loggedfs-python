@@ -293,7 +293,9 @@ def __process_raw_results__(in_str):
 		if line == '':
 			break
 
-		if line.startswith('Failed') or line == 'ok':
+		if line.startswith('Failed') or line.startswith('Dubious') or line == 'ok':
+			continue
+		if line.startswith('(') and 'TODO' in line:
 			continue
 
 		if line.startswith('/'):
@@ -306,7 +308,7 @@ def __process_raw_results__(in_str):
 
 		if line.startswith('ok '):
 			res = True
-			msg = ''
+			msg = line
 		elif line.startswith('not ok '):
 			res = False
 			msg = line
