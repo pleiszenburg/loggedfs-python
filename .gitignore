@@ -90,7 +90,7 @@ ENV/
 .ropeproject
 
 # Project specific stuff
-fstest
+pjdfstest
 loggedfs_mount
 test_status_current.yaml
 test_status_diff.yaml
