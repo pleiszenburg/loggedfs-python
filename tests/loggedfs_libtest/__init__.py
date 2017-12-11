@@ -47,7 +47,7 @@ except ImportError:
 
 TEST_ROOT_PATH = 'tests'
 
-TEST_FSTEST_PATH = 'fstest'
+TEST_FSTEST_PATH = 'pjdfstest'
 TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
 TEST_FSTEST_MAKE_SUBPATH = 'Makefile'
 TEST_MOUNT_PATH = 'loggedfs_mount'
@@ -72,7 +72,7 @@ def install_fstest():
 	install_path = os.path.join(TEST_ROOT_PATH, TEST_FSTEST_PATH)
 	if os.path.isdir(install_path):
 		shutil.rmtree(install_path, ignore_errors = True)
-	__run_command__(['git', 'clone', 'https://github.com/zfsonlinux/fstest.git', install_path])
+	__run_command__(['git', 'clone', 'https://github.com/pjd/pjdfstest.git', install_path])
 	__build_fstest__(install_path)
 
 
@@ -108,24 +108,23 @@ def run_fstest():
 	os.chdir('..') # return to project root
 
 
-def __build_fstest__(abs_in_path, filesystem = 'ext3'):
+def __build_fstest__(abs_in_path, filesystem = 'ext4'):
 
 	old_path = os.getcwd()
 	os.chdir(abs_in_path)
 
 	fstest_conf = __read_file__(TEST_FSTEST_CONF_SUBPATH).split('\n')
 	for index, line in enumerate(fstest_conf):
-		if line.startswith('fs='):
+		if line.startswith('fs=') or line.startswith('#fs='):
 			fstest_conf[index] = 'fs="%s"' % filesystem
 			break
 	__write_file__(TEST_FSTEST_CONF_SUBPATH, '\n'.join(fstest_conf))
 
-	# ftest_make = __read_file__(TEST_FSTEST_MAKE_SUBPATH)
-	# __write_file__(TEST_FSTEST_MAKE_SUBPATH, ftest_make.replace('#CFLAGS', 'CFLAGS'))
-
-	__run_command__(['make', 'clean'])
-	build_status, out, err = __run_command__(['make', 'fstest'], return_output = True)
-	print(build_status, out, err)
+	autoreconf_status = __run_command__(['autoreconf', '-ifs'])
+	assert autoreconf_status
+	configure_status = __run_command__(['./configure'])
+	assert configure_status
+	build_status, out, err = __run_command__(['make', 'pjdfstest'], return_output = True)
 	assert build_status
 
 	os.chdir(old_path)
@@ -217,15 +216,15 @@ def compare_results(old_results, new_results):
 	dropped_keys = old_results_keys - common_keys
 	new_keys = new_results_keys - common_keys
 
-	ch_to_fail = set()
+	ch_to_fail = {}
 	ch_to_pass = set()
 	for key in common_keys:
-		if old_results[key] == new_results[key]:
+		if old_results[key][0] == new_results[key][0]:
 			continue
 		if new_results[key]:
 			ch_to_pass.add(key)
 		else:
-			ch_to_fail.add(key)
+			ch_to_fail.update({key: new_results[key][1]})
 
 	return {
 		'ch_to_fail_set': ch_to_fail,
@@ -242,7 +241,7 @@ def compile_stats(in_dict):
 
 	for item_key in in_dict.keys():
 		tests_total += 1
-		if not in_dict[item_key]:
+		if not in_dict[item_key][0]:
 			tests_failed += 1
 
 	return {
@@ -307,16 +306,15 @@ def __process_raw_results__(in_str):
 
 		if line.startswith('ok '):
 			res = True
+			msg = ''
 		elif line.startswith('not ok '):
 			res = False
+			msg = line
 		else:
 			print(current_path, index, line)
 			raise
 
-		if not line.endswith(str(index)):
-			raise
-
-		ret_dict.update({'%s:%d' % (current_path, index): res})
+		ret_dict.update({'%s:%d' % (current_path, index): (res, msg)})
 		index += 1
 
 	return ret_dict
