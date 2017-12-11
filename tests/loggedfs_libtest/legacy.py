@@ -32,51 +32,14 @@ specific language governing rights and limitations under the License.
 import os
 from pprint import pprint as pp
 import shutil
-import subprocess
 
 import pytest
 import tap.parser as tp
-from yaml import load, dump
-try:
-	from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-	from yaml import Loader, Dumper
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CONST
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-TEST_ROOT_PATH = 'tests'
-
-TEST_FSTEST_PATH = 'pjdfstest'
-TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
-TEST_FSTEST_MAKE_SUBPATH = 'Makefile'
-TEST_MOUNT_PATH = 'loggedfs_mount'
-
-TEST_CFG_FN = 'test_loggedfs_cfg.xml' # TODO unused
-TEST_LOG_FN = 'test_loggedfs.log'
-TEST_LOGGEDFS_OUT_FN = 'test_loggedfs_out.log'
-TEST_LOGGEDFS_ERR_FN = 'test_loggedfs_err.log'
-TEST_RESULTS_FN = 'test_fstest_results.log'
-TEST_ERRORS_FN = 'test_fstest_errors.log'
-TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
-TEST_STATUS_DIFF_FN = 'test_status_diff.yaml'
-TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES: FSTEST
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-def install_fstest():
-
-	install_path = os.path.join(TEST_ROOT_PATH, TEST_FSTEST_PATH)
-	if os.path.isdir(install_path):
-		shutil.rmtree(install_path, ignore_errors = True)
-	__run_command__(['git', 'clone', 'https://github.com/pjd/pjdfstest.git', install_path])
-	__build_fstest__(install_path)
-
 
 @pytest.fixture(scope = 'module')
 def loggedfs_mountpoint():
@@ -114,38 +77,6 @@ def loggedfs_mountpoint():
 	os.chdir('..') # return to project root
 
 
-def __build_fstest__(abs_in_path, filesystem = 'ext4'):
-
-	old_path = os.getcwd()
-	os.chdir(abs_in_path)
-
-	fstest_conf = __read_file__(TEST_FSTEST_CONF_SUBPATH).split('\n')
-	for index, line in enumerate(fstest_conf):
-		if line.startswith('fs=') or line.startswith('#fs='):
-			fstest_conf[index] = 'fs="%s"' % filesystem
-			break
-	__write_file__(TEST_FSTEST_CONF_SUBPATH, '\n'.join(fstest_conf))
-
-	autoreconf_status = __run_command__(['autoreconf', '-ifs'])
-	assert autoreconf_status
-	configure_status = __run_command__(['./configure'])
-	assert configure_status
-	build_status, out, err = __run_command__(['make', 'pjdfstest'], return_output = True)
-	assert build_status
-
-	os.chdir(old_path)
-
-
-def __is_path_mountpoint__(in_abs_path):
-
-	return __run_command__(['mountpoint', '-q', in_abs_path])
-
-
-def __mount_loggedfs_python__(in_abs_path, logfile):
-
-	return __run_command__(['loggedfs', '-l', logfile, in_abs_path], return_output = True)
-
-
 def __pre_test_cleanup_logfiles__(in_abs_path):
 
 	for filename in [
@@ -170,18 +101,6 @@ def __pre_test_cleanup_mountpoint__(in_abs_path):
 	assert not os.path.isdir(in_abs_path)
 
 
-def __run_command__(cmd_list, return_output = False):
-
-	proc = subprocess.Popen(
-		cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
-		)
-	outs, errs = proc.communicate()
-
-	if return_output:
-		return (not bool(proc.returncode), outs.decode('utf-8'), errs.decode('utf-8'))
-	return not bool(proc.returncode)
-
-
 # def __run_fstest__(abs_test_path, abs_mountpoint_path):
 #
 # 	old_cwd = os.getcwd()
@@ -193,24 +112,6 @@ def __run_command__(cmd_list, return_output = False):
 #
 # 	os.chdir(old_cwd)
 # 	return ret_tuple
-
-
-def __umount__(in_abs_path, sudo = False, force = False):
-
-	cmd_list = []
-	if sudo:
-		cmd_list.append('sudo')
-	cmd_list.append('umount')
-	if force:
-		cmd_list.append('-f')
-	cmd_list.append(in_abs_path)
-
-	return __run_command__(cmd_list)
-
-
-def __umount_fuse__(in_abs_path):
-
-	return __run_command__(['fusermount', '-u', in_abs_path])
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -282,14 +183,14 @@ def freeze_results(auto_commit = False):
 		assert commit_status
 
 
-def load_results(filename):
-
-	return __load_yaml__(os.path.join(TEST_ROOT_PATH, filename))
-
-
-def store_results(in_dict, filename):
-
-	__dump_yaml__(os.path.join(TEST_ROOT_PATH, filename), in_dict)
+# def load_results(filename):
+#
+# 	return __load_yaml__(os.path.join(TEST_ROOT_PATH, filename))
+#
+#
+# def store_results(in_dict, filename):
+#
+# 	__dump_yaml__(os.path.join(TEST_ROOT_PATH, filename), in_dict)
 
 
 def __process_raw_results__(in_str):
@@ -304,37 +205,3 @@ def __process_raw_results__(in_str):
 		ret_dict.update({line.number: (line.ok, line.description)})
 
 	return ret_dict
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES: I/O
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-def __dump_yaml__(filename, data):
-
-	f = open(filename, 'w+')
-	dump(data, f, Dumper = Dumper, default_flow_style = False)
-	f.close()
-
-
-def __load_yaml__(filename):
-
-	f = open(filename, 'r')
-	data = load(f)
-	f.close()
-	return data
-
-
-def __read_file__(filename):
-
-	f = open(filename, 'r')
-	data = f.read()
-	f.close()
-	return data
-
-
-def __write_file__(filename, data):
-
-	f = open(filename, 'w+')
-	f.write(data)
-	f.close()
