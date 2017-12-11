@@ -217,12 +217,12 @@ def compare_results(old_results, new_results):
 	new_keys = new_results_keys - common_keys
 
 	ch_to_fail = {}
-	ch_to_pass = set()
+	ch_to_pass = {}
 	for key in common_keys:
 		if old_results[key][0] == new_results[key][0]:
 			continue
 		if new_results[key]:
-			ch_to_pass.add(key)
+			ch_to_pass.update({key: new_results[key][1]})
 		else:
 			ch_to_fail.update({key: new_results[key][1]})
 
