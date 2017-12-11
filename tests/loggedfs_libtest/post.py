@@ -28,3 +28,22 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CLASS: (3/3) POST
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class fstest_post_class:
+
+
+	def postproc(self):
+		"""Called from project root after tests!
+		"""
+
+		pass
+
+		# umount_fuse_status = __umount_fuse__(test_mount_abs_path)
+		# assert umount_fuse_status
+		# assert not __is_path_mountpoint__(test_mount_abs_path)

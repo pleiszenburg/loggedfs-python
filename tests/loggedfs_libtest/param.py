@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/const.py: Const items
+	tests/loggedfs_libtest/param.py: Generate parameter tuple for tests
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -26,31 +26,15 @@ specific language governing rights and limitations under the License.
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# URLs & SOURCES
+# IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-TEST_FSTEST_GITREPO = 'https://github.com/pjd/pjdfstest.git'
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# FOLDER & FILE NAMES
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-TEST_ROOT_PATH = 'tests'
+def fstest_parameters():
 
-TEST_FSTEST_PATH = 'test_suite'
-TEST_MOUNT_PATH = 'test_mount'
-TEST_LOG_PATH = 'test_logs'
-
-TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
-
-TEST_LOGGEDFS_CFG_FN = 'loggedfs_cfg.xml'
-TEST_LOGGEDFS_LOG_FN = 'loggedfs.log'
-TEST_LOGGEDFS_OUT_FN = 'loggedfs_out.log'
-TEST_LOGGEDFS_ERR_FN = 'loggedfs_err.log'
-
-TEST_RESULTS_FN = 'test_fstest_results.log'
-TEST_ERRORS_FN = 'test_fstest_errors.log'
-TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
-TEST_STATUS_DIFF_FN = 'test_status_diff.yaml'
-TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
+	return (True, True)

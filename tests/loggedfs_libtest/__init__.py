@@ -30,3 +30,5 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from .install import install_fstest
+from .param import fstest_parameters
+from .scope import fstest_scope

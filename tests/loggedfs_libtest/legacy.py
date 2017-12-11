@@ -77,30 +77,6 @@ def loggedfs_mountpoint():
 	os.chdir('..') # return to project root
 
 
-def __pre_test_cleanup_logfiles__(in_abs_path):
-
-	for filename in [
-		TEST_LOG_FN,
-		TEST_RESULTS_FN,
-		TEST_ERRORS_FN
-		]:
-		try:
-			os.remove(os.path.join(in_abs_path, filename))
-		except FileNotFoundError:
-			pass
-
-
-def __pre_test_cleanup_mountpoint__(in_abs_path):
-
-	if __is_path_mountpoint__(in_abs_path):
-		umount_status = __umount__(in_abs_path, sudo = True, force = True)
-		assert umount_status
-
-	if os.path.isdir(in_abs_path):
-		shutil.rmtree(in_abs_path, ignore_errors = True)
-	assert not os.path.isdir(in_abs_path)
-
-
 # def __run_fstest__(abs_test_path, abs_mountpoint_path):
 #
 # 	old_cwd = os.getcwd()

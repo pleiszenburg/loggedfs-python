@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/const.py: Const items
+	tests/loggedfs_libtest/scope.py: Provides test scope
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -26,31 +26,43 @@ specific language governing rights and limitations under the License.
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# URLs & SOURCES
+# IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-TEST_FSTEST_GITREPO = 'https://github.com/pjd/pjdfstest.git'
+import pytest
+
+from .pre from fstest_pre_class
+from .prove import fstest_prove_class
+from .post from fstest_post_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# FOLDER & FILE NAMES
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-TEST_ROOT_PATH = 'tests'
+# Global scope for tests, takes care of mount, defines clean up actions
+@pytest.fixture(scope = 'module')
+def fstest_scope(request):
+	"""Runs in project root!
+	"""
 
-TEST_FSTEST_PATH = 'test_suite'
-TEST_MOUNT_PATH = 'test_mount'
-TEST_LOG_PATH = 'test_logs'
+	fstest = fstest_class()
 
-TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
+	def __finalizer__():
+		fstest.postproc()
 
-TEST_LOGGEDFS_CFG_FN = 'loggedfs_cfg.xml'
-TEST_LOGGEDFS_LOG_FN = 'loggedfs.log'
-TEST_LOGGEDFS_OUT_FN = 'loggedfs_out.log'
-TEST_LOGGEDFS_ERR_FN = 'loggedfs_err.log'
+	request.addfinalizer(__finalizer__)
 
-TEST_RESULTS_FN = 'test_fstest_results.log'
-TEST_ERRORS_FN = 'test_fstest_errors.log'
-TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
-TEST_STATUS_DIFF_FN = 'test_status_diff.yaml'
-TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
+	return fstest
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CLASS: CORE
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class fstest_class(fstest_pre_class, fstest_prove_class, fstest_post_class):
+
+
+	def __init__(self):
+
+		self.init()
