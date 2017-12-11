@@ -83,6 +83,7 @@ setup(
 		'setuptools',
 		'Sphinx',
 		'sphinx_rtd_theme',
+		'tap.py',
 		'twine',
 		'wheel'
 		]},

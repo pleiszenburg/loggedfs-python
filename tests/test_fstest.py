@@ -31,6 +31,8 @@ specific language governing rights and limitations under the License.
 
 from pprint import pprint as pp
 
+import pytest
+
 from loggedfs_libtest import (
 	TEST_STATUS_CURRENT_FN,
 	TEST_STATUS_DIFF_FN,
@@ -38,7 +40,7 @@ from loggedfs_libtest import (
 	compare_results,
 	get_processed_results,
 	load_results,
-	run_fstest,
+	loggedfs_mountpoint,
 	store_results
 	)
 
@@ -47,9 +49,8 @@ from loggedfs_libtest import (
 # TESTS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest_run():
+def test_fstest(loggedfs_mountpoint):
 
-	run_fstest()
 	processed_results = get_processed_results()
 	store_results(processed_results, TEST_STATUS_CURRENT_FN)
 	frozen_results = load_results(TEST_STATUS_FROZEN_FN)

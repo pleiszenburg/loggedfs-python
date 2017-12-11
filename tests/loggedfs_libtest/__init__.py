@@ -34,6 +34,8 @@ from pprint import pprint as pp
 import shutil
 import subprocess
 
+import pytest
+import tap.parser as tp
 from yaml import load, dump
 try:
 	from yaml import CLoader as Loader, CDumper as Dumper
@@ -76,7 +78,8 @@ def install_fstest():
 	__build_fstest__(install_path)
 
 
-def run_fstest():
+@pytest.fixture(scope = 'module')
+def loggedfs_mountpoint():
 
 	os.chdir(TEST_ROOT_PATH) # tests usually run from project root
 
@@ -95,11 +98,14 @@ def run_fstest():
 	assert loggedfs_status
 	assert __is_path_mountpoint__(test_mount_abs_path)
 
-	prove_status, prove_out, prove_err = __run_fstest__(
-		os.path.join(test_root_abs_path, TEST_FSTEST_PATH), test_mount_abs_path
-		)
-	__write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
-	__write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
+	loggedfs_object = [] # TODO provide actual object to FS
+	yield loggedfs_object
+
+	# prove_status, prove_out, prove_err = __run_fstest__(
+	# 	os.path.join(test_root_abs_path, TEST_FSTEST_PATH), test_mount_abs_path
+	# 	)
+	# __write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
+	# __write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
 
 	umount_fuse_status = __umount_fuse__(test_mount_abs_path)
 	assert umount_fuse_status
@@ -142,7 +148,11 @@ def __mount_loggedfs_python__(in_abs_path, logfile):
 
 def __pre_test_cleanup_logfiles__(in_abs_path):
 
-	for filename in [TEST_LOG_FN, TEST_RESULTS_FN, TEST_ERRORS_FN]:
+	for filename in [
+		TEST_LOG_FN,
+		TEST_RESULTS_FN,
+		TEST_ERRORS_FN
+		]:
 		try:
 			os.remove(os.path.join(in_abs_path, filename))
 		except FileNotFoundError:
@@ -172,17 +182,17 @@ def __run_command__(cmd_list, return_output = False):
 	return not bool(proc.returncode)
 
 
-def __run_fstest__(abs_test_path, abs_mountpoint_path):
-
-	old_cwd = os.getcwd()
-	os.chdir(abs_mountpoint_path)
-
-	ret_tuple = __run_command__(
-		['prove', '-v', '-r', abs_test_path], return_output = True
-		)
-
-	os.chdir(old_cwd)
-	return ret_tuple
+# def __run_fstest__(abs_test_path, abs_mountpoint_path):
+#
+# 	old_cwd = os.getcwd()
+# 	os.chdir(abs_mountpoint_path)
+#
+# 	ret_tuple = __run_command__(
+# 		['prove', '-v', '-r', abs_test_path], return_output = True
+# 		)
+#
+# 	os.chdir(old_cwd)
+# 	return ret_tuple
 
 
 def __umount__(in_abs_path, sudo = False, force = False):
@@ -284,40 +294,14 @@ def store_results(in_dict, filename):
 
 def __process_raw_results__(in_str):
 
-	lines = in_str.split('\n')
 	ret_dict = {}
+	tap_parser = tp.Parser()
+	tap_lines_generator = tap_parser.parse_text(data)
 
-	for line in lines:
-
-		line = line.strip()
-		if line == '':
-			break
-
-		if line.startswith('Failed') or line.startswith('Dubious') or line == 'ok':
+	for line in tap_lines_generator:
+		if not hasattr(line, 'ok'):
 			continue
-		if line.startswith('(') and 'TODO' in line:
-			continue
-
-		if line.startswith('/'):
-			current_path = line.split('fstest/tests/')[1].split(' ')[0]
-			continue
-
-		if '..' in line:
-			index = 1
-			continue
-
-		if line.startswith('ok '):
-			res = True
-			msg = line
-		elif line.startswith('not ok '):
-			res = False
-			msg = line
-		else:
-			print(current_path, index, line)
-			raise
-
-		ret_dict.update({'%s:%d' % (current_path, index): (res, msg)})
-		index += 1
+		ret_dict.update({line.number: (line.ok, line.description)})
 
 	return ret_dict
 
