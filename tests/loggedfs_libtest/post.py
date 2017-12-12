@@ -29,6 +29,8 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import os
+
 from .mount import (
 	is_path_mountpoint,
 	umount_fuse
@@ -45,6 +47,8 @@ class fstest_post_class:
 	def postproc(self):
 		"""Called from project root after tests!
 		"""
+
+		os.chdir(self.prj_abs_path)
 
 		umount_fuse_status = umount_fuse(self.mount_abs_path)
 		assert umount_fuse_status

@@ -29,6 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import os
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,7 +40,7 @@ class fstest_prove_class:
 
 
 	def prove(self, test_path):
-		"""Called from project root after tests!
+		"""Called from mountpoint!
 		"""
 
 		# prove_status, prove_out, prove_err = __run_fstest__(
@@ -47,6 +48,8 @@ class fstest_prove_class:
 		# 	)
 		# __write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
 		# __write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
+
+
 
 		assert True
 

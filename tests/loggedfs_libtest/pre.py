@@ -62,6 +62,8 @@ class fstest_pre_class():
 		self.__cleanup_mountpoint__()
 		self.__mount_fs__()
 
+		os.chdir(self.mount_abs_path)
+
 
 	def __cleanup_mountpoint__(self):
 
@@ -101,7 +103,8 @@ class fstest_pre_class():
 
 	def __set_paths__(self):
 
-		self.root_abs_path = os.path.abspath(os.path.join(os.getcwd(), TEST_ROOT_PATH))
+		self.prj_abs_path = os.getcwd()
+		self.root_abs_path = os.path.abspath(os.path.join(self.prj_abs_path, TEST_ROOT_PATH))
 		assert os.path.isdir(self.root_abs_path)
 
 		self.logs_abs_path = os.path.join(self.root_abs_path, TEST_LOG_PATH)
