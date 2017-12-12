@@ -26,71 +26,6 @@ specific language governing rights and limitations under the License.
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# IMPORT
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-import os
-from pprint import pprint as pp
-import shutil
-
-import pytest
-import tap.parser as tp
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-@pytest.fixture(scope = 'module')
-def loggedfs_mountpoint():
-
-	os.chdir(TEST_ROOT_PATH) # tests usually run from project root
-
-	test_root_abs_path = os.path.abspath(os.getcwd())
-	test_mount_abs_path = os.path.join(test_root_abs_path, TEST_MOUNT_PATH)
-
-	__pre_test_cleanup_mountpoint__(test_mount_abs_path)
-	__pre_test_cleanup_logfiles__(test_root_abs_path)
-	os.mkdir(test_mount_abs_path)
-
-	loggedfs_status, loggedfs_out, loggedfs_err = __mount_loggedfs_python__(
-		test_mount_abs_path, os.path.join(test_root_abs_path, TEST_LOG_FN)
-		)
-	__write_file__(os.path.join(test_root_abs_path, TEST_LOGGEDFS_OUT_FN), loggedfs_out)
-	__write_file__(os.path.join(test_root_abs_path, TEST_LOGGEDFS_ERR_FN), loggedfs_err)
-	assert loggedfs_status
-	assert __is_path_mountpoint__(test_mount_abs_path)
-
-	loggedfs_object = [] # TODO provide actual object to FS
-	yield loggedfs_object
-
-	# prove_status, prove_out, prove_err = __run_fstest__(
-	# 	os.path.join(test_root_abs_path, TEST_FSTEST_PATH), test_mount_abs_path
-	# 	)
-	# __write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
-	# __write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
-
-	umount_fuse_status = __umount_fuse__(test_mount_abs_path)
-	assert umount_fuse_status
-	assert not __is_path_mountpoint__(test_mount_abs_path)
-
-	os.chdir('..') # return to project root
-
-
-# def __run_fstest__(abs_test_path, abs_mountpoint_path):
-#
-# 	old_cwd = os.getcwd()
-# 	os.chdir(abs_mountpoint_path)
-#
-# 	ret_tuple = __run_command__(
-# 		['prove', '-v', '-r', abs_test_path], return_output = True
-# 		)
-#
-# 	os.chdir(old_cwd)
-# 	return ret_tuple
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES: FSTEST ANALYSIS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -137,12 +72,6 @@ def compile_stats(in_dict):
 		}
 
 
-def get_processed_results():
-
-	test_results_raw_log = __read_file__(os.path.join(TEST_ROOT_PATH, TEST_RESULTS_FN))
-	return __process_raw_results__(test_results_raw_log)
-
-
 def freeze_results(auto_commit = False):
 
 	current_path = os.path.join(TEST_ROOT_PATH, TEST_STATUS_CURRENT_FN)
@@ -157,27 +86,3 @@ def freeze_results(auto_commit = False):
 	if auto_commit:
 		commit_status = __run_command__(['git', 'commit', '-am', 'TEST_FREEZE'])
 		assert commit_status
-
-
-# def load_results(filename):
-#
-# 	return __load_yaml__(os.path.join(TEST_ROOT_PATH, filename))
-#
-#
-# def store_results(in_dict, filename):
-#
-# 	__dump_yaml__(os.path.join(TEST_ROOT_PATH, filename), in_dict)
-
-
-def __process_raw_results__(in_str):
-
-	ret_dict = {}
-	tap_parser = tp.Parser()
-	tap_lines_generator = tap_parser.parse_text(data)
-
-	for line in tap_lines_generator:
-		if not hasattr(line, 'ok'):
-			continue
-		ret_dict.update({line.number: (line.ok, line.description)})
-
-	return ret_dict
