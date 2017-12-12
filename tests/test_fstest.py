@@ -31,19 +31,13 @@ specific language governing rights and limitations under the License.
 
 from pprint import pprint as pp
 
-import pytest
-
-from loggedfs_libtest import (
-	fstest_parameters,
-	fstest_scope
-	)
+from loggedfs_libtest import fstest_scope
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # TESTS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-@pytest.mark.parametrize('fstest_group_path', fstest_parameters())
 def test_fstest(fstest_scope, fstest_group_path):
 
 	fstest_scope.prove(fstest_group_path)
