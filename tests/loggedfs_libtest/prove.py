@@ -31,6 +31,10 @@ specific language governing rights and limitations under the License.
 
 import os
 
+from .lib import run_command
+
+import tap.parser
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CLASS: (2/3) PROVE
@@ -49,11 +53,11 @@ class fstest_prove_class:
 		# __write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
 		# __write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
 
+		status, out, err = self.__run_fstest__(test_path)
 
+		len_passed, len_failed, res_dict = self.__process_raw_results__(out)
 
-		assert True
-
-
+		assert len_failed == 0
 
 		# processed_results = get_processed_results()
 		# store_results(processed_results, TEST_STATUS_CURRENT_FN)
@@ -63,3 +67,30 @@ class fstest_prove_class:
 	    #
 		# assert len(result_diff['ch_to_fail_set']) == 0
 		# assert len(result_diff['dropped_dict'].keys()) == 0
+
+
+	def __process_raw_results__(self, in_str):
+
+		ret_dict = {}
+		tap_parser = tap.parser.Parser()
+		tap_lines_generator = tap_parser.parse_text(in_str)
+
+		len_passed = 0
+		len_failed = 0
+		for line in tap_lines_generator:
+			if not hasattr(line, 'ok'):
+				continue
+			if line.ok:
+				len_passed += 1
+			else:
+				len_failed += 1
+			ret_dict.update({line.number: (line.ok, line.description)})
+
+		return len_passed, len_failed, ret_dict
+
+
+	def __run_fstest__(self, abs_test_path):
+
+		return run_command(
+			['prove', '-v', abs_test_path], return_output = True
+			)

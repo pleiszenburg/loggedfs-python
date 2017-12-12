@@ -91,6 +91,7 @@ ENV/
 
 # Project specific stuff
 test_suite
-loggedfs_mount
+test_mount
+test_logs
 test_status_current.yaml
 test_status_diff.yaml
