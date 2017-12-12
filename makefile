@@ -19,8 +19,8 @@
 # </LICENSE_BLOCK>
 
 
-docu:
-	@(cd docs; make clean; make html)
+# docu:
+# 	@(cd docs; make clean; make html)
 
 release:
 	-rm dist/*
@@ -56,5 +56,5 @@ test:
 	-rm tests/loggedfs_libtest/__pycache__/*.pyc
 	pytest
 
-test_freeze:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.freeze_results()'
+# test_freeze:
+# 	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.freeze_results()'
