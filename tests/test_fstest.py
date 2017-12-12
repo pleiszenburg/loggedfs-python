@@ -43,7 +43,7 @@ from loggedfs_libtest import (
 # TESTS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-@pytest.mark.parametrize('fstest_group_dict', fstest_parameters())
-def test_fstest(fstest_scope, fstest_group_dict):
+@pytest.mark.parametrize('fstest_group_path', fstest_parameters())
+def test_fstest(fstest_scope, fstest_group_path):
 
-	fstest_scope.prove(fstest_group_dict)
+	fstest_scope.prove(fstest_group_path)

@@ -38,12 +38,12 @@ specific language governing rights and limitations under the License.
 class fstest_prove_class:
 
 
-	def prove(self, test_spec_tuple):
+	def prove(self, test_path):
 		"""Called from project root after tests!
 		"""
 
 		f = open('gaga', 'a')
-		f.write('%s\n' % str(test_spec_tuple))
+		f.write('%s\n' % str(test_path))
 		f.close()
 
 		# prove_status, prove_out, prove_err = __run_fstest__(
