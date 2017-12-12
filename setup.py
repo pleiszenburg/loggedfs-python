@@ -34,6 +34,7 @@ from setuptools import (
 	find_packages,
 	setup
 	)
+import sys
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -57,6 +58,30 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
 	long_description = f.read()
 
 
+# Development dependencies
+development_deps_list = [
+	'pytest',
+	'python-language-server',
+	'PyYAML',
+	'setuptools',
+	'Sphinx',
+	'sphinx_rtd_theme',
+	'tap.py',
+	'twine',
+	'wheel'
+	]
+
+
+# Get Python interpreter version
+py_gen, py_ver, *_ = sys.version_info
+# Raise an error if this is running on Python 2 (legacy)
+if py_gen < 3:
+	raise NotImplementedError
+# Handle CPython 3.4 and below extra dependency
+if py_ver < 5:
+	development_deps_list.append('scandir') # See https://github.com/benhoyt/scandir
+
+
 setup(
 	name = 'loggedfs',
 	packages = find_packages('src'),
@@ -76,17 +101,7 @@ setup(
 		'fusepy',
 		'xmltodict'
 		],
-	extras_require = {'dev': [
-		'pytest',
-		'python-language-server',
-		'PyYAML',
-		'setuptools',
-		'Sphinx',
-		'sphinx_rtd_theme',
-		'tap.py',
-		'twine',
-		'wheel'
-		]},
+	extras_require = {'dev': development_deps_list},
 	entry_points = '''
 		[console_scripts]
 		loggedfs = loggedfs:cli_entry

@@ -31,6 +31,13 @@ specific language governing rights and limitations under the License.
 
 import os
 
+# Use the built-in version of scandir/walk if possible
+# Otherwise: https://github.com/benhoyt/scandir
+try:
+	from os import scandir
+except ImportError:
+	from scandir import scandir
+
 from .const import (
 	TEST_ROOT_PATH,
 	TEST_FSTEST_PATH,
@@ -85,7 +92,7 @@ def __find_root_path__(in_path):
 def __get_recursive_inventory_list__(root_path, scan_root_path, test_group_list):
 
 	relative_path = os.path.relpath(scan_root_path, root_path)
-	for item in os.scandir(scan_root_path):
+	for item in scandir(scan_root_path):
 		if item.is_file():
 			if not item.name.endswith('.t'):
 				continue
