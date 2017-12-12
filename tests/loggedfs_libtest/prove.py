@@ -35,6 +35,7 @@ from .const import (
 	TEST_LOG_HEAD,
 	TEST_LOG_STATS
 	)
+from .mount import is_path_mountpoint
 from .lib import (
 	format_yaml,
 	read_file,
@@ -55,6 +56,8 @@ class fstest_prove_class:
 	def prove(self, test_path):
 		"""Called from mountpoint!
 		"""
+
+		assert is_path_mountpoint(self.mount_abs_path)
 
 		status, out, err = self.__run_fstest__(test_path)
 		len_passed, len_failed, res_dict = self.__process_raw_results__(out)
