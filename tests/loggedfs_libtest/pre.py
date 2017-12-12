@@ -96,8 +96,8 @@ class fstest_pre_class():
 			self.mount_abs_path, os.path.join(self.logs_abs_path, TEST_LOGGEDFS_LOG_FN)
 			)
 
-		write_file(os.path.join(self.root_abs_path, TEST_LOGGEDFS_OUT_FN), loggedfs_out)
-		write_file(os.path.join(self.root_abs_path, TEST_LOGGEDFS_ERR_FN), loggedfs_err)
+		write_file(os.path.join(self.root_abs_path, TEST_LOG_PATH, TEST_LOGGEDFS_OUT_FN), loggedfs_out)
+		write_file(os.path.join(self.root_abs_path, TEST_LOG_PATH, TEST_LOGGEDFS_ERR_FN), loggedfs_err)
 
 		assert loggedfs_status
 		assert is_path_mountpoint(self.mount_abs_path)
