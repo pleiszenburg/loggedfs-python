@@ -89,7 +89,7 @@ def __get_recursive_inventory_list__(root_path, scan_root_path, test_group_list)
 		if item.is_file():
 			if not item.name.endswith('.t'):
 				continue
-			test_group_list.append((item.path, item.name))
+			test_group_list.append(item.path)
 		elif item.is_dir():
 			__get_recursive_inventory_list__(root_path, item.path, test_group_list)
 		elif item.is_symlink():
