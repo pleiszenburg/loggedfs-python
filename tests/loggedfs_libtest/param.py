@@ -46,19 +46,15 @@ def fstest_parameters():
 	"""Can be called from anywhere in project tree ...
 	"""
 
-	old_cwd = os.getcwd() # Likely mountpoint
 	fstests_root_abs_path = os.path.join(
-		__find_root_path__(old_cwd), # Go up to project root
+		__find_root_path__(os.getcwd()),
 		TEST_ROOT_PATH,
 		TEST_FSTEST_PATH,
 		TEST_FSTEST_TESTS_SUBPATH
 		)
-	os.chdir(fstests_root_abs_path)
 
 	test_group_list = []
 	__get_recursive_inventory_list__(fstests_root_abs_path, fstests_root_abs_path, test_group_list)
-
-	os.chdir(old_cwd)
 
 	return test_group_list
 
