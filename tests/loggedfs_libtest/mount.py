@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/test_fstest.py: Runs the fstest-suite
+	tests/loggedfs_libtest/mount.py: Mount & umount routines
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,15 +29,36 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pprint as pp
-
-from loggedfs_libtest import fstest_scope
+from .lib import run_command
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# TESTS
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest(fstest_scope, fstest_group_path):
+def is_path_mountpoint(in_abs_path):
 
-	fstest_scope.prove(fstest_group_path)
+	return run_command(['mountpoint', '-q', in_abs_path])
+
+
+def mount_loggedfs_python(in_abs_path, logfile):
+
+	return run_command(['loggedfs', '-l', logfile, in_abs_path], return_output = True)
+
+
+def umount(in_abs_path, sudo = False, force = False):
+
+	cmd_list = []
+	if sudo:
+		cmd_list.append('sudo')
+	cmd_list.append('umount')
+	if force:
+		cmd_list.append('-f')
+	cmd_list.append(in_abs_path)
+
+	return run_command(cmd_list)
+
+
+def umount_fuse(in_abs_path):
+
+	return run_command(['fusermount', '-u', in_abs_path])
