@@ -45,7 +45,7 @@ TEST_LOG_PATH = 'test_logs'
 TEST_FSTEST_TESTS_SUBPATH = 'tests'
 TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
 
-TEST_LOGGEDFS_CFG_FN = 'loggedfs_cfg.xml'
+TEST_LOGGEDFS_CFG_FN = 'test_loggedfs_cfg.xml'
 TEST_LOGGEDFS_LOG_FN = 'loggedfs.log'
 TEST_LOGGEDFS_OUT_FN = 'loggedfs_out.log'
 TEST_LOGGEDFS_ERR_FN = 'loggedfs_err.log'

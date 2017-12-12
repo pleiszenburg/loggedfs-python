@@ -94,7 +94,7 @@ def cli_entry(f, p, c, l, directory):
 def __process_config__(config_fh, no_daemon_bool):
 
 	def __process_xml__(in_xml):
-		return xmltodict.parse()['loggedFS']
+		return xmltodict.parse(in_xml)['loggedFS']
 
 	if config_fh is not None:
 		param = __process_xml__(config_fh.read())

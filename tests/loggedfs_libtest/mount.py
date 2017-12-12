@@ -41,9 +41,9 @@ def is_path_mountpoint(in_abs_path):
 	return run_command(['mountpoint', '-q', in_abs_path])
 
 
-def mount_loggedfs_python(in_abs_path, logfile):
+def mount_loggedfs_python(in_abs_path, logfile, cfgfile):
 
-	return run_command(['loggedfs', '-l', logfile, in_abs_path], return_output = True)
+	return run_command(['loggedfs', '-l', logfile, '-c', cfgfile, in_abs_path], return_output = True)
 
 
 def umount(in_abs_path, sudo = False, force = False):
