@@ -62,10 +62,6 @@ class fstest_pre_class():
 		self.__cleanup_mountpoint__()
 		self.__mount_fs__()
 
-		f = open('gaga', 'a')
-		f.write('%s\n' % 'init!')
-		f.close()
-
 
 	def __cleanup_mountpoint__(self):
 

@@ -42,10 +42,6 @@ class fstest_prove_class:
 		"""Called from project root after tests!
 		"""
 
-		f = open('gaga', 'a')
-		f.write('%s\n' % str(test_path))
-		f.close()
-
 		# prove_status, prove_out, prove_err = __run_fstest__(
 		# 	os.path.join(test_root_abs_path, TEST_FSTEST_PATH), test_mount_abs_path
 		# 	)
@@ -53,3 +49,14 @@ class fstest_prove_class:
 		# __write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
 
 		assert True
+
+
+
+		# processed_results = get_processed_results()
+		# store_results(processed_results, TEST_STATUS_CURRENT_FN)
+		# frozen_results = load_results(TEST_STATUS_FROZEN_FN)
+		# result_diff = compare_results(frozen_results, processed_results)
+		# store_results(result_diff, TEST_STATUS_DIFF_FN)
+	    #
+		# assert len(result_diff['ch_to_fail_set']) == 0
+		# assert len(result_diff['dropped_dict'].keys()) == 0
