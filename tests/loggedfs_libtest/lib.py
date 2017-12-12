@@ -58,6 +58,11 @@ def run_command(cmd_list, return_output = False):
 # ROUTINES: I/O
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def format_yaml(data):
+
+	return dump(data, Dumper = Dumper, default_flow_style = False)
+
+
 def dump_yaml(filename, data):
 
 	f = open(filename, 'w+')

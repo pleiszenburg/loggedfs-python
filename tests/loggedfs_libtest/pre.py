@@ -90,8 +90,10 @@ class fstest_pre_class():
 
 	def __mount_fs__(self):
 
+		self.loggedfs_log_abs_path = os.path.join(self.logs_abs_path, TEST_LOGGEDFS_LOG_FN)
+
 		loggedfs_status, loggedfs_out, loggedfs_err = mount_loggedfs_python(
-			self.mount_abs_path, os.path.join(self.logs_abs_path, TEST_LOGGEDFS_LOG_FN)
+			self.mount_abs_path, self.loggedfs_log_abs_path
 			)
 
 		write_file(os.path.join(self.root_abs_path, TEST_LOG_PATH, TEST_LOGGEDFS_OUT_FN), loggedfs_out)

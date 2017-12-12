@@ -31,7 +31,16 @@ specific language governing rights and limitations under the License.
 
 import os
 
-from .lib import run_command
+from .const import (
+	TEST_LOG_HEAD,
+	TEST_LOG_STATS
+	)
+from .lib import (
+	format_yaml,
+	read_file,
+	run_command,
+	write_file
+	)
 
 import tap.parser
 
@@ -47,26 +56,55 @@ class fstest_prove_class:
 		"""Called from mountpoint!
 		"""
 
-		# prove_status, prove_out, prove_err = __run_fstest__(
-		# 	os.path.join(test_root_abs_path, TEST_FSTEST_PATH), test_mount_abs_path
-		# 	)
-		# __write_file__(os.path.join(test_root_abs_path, TEST_RESULTS_FN), prove_out)
-		# __write_file__(os.path.join(test_root_abs_path, TEST_ERRORS_FN), prove_err)
-
 		status, out, err = self.__run_fstest__(test_path)
-
 		len_passed, len_failed, res_dict = self.__process_raw_results__(out)
 
-		assert len_failed == 0
+		if len_failed == 0:
+			self.__clear_loggedfs_log__()
+			assert True # Test is good, nothing more to do
+			return # Get out of here ...
 
-		# processed_results = get_processed_results()
-		# store_results(processed_results, TEST_STATUS_CURRENT_FN)
-		# frozen_results = load_results(TEST_STATUS_FROZEN_FN)
-		# result_diff = compare_results(frozen_results, processed_results)
-		# store_results(result_diff, TEST_STATUS_DIFF_FN)
-	    #
-		# assert len(result_diff['ch_to_fail_set']) == 0
-		# assert len(result_diff['dropped_dict'].keys()) == 0
+		grp_dir, grp_nr = self.__get_group_id_from_path__(test_path)
+		grp_code = read_file(test_path)
+		grp_log = read_file(self.loggedfs_log_abs_path)
+
+		report = []
+
+		report.append(TEST_LOG_HEAD % 'TEST SUITE LOG')
+		report.append(TEST_LOG_STATS % (len_passed, len_failed))
+		report.append(format_yaml(res_dict))
+
+		if err.strip() != '':
+			report.append(TEST_LOG_HEAD % 'TEST SUITE ERR')
+			report.append(err)
+
+		report.append(TEST_LOG_HEAD % 'TEST SUITE CODE')
+		report.append(grp_code)
+
+		report.append(TEST_LOG_HEAD % 'LOGGEDFS LOG')
+		report.append(grp_log)
+
+		write_file(os.path.join(
+			self.logs_abs_path,
+			'test_%s_%02d_err.log' % (grp_dir, grp_nr)
+			), '\n'.join(report))
+
+		self.__clear_loggedfs_log__()
+		assert len_failed == 0 # will always fail at this point
+
+
+	def __clear_loggedfs_log__(self):
+
+		# os.remove(self.loggedfs_log_abs_path) # TODO Throw away the log or just empty it?
+		write_file(self.loggedfs_log_abs_path, '')
+
+
+	def __get_group_id_from_path__(self, in_path):
+
+		group_path, group_nr = os.path.split(in_path)
+		_, group_dir = os.path.split(group_path)
+
+		return (group_dir, int(group_nr.split('.')[0]))
 
 
 	def __process_raw_results__(self, in_str):
@@ -84,7 +122,10 @@ class fstest_prove_class:
 				len_passed += 1
 			else:
 				len_failed += 1
-			ret_dict.update({line.number: (line.ok, line.description)})
+			ret_dict.update({line.number: {
+				'ok': line.ok,
+				'description' : line.description
+				}})
 
 		return len_passed, len_failed, ret_dict
 
