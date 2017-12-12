@@ -98,7 +98,6 @@ class fstest_prove_class:
 
 	def __clear_loggedfs_log__(self):
 
-		# os.remove(self.loggedfs_log_abs_path) # TODO Throw away the log or just empty it?
 		write_file(self.loggedfs_log_abs_path, '')
 
 
