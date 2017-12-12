@@ -31,16 +31,15 @@ specific language governing rights and limitations under the License.
 
 import pytest
 
-from .pre from fstest_pre_class
+from .pre import fstest_pre_class
 from .prove import fstest_prove_class
-from .post from fstest_post_class
+from .post import fstest_post_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-# Global scope for tests, takes care of mount, defines clean up actions
 @pytest.fixture(scope = 'module')
 def fstest_scope(request):
 	"""Runs in project root!

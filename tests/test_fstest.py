@@ -43,16 +43,7 @@ from loggedfs_libtest import (
 # TESTS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-@pytest.mark.parametrize(*(fstest_parameters()))
-def test_fstest(fstest_scope):
+@pytest.mark.parametrize('fstest_group_dict', fstest_parameters())
+def test_fstest(fstest_scope, fstest_group_dict):
 
-	pass
-
-	# processed_results = get_processed_results()
-	# store_results(processed_results, TEST_STATUS_CURRENT_FN)
-	# frozen_results = load_results(TEST_STATUS_FROZEN_FN)
-	# result_diff = compare_results(frozen_results, processed_results)
-	# store_results(result_diff, TEST_STATUS_DIFF_FN)
-    #
-	# assert len(result_diff['ch_to_fail_set']) == 0
-	# assert len(result_diff['dropped_dict'].keys()) == 0
+	fstest_scope.prove(fstest_group_dict)

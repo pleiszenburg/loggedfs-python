@@ -36,7 +36,9 @@ from .const import (
 	TEST_MOUNT_PATH,
 	TEST_LOG_PATH,
 	TEST_ROOT_PATH,
-	TEST_LOGGEDFS_LOG_FN
+	TEST_LOGGEDFS_ERR_FN,
+	TEST_LOGGEDFS_LOG_FN,
+	TEST_LOGGEDFS_OUT_FN
 	)
 from .mount import (
 	is_path_mountpoint,
@@ -59,6 +61,10 @@ class fstest_pre_class():
 		self.__cleanup_logfiles__()
 		self.__cleanup_mountpoint__()
 		self.__mount_fs__()
+
+		f = open('gaga', 'a')
+		f.write('%s\n' % 'init!')
+		f.close()
 
 
 	def __cleanup_mountpoint__(self):

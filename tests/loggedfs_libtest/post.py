@@ -29,6 +29,10 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+from .mount import (
+	is_path_mountpoint,
+	umount_fuse
+	)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -42,8 +46,19 @@ class fstest_post_class:
 		"""Called from project root after tests!
 		"""
 
-		pass
+		umount_fuse_status = umount_fuse(self.mount_abs_path)
+		assert umount_fuse_status
+		assert not is_path_mountpoint(self.mount_abs_path)
 
-		# umount_fuse_status = __umount_fuse__(test_mount_abs_path)
-		# assert umount_fuse_status
-		# assert not __is_path_mountpoint__(test_mount_abs_path)
+		f = open('gaga', 'a')
+		f.write('%s\n' % 'postproc!')
+		f.close()
+
+		# processed_results = get_processed_results()
+		# store_results(processed_results, TEST_STATUS_CURRENT_FN)
+		# frozen_results = load_results(TEST_STATUS_FROZEN_FN)
+		# result_diff = compare_results(frozen_results, processed_results)
+		# store_results(result_diff, TEST_STATUS_DIFF_FN)
+	    #
+		# assert len(result_diff['ch_to_fail_set']) == 0
+		# assert len(result_diff['dropped_dict'].keys()) == 0

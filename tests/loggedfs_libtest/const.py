@@ -42,6 +42,7 @@ TEST_FSTEST_PATH = 'test_suite'
 TEST_MOUNT_PATH = 'test_mount'
 TEST_LOG_PATH = 'test_logs'
 
+TEST_FSTEST_TESTS_SUBPATH = 'tests'
 TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
 
 TEST_LOGGEDFS_CFG_FN = 'loggedfs_cfg.xml'
