@@ -60,9 +60,9 @@ class fstest_prove_class:
 		assert is_path_mountpoint(self.mount_abs_path)
 
 		status, out, err = self.__run_fstest__(test_path)
-		len_passed, len_failed, res_dict = self.__process_raw_results__(out)
+		len_expected, len_passed, len_failed, res_dict = self.__process_raw_results__(out)
 
-		if len_failed == 0:
+		if len_failed == 0 and len_expected == (len_passed + len_failed) and len_expected != 0:
 			self.__clear_loggedfs_log__()
 			assert True # Test is good, nothing more to do
 			return # Get out of here ...
@@ -117,7 +117,11 @@ class fstest_prove_class:
 
 		len_passed = 0
 		len_failed = 0
+		len_expected = 0
 		for line in tap_lines_generator:
+			if line.category == 'plan':
+				len_expected = line.expected_tests
+				continue
 			if not hasattr(line, 'ok'):
 				continue
 			if line.ok:
@@ -129,7 +133,7 @@ class fstest_prove_class:
 				'description' : line.description
 				}})
 
-		return len_passed, len_failed, ret_dict
+		return len_expected, len_passed, len_failed, ret_dict
 
 
 	def __run_fstest__(self, abs_test_path):
