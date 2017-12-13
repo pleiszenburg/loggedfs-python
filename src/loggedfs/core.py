@@ -38,6 +38,7 @@ import os
 from pprint import pformat as pf
 import pwd
 import re
+import signal
 import sys
 
 from fuse import (
@@ -47,6 +48,14 @@ from fuse import (
 	Operations
 	)
 import xmltodict
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ERRORS
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class loggedfs_timeout_error(Exception):
+	pass
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -158,7 +167,7 @@ def __log__(
 
 			try:
 
-				ret_value = func(self, *func_args, **func_kwargs)
+				ret_value = __time_out_func__(30, func, self, func_args, func_kwargs)
 				ret_status = 'SUCCESS'
 
 			except FuseOSError as e:
@@ -170,6 +179,12 @@ def __log__(
 
 				ret_status = 'FAILURE'
 				raise FuseOSError(e.errno)
+
+			except loggedfs_timeout_error:
+
+				self.logger.error('TIMEOUT IN CALL "%s"', func.__name__)
+				self.logger.error(pf(func_args))
+				self.logger.error(pf(func_kwargs))
 
 			except:
 
@@ -227,6 +242,22 @@ def __log_filter__(
 			return
 
 	out_func(log_msg % status)
+
+
+def __time_out_func__(timeout, func, self, args, kwargs):
+
+	def handler(signum, frame):
+		raise loggedfs_timeout_error()
+
+	signal.signal(signal.SIGALRM, handler)
+	signal.alarm(timeout)
+
+	try:
+		return func(self, *args, **kwargs)
+	except loggedfs_timeout_error:
+		raise
+	finally:
+		signal.alarm(0)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
