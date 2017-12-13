@@ -58,6 +58,8 @@ class fstest_pre_class():
 
 	def init(self):
 
+		self.with_sudo = False
+
 		self.__set_paths__()
 		self.__cleanup_logfiles__()
 		self.__cleanup_mountpoint__()
@@ -95,7 +97,7 @@ class fstest_pre_class():
 		self.loggedfs_cfg_abs_path = os.path.join(self.root_abs_path, TEST_LOGGEDFS_CFG_FN)
 
 		loggedfs_status, loggedfs_out, loggedfs_err = mount_loggedfs_python(
-			self.mount_abs_path, self.loggedfs_log_abs_path, self.loggedfs_cfg_abs_path
+			self.mount_abs_path, self.loggedfs_log_abs_path, self.loggedfs_cfg_abs_path, sudo = self.with_sudo
 			)
 
 		write_file(os.path.join(self.root_abs_path, TEST_LOG_PATH, TEST_LOGGEDFS_OUT_FN), loggedfs_out)

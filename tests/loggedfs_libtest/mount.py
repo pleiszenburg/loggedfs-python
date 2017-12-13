@@ -41,27 +41,24 @@ def is_path_mountpoint(in_abs_path):
 	return run_command(['mountpoint', '-q', in_abs_path])
 
 
-def mount_loggedfs_python(in_abs_path, logfile, cfgfile):
+def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 
 	return run_command(
 		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path],
-		return_output = True, sudo = True, sudo_env = True
+		return_output = True, sudo = sudo, sudo_env = sudo
 		)
 
 
 def umount(in_abs_path, sudo = False, force = False):
 
-	cmd_list = []
-	if sudo:
-		cmd_list.append('sudo')
-	cmd_list.append('umount')
+	cmd_list = ['umount']
 	if force:
 		cmd_list.append('-f')
 	cmd_list.append(in_abs_path)
 
-	return run_command(cmd_list)
+	return run_command(cmd_list, sudo = sudo)
 
 
-def umount_fuse(in_abs_path):
+def umount_fuse(in_abs_path, sudo):
 
-	return run_command(['fusermount', '-u', in_abs_path], sudo = True)
+	return run_command(['fusermount', '-u', in_abs_path], sudo = sudo)

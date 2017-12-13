@@ -50,6 +50,6 @@ class fstest_post_class:
 
 		os.chdir(self.prj_abs_path)
 
-		umount_fuse_status = umount_fuse(self.mount_abs_path)
+		umount_fuse_status = umount_fuse(self.mount_abs_path, sudo = self.with_sudo)
 		assert umount_fuse_status
 		assert not is_path_mountpoint(self.mount_abs_path)
