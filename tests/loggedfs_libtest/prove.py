@@ -135,5 +135,5 @@ class fstest_prove_class:
 	def __run_fstest__(self, abs_test_path):
 
 		return run_command(
-			['sudo', 'prove', '-v', abs_test_path], return_output = True
+			['prove', '-v', abs_test_path], return_output = True, sudo = True
 			)

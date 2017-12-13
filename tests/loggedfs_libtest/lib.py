@@ -29,6 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import os
 import subprocess
 
 from yaml import load, dump
@@ -42,10 +43,18 @@ except ImportError:
 # ROUTINES: SHELL OUT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def run_command(cmd_list, return_output = False):
+def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False):
+
+	sudo_cmd = []
+	if sudo:
+		sudo_cmd.append('sudo')
+		if sudo_env:
+			sudo_cmd.append('env')
+			sudo_cmd.append('%s=%s' % ('VIRTUAL_ENV', os.environ['VIRTUAL_ENV']))
+			sudo_cmd.append('%s=%s:%s' % ('PATH', os.path.join(os.environ['VIRTUAL_ENV'], 'bin'), os.environ['PATH']))
 
 	proc = subprocess.Popen(
-		cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
+		sudo_cmd + cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
 		)
 	outs, errs = proc.communicate()
 
