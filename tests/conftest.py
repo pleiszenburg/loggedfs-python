@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/test_fstest.py: Runs the fstest-suite
+	tests/conftest.py: Configures the tests
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,15 +29,56 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pprint as pp
+import argparse
+import os
 
-from loggedfs_libtest import fstest_scope
+from loggedfs_libtest import (
+	fstest_parameters,
+	TEST_ROOT_PATH,
+	TEST_FSTEST_PATH,
+	TEST_FSTEST_TESTS_SUBPATH
+	)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# TESTS
+# ROUTINES: PYTEST API
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest(fstest_scope, fstest_group_path):
+def pytest_addoption(parser):
 
-	fstest_scope.prove(fstest_group_path)
+	parser.addoption(
+		'-T',
+		action = 'append',
+		help = 'run specified test file',
+		nargs = 1,
+		type = __arg_type_testfile__
+		)
+
+
+def pytest_generate_tests(metafunc):
+
+	if 'fstest_group_path' in metafunc.fixturenames:
+		if metafunc.config.getoption('T'):
+			test_list = [a[0] for a in metafunc.config.getoption('T')]
+		else:
+			test_list = fstest_parameters()
+		metafunc.parametrize('fstest_group_path', test_list)
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES: HELPER
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def __arg_type_testfile__(filename):
+
+	file_path = os.path.join(
+		TEST_ROOT_PATH,
+		TEST_FSTEST_PATH,
+		TEST_FSTEST_TESTS_SUBPATH,
+		filename
+		)
+
+	if os.path.isfile(file_path) and file_path.endswith('.t'):
+		return os.path.abspath(file_path)
+
+	raise argparse.ArgumentTypeError('No testfile: "%s"' % filename)

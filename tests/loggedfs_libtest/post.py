@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/test_fstest.py: Runs the fstest-suite
+	tests/loggedfs_libtest/post.py: Stuff happening after test(s)
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,15 +29,27 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pprint as pp
+import os
 
-from loggedfs_libtest import fstest_scope
+from .mount import (
+	is_path_mountpoint,
+	umount_fuse
+	)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# TESTS
+# CLASS: (3/3) POST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest(fstest_scope, fstest_group_path):
+class fstest_post_class:
 
-	fstest_scope.prove(fstest_group_path)
+
+	def postproc(self):
+		"""Called from project root after tests!
+		"""
+
+		os.chdir(self.prj_abs_path)
+
+		umount_fuse_status = umount_fuse(self.mount_abs_path)
+		assert umount_fuse_status
+		assert not is_path_mountpoint(self.mount_abs_path)

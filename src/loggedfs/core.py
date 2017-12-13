@@ -37,6 +37,7 @@ import logging
 import os
 from pprint import pformat as pf
 import pwd
+import re
 
 from fuse import (
 	FUSE,
@@ -84,6 +85,18 @@ def __format_args__(args_list, kwargs_dict, items_list, format_func):
 			kwargs_dict[item] = format_func(kwargs_dict[item])
 
 
+def __get_abs_path__(args_list, kwargs_dict, path_item_list, abs_func):
+
+	if len(path_item_list) == 0:
+		return ''
+	item = path_item_list[0]
+
+	if isinstance(item, int):
+		return abs_func(args_list[item])
+	elif isinstance(item, str):
+		return abs_func(kwargs_dict[item])
+
+
 def __get_process_cmdline__(pid):
 
 	try:
@@ -123,6 +136,8 @@ def __log__(
 			uid, gid, pid = fuse_get_context()
 			p_cmdname = __get_process_cmdline__(pid)
 
+			abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
+
 			func_args_f = list(deepcopy(func_args))
 			func_kwargs_f = deepcopy(func_kwargs)
 
@@ -136,33 +151,72 @@ def __log__(
 
 			log_msg = ' '.join([
 				'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-				'%s',
+				'{%s}',
 				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
 				])
-
-			# self.logger.info(log_msg % '{...}') # Helper for debugging ... if things hang or loop or ...
 
 			try:
 
 				ret_value = func(self, *func_args, **func_kwargs)
 
-				self.logger.info(log_msg % '{SUCCESS}')
+				__log_filter__(
+					self.logger.info, log_msg,
+					abs_path, uid, func.__name__, 'SUCCESS',
+					self._f_incl, self._f_excl
+					)
+
 				return ret_value
 
 			except FuseOSError as e:
 
-				self.logger.error(log_msg % '{FAILURE}')
+				__log_filter__(
+					self.logger.error, log_msg,
+					abs_path, uid, func.__name__, 'FAILURE',
+					self._f_incl, self._f_excl
+					)
+
 				raise e
 
 			except:
 
 				self.logger.exception('Something just went terribly wrong unexpectedly ...')
 				self.logger.error(log_msg % '{FAILURE}')
-				raise FuseOSError(errno.EIO) # HACK this probably is not the right kind of error ...
+
+				raise FuseOSError(errno.EIO) # HACK this is probably not the right kind of error ...
 
 		return wrapped
 
 	return wrapper
+
+
+def __log_filter__(
+	out_func, log_msg,
+	abs_path, uid, action, status,
+	incl_filter_list, excl_filter_list
+	):
+
+	def match_filter(f_path, f_uid, f_action, f_status):
+		return all([
+			bool(f_path.match(abs_path)),
+			(uid == f_uid) if isinstance(f_uid, int) else True,
+			bool(f_action.match(action)),
+			bool(f_status.match(status))
+			])
+
+	if len(incl_filter_list) != 0:
+		included = False
+		for filter_tuple in incl_filter_list:
+			if match_filter(*filter_tuple):
+				included = True
+				break
+		if not included:
+			return
+
+	for filter_tuple in excl_filter_list:
+		if match_filter(*filter_tuple):
+			return
+
+	out_func(log_msg % status)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -187,12 +241,33 @@ class loggedfs(Operations):
 		ch.setFormatter(log_formater)
 		self.logger.addHandler(ch)
 
+		self._compile_filter()
+
 		if log_file is not None:
 
 			fh = logging.FileHandler(os.path.join(log_file))
 			fh.setLevel(logging.DEBUG)
 			fh.setFormatter(log_formater)
 			self.logger.addHandler(fh)
+
+
+	def _compile_filter(self):
+
+		def proc_filter_item(in_item):
+			return (
+				re.compile(in_item['@extension']),
+				int(in_item['@uid']) if in_item['@uid'].isnumeric() else None,
+				re.compile(in_item['@action']),
+				re.compile(in_item['@retname'])
+				)
+
+		def proc_filter_list(in_list):
+			if not isinstance(in_list, list):
+				return [proc_filter_item(in_list)]
+			return [proc_filter_item(item) for item in in_list]
+
+		self._f_incl = proc_filter_list(self._p['includes']['include']) if self._p['includes'] is not None else []
+		self._f_excl = proc_filter_list(self._p['excludes']['exclude']) if self._p['excludes'] is not None else []
 
 
 	def _full_path(self, partial_path):

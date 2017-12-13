@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/test_fstest.py: Runs the fstest-suite
+	tests/loggedfs_libtest/scope.py: Provides test scope
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,15 +29,39 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pprint as pp
+import pytest
 
-from loggedfs_libtest import fstest_scope
+from .pre import fstest_pre_class
+from .prove import fstest_prove_class
+from .post import fstest_post_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# TESTS
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest(fstest_scope, fstest_group_path):
+@pytest.fixture(scope = 'module')
+def fstest_scope(request):
+	"""Runs in project root!
+	"""
 
-	fstest_scope.prove(fstest_group_path)
+	fstest = fstest_class()
+
+	def __finalizer__():
+		fstest.postproc()
+
+	request.addfinalizer(__finalizer__)
+
+	return fstest
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CLASS: CORE
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class fstest_class(fstest_pre_class, fstest_prove_class, fstest_post_class):
+
+
+	def __init__(self):
+
+		self.init()
