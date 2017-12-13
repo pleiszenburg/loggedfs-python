@@ -37,6 +37,7 @@ import logging
 import os
 from pprint import pformat as pf
 import pwd
+import re
 
 from fuse import (
 	FUSE,
@@ -187,12 +188,33 @@ class loggedfs(Operations):
 		ch.setFormatter(log_formater)
 		self.logger.addHandler(ch)
 
+		self._compile_filter()
+
 		if log_file is not None:
 
 			fh = logging.FileHandler(os.path.join(log_file))
 			fh.setLevel(logging.DEBUG)
 			fh.setFormatter(log_formater)
 			self.logger.addHandler(fh)
+
+
+	def _compile_filter(self):
+
+		def proc_filter_item(in_item):
+			return (
+				re.compile(in_item['@extension']),
+				int(h['@uid']) if h['@uid'].isnumeric() else None,
+				re.compile(in_item['@action']),
+				re.compile(in_item['@retname'])
+				)
+
+		def proc_filter_list(in_list):
+			if not isinstance(in_list, list):
+				return [proc_filter_item(in_list)]
+			return [proc_filter_item(item) for item in in_list]
+
+		self._f_incl = proc_filter_dict(self._p['includes']['include'])
+		self._f_excl = proc_filter_dict(self._p['excludes']['exclude'])
 
 
 	def _full_path(self, partial_path):
