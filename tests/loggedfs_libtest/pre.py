@@ -58,7 +58,7 @@ class fstest_pre_class():
 
 	def init(self):
 
-		self.with_sudo = False
+		self.with_sudo = True
 
 		self.__set_paths__()
 		self.__cleanup_logfiles__()
