@@ -71,7 +71,7 @@ def loggedfs_factory(
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
-		# allow_other = allow_other,
+		allow_other = allow_other,
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
