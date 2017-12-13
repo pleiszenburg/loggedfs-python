@@ -43,7 +43,7 @@ except ImportError:
 # ROUTINES: SHELL OUT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False):
+def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None):
 
 	sudo_cmd = []
 	if sudo:
@@ -56,10 +56,17 @@ def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False)
 	proc = subprocess.Popen(
 		sudo_cmd + cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
 		)
-	outs, errs = proc.communicate()
+
+	timeout_alert = ''
+	try:
+		outs, errs = proc.communicate(timeout = timeout)
+	except TimeoutExpired:
+		proc.kill()
+		outs, errs = proc.communicate()
+		timeout_alert = '\n\nLIBTEST: COMMAND TIMED OUT AND WAS KILLED!'
 
 	if return_output:
-		return (not bool(proc.returncode), outs.decode('utf-8'), errs.decode('utf-8'))
+		return (not bool(proc.returncode), outs.decode('utf-8'), errs.decode('utf-8') + timeout_alert)
 	return not bool(proc.returncode)
 
 
