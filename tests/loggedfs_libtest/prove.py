@@ -98,7 +98,7 @@ class fstest_prove_class:
 
 	def __clear_loggedfs_log__(self):
 
-		write_file(self.loggedfs_log_abs_path, '')
+		run_command(['truncate', '-s', '0', self.loggedfs_log_abs_path], sudo = True)
 
 
 	def __get_group_id_from_path__(self, in_path):

@@ -64,4 +64,4 @@ def umount(in_abs_path, sudo = False, force = False):
 
 def umount_fuse(in_abs_path):
 
-	return run_command(['fusermount', '-u', in_abs_path])
+	return run_command(['fusermount', '-u', in_abs_path], sudo = True)
