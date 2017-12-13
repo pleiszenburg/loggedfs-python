@@ -177,6 +177,16 @@ def __log__(
 
 				raise e
 
+			except OSError as e:
+
+				__log_filter__(
+					self.logger.error, log_msg,
+					abs_path, uid, func.__name__, 'FAILURE',
+					self._f_incl, self._f_excl
+					)
+
+				raise FuseOSError(e.errno)
+
 			except:
 
 				self.logger.exception('Something just went terribly wrong unexpectedly ...')
@@ -331,10 +341,6 @@ class loggedfs(Operations):
 		except FileNotFoundError:
 
 			raise FuseOSError(errno.ENOENT)
-
-		except OSError:
-
-			raise
 
 
 	@__log__(format_pattern = '{0}')
