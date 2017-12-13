@@ -38,6 +38,7 @@ import os
 from pprint import pformat as pf
 import pwd
 import re
+import sys
 
 from fuse import (
 	FUSE,
@@ -158,41 +159,40 @@ def __log__(
 			try:
 
 				ret_value = func(self, *func_args, **func_kwargs)
-
-				__log_filter__(
-					self.logger.info, log_msg,
-					abs_path, uid, func.__name__, 'SUCCESS',
-					self._f_incl, self._f_excl
-					)
-
-				return ret_value
+				ret_status = 'SUCCESS'
 
 			except FuseOSError as e:
 
-				__log_filter__(
-					self.logger.error, log_msg,
-					abs_path, uid, func.__name__, 'FAILURE',
-					self._f_incl, self._f_excl
-					)
-
+				ret_status = 'FAILURE'
 				raise e
 
 			except OSError as e:
 
-				__log_filter__(
-					self.logger.error, log_msg,
-					abs_path, uid, func.__name__, 'FAILURE',
-					self._f_incl, self._f_excl
-					)
-
+				ret_status = 'FAILURE'
 				raise FuseOSError(e.errno)
 
 			except:
 
-				self.logger.exception('Something just went terribly wrong unexpectedly ...')
-				self.logger.error(log_msg % '{FAILURE}')
+				ret_status = 'FAILURE'
+				e = sys.exc_info()[0]
 
-				raise FuseOSError(errno.EIO) # HACK this is probably not the right kind of error ...
+				if hasattr(e, 'errno'): # all subclasses of OSError
+					raise FuseOSError(e.errno)
+				else:
+					self.logger.exception('Something just went terribly wrong unexpectedly ...')
+					raise e
+
+			else:
+
+				return ret_value
+
+			finally:
+
+				__log_filter__(
+					self.logger.error, log_msg,
+					abs_path, uid, func.__name__, ret_status,
+					self._f_incl, self._f_excl
+					)
 
 		return wrapped
 
