@@ -256,7 +256,7 @@ class loggedfs(Operations):
 		def proc_filter_item(in_item):
 			return (
 				re.compile(in_item['@extension']),
-				int(h['@uid']) if h['@uid'].isnumeric() else None,
+				int(in_item['@uid']) if in_item['@uid'].isnumeric() else None,
 				re.compile(in_item['@action']),
 				re.compile(in_item['@retname'])
 				)
@@ -266,8 +266,8 @@ class loggedfs(Operations):
 				return [proc_filter_item(in_list)]
 			return [proc_filter_item(item) for item in in_list]
 
-		self._f_incl = proc_filter_list(self._p['includes']['include']) if self._p['includes'] not None else []
-		self._f_excl = proc_filter_list(self._p['excludes']['exclude']) if self._p['excludes'] not None else []
+		self._f_incl = proc_filter_list(self._p['includes']['include']) if self._p['includes'] is not None else []
+		self._f_excl = proc_filter_list(self._p['excludes']['exclude']) if self._p['excludes'] is not None else []
 
 
 	def _full_path(self, partial_path):
