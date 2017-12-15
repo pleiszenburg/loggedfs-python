@@ -30,7 +30,6 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os
-import shutil
 
 from .const import (
 	TEST_MOUNT_PATH,
@@ -44,9 +43,13 @@ from .const import (
 from .mount import (
 	is_path_mountpoint,
 	mount_loggedfs_python,
-	umount
+	umount,
+	umount_fuse
 	)
-from .lib import write_file
+from .lib import (
+	run_command,
+	write_file
+	)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -72,10 +75,13 @@ class fstest_pre_class():
 
 		if is_path_mountpoint(self.mount_abs_path):
 			umount_status = umount(self.mount_abs_path, sudo = True, force = True)
-			assert umount_status
+			if not umount_status:
+				fumount_status = umount_fuse(self.mount_abs_path, sudo = True)
+			assert not is_path_mountpoint(self.mount_abs_path)
 
 		if os.path.isdir(self.mount_abs_path):
-			shutil.rmtree(self.mount_abs_path, ignore_errors = True)
+			assert self.mount_abs_path != '/'
+			run_command(['rm', '-rf', self.mount_abs_path], sudo = self.with_sudo)
 		assert not os.path.isdir(self.mount_abs_path)
 
 		os.mkdir(self.mount_abs_path)
@@ -85,7 +91,8 @@ class fstest_pre_class():
 	def __cleanup_logfiles__(self):
 
 		if os.path.isdir(self.logs_abs_path):
-			shutil.rmtree(self.logs_abs_path, ignore_errors = True)
+			assert self.logs_abs_path != '/'
+			run_command(['rm', '-rf', self.logs_abs_path], sudo = self.with_sudo)
 
 		os.mkdir(self.logs_abs_path)
 		assert os.path.isdir(self.logs_abs_path)

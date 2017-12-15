@@ -35,5 +35,6 @@ from .const import (
 	TEST_FSTEST_TESTS_SUBPATH
 	)
 from .install import install_fstest
+from .lib import run_command
 from .param import fstest_parameters
 from .scope import fstest_scope

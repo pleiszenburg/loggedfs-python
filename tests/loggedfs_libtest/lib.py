@@ -30,8 +30,10 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os
+import signal
 import subprocess
 
+import psutil
 from yaml import load, dump
 try:
 	from yaml import CLoader as Loader, CDumper as Dumper
@@ -43,31 +45,66 @@ except ImportError:
 # ROUTINES: SHELL OUT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None):
+def kill_proc(pid, k_signal = signal.SIGINT, entire_group = False, sudo = False):
 
-	sudo_cmd = []
+	if not sudo:
+		if entire_group:
+			os.killpg(os.getpgid(pid), k_signal)
+		else:
+			os.kill(pid, k_signal)
+	else:
+		if entire_group:
+			run_command(['kill', '-%d' % k_signal, '--', '-%d' % os.getpgid(pid)], sudo = sudo)
+		else:
+			run_command(['kill', '-%d' % k_signal, '%d' % pid], sudo = sudo)
+
+
+def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None, setsid = False):
+
+	cmd_prefix = []
+
 	if sudo:
-		sudo_cmd.append('sudo')
+		cmd_prefix.append('sudo')
+		if setsid:
+			cmd_prefix.append('-b')
 		if sudo_env:
-			sudo_cmd.append('env')
-			sudo_cmd.append('%s=%s' % ('VIRTUAL_ENV', os.environ['VIRTUAL_ENV']))
-			sudo_cmd.append('%s=%s:%s' % ('PATH', os.path.join(os.environ['VIRTUAL_ENV'], 'bin'), os.environ['PATH']))
+			cmd_prefix.append('env')
+			cmd_prefix.append('%s=%s' % ('VIRTUAL_ENV', os.environ['VIRTUAL_ENV']))
+			cmd_prefix.append('%s=%s:%s' % ('PATH', os.path.join(os.environ['VIRTUAL_ENV'], 'bin'), os.environ['PATH']))
+
+	full_cmd = cmd_prefix + cmd_list
 
 	proc = subprocess.Popen(
-		sudo_cmd + cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
+		full_cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE
 		)
 
 	timeout_alert = ''
-	try:
-		outs, errs = proc.communicate(timeout = timeout)
-	except TimeoutExpired:
-		proc.kill()
+	if timeout is not None:
+		try:
+			outs, errs = proc.communicate(timeout = timeout)
+		except subprocess.TimeoutExpired:
+			timeout_alert = '\n\nLIBTEST: COMMAND TIMED OUT AND WAS KILLED!'
+			if setsid:
+				kill_pid = __get_pid__(full_cmd) # proc.pid will deliver wrong pid!
+			else:
+				kill_pid = proc.pid
+			kill_proc(kill_pid, k_signal = signal.SIGINT, entire_group = setsid, sudo = sudo)
+			outs, errs = proc.communicate()
+	else:
 		outs, errs = proc.communicate()
-		timeout_alert = '\n\nLIBTEST: COMMAND TIMED OUT AND WAS KILLED!'
 
 	if return_output:
 		return (not bool(proc.returncode), outs.decode('utf-8'), errs.decode('utf-8') + timeout_alert)
 	return not bool(proc.returncode)
+
+
+def __get_pid__(cmd_line_list):
+
+	for pid in psutil.pids():
+		proc = psutil.Process(pid)
+		if cmd_line_list == proc.cmdline():
+			return proc.pid
+	return None
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

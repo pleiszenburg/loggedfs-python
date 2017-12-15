@@ -62,7 +62,9 @@ class fstest_prove_class:
 		status, out, err = self.__run_fstest__(test_path)
 		len_expected, len_passed, len_failed, res_dict = self.__process_raw_results__(out)
 
-		if len_failed == 0 and len_expected == (len_passed + len_failed) and len_expected != 0:
+		pass_condition = len_failed == 0 and len_expected == (len_passed + len_failed) and len_expected != 0 and err.strip() == ''
+
+		if pass_condition:
 			self.__clear_loggedfs_log__()
 			assert True # Test is good, nothing more to do
 			return # Get out of here ...
@@ -74,7 +76,8 @@ class fstest_prove_class:
 		report = []
 
 		report.append(TEST_LOG_HEAD % 'TEST SUITE LOG')
-		report.append(TEST_LOG_STATS % (len_passed, len_failed))
+		report.append(test_path)
+		report.append(TEST_LOG_STATS % (len_expected, len_passed, len_failed))
 		report.append(format_yaml(res_dict))
 
 		if err.strip() != '':
@@ -93,7 +96,9 @@ class fstest_prove_class:
 			), '\n'.join(report))
 
 		self.__clear_loggedfs_log__()
-		assert len_failed == 0 # will always fail at this point
+
+		# will always fail at this point
+		assert pass_condition
 
 
 	def __clear_loggedfs_log__(self):
@@ -124,6 +129,8 @@ class fstest_prove_class:
 				continue
 			if not hasattr(line, 'ok'):
 				continue
+			if line.number is None:
+				continue
 			if line.ok:
 				len_passed += 1
 			else:
@@ -139,5 +146,5 @@ class fstest_prove_class:
 	def __run_fstest__(self, abs_test_path):
 
 		return run_command(
-			['prove', '-v', abs_test_path], return_output = True, sudo = self.with_sudo, timeout = 60
+			['prove', '-v', abs_test_path], return_output = True, sudo = self.with_sudo, timeout = 39, setsid = True
 			)

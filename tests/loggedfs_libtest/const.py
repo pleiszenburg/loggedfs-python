@@ -68,4 +68,4 @@ TEST_LOG_HEAD = """
 
 """
 
-TEST_LOG_STATS = 'Stats: %d passed | %d failed'
+TEST_LOG_STATS = 'Stats: expected %d | %d passed | %d failed'
