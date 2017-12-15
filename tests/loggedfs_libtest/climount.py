@@ -30,6 +30,15 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from .pre import fstest_pre_class
+from .post import fstest_post_class
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CLASS
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class fstest_quick_class(fstest_pre_class, fstest_post_class):
+	pass
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -40,3 +49,10 @@ def quick_cli_mount():
 
 	fs = fstest_pre_class()
 	fs.init()
+
+
+def quick_cli_umount():
+
+	fs = fstest_quick_class()
+	fs.set_paths()
+	fs.postproc()

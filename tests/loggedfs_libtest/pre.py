@@ -59,16 +59,27 @@ from .lib import (
 class fstest_pre_class():
 
 
+	with_sudo = True
+
+
 	def init(self):
 
-		self.with_sudo = True
-
-		self.__set_paths__()
+		self.set_paths()
 		self.__cleanup_logfiles__()
 		self.__cleanup_mountpoint__()
 		self.__mount_fs__()
 
 		os.chdir(self.mount_abs_path)
+
+
+	def set_paths(self):
+
+		self.prj_abs_path = os.getcwd()
+		self.root_abs_path = os.path.abspath(os.path.join(self.prj_abs_path, TEST_ROOT_PATH))
+		assert os.path.isdir(self.root_abs_path)
+
+		self.logs_abs_path = os.path.join(self.root_abs_path, TEST_LOG_PATH)
+		self.mount_abs_path = os.path.join(self.root_abs_path, TEST_MOUNT_PATH)
 
 
 	def __cleanup_mountpoint__(self):
@@ -112,13 +123,3 @@ class fstest_pre_class():
 
 		assert loggedfs_status
 		assert is_path_mountpoint(self.mount_abs_path)
-
-
-	def __set_paths__(self):
-
-		self.prj_abs_path = os.getcwd()
-		self.root_abs_path = os.path.abspath(os.path.join(self.prj_abs_path, TEST_ROOT_PATH))
-		assert os.path.isdir(self.root_abs_path)
-
-		self.logs_abs_path = os.path.join(self.root_abs_path, TEST_LOG_PATH)
-		self.mount_abs_path = os.path.join(self.root_abs_path, TEST_MOUNT_PATH)

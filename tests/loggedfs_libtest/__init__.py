@@ -29,7 +29,10 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from .climount import quick_cli_mount
+from .climount import (
+	quick_cli_mount,
+	quick_cli_umount
+	)
 from .const import (
 	TEST_ROOT_PATH,
 	TEST_FSTEST_PATH,
