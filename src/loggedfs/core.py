@@ -165,6 +165,12 @@ def __log__(
 				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
 				])
 
+			__log_filter__(
+				self.logger.error, log_msg,
+				abs_path, uid, func.__name__, '...',
+				self._f_incl, self._f_excl
+				)
+
 			try:
 
 				ret_value = __time_out_func__(15, func, self, func_args, func_kwargs)

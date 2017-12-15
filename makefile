@@ -52,6 +52,9 @@ install_link:
 install_fstest:
 	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fstest()'
 
+mount:
+	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_mount()'
+
 test:
 	# make docu
 	-rm tests/__pycache__/*.pyc

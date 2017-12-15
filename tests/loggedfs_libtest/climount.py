@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/__init__.py: Test library module init
+	tests/loggedfs_libtest/climount.py: Quick mount from CLI for tests
 
 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,13 +29,14 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from .climount import quick_cli_mount
-from .const import (
-	TEST_ROOT_PATH,
-	TEST_FSTEST_PATH,
-	TEST_FSTEST_TESTS_SUBPATH
-	)
-from .install import install_fstest
-from .lib import run_command
-from .param import fstest_parameters
-from .scope import fstest_scope
+from .pre import fstest_pre_class
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def quick_cli_mount():
+
+	fs = fstest_pre_class()
+	fs.init()
