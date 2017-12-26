@@ -85,7 +85,9 @@ class fstest_pre_class():
 		self.__cleanup_loop_devices__() # losetup -d /dev/loopX
 		self.__cleanup_image__() # rm file
 
-		self.__mk_image__(self.image_abs_path, size_in_mb = TEST_IMAGE_SIZE_MB)
+		create_zero_file(self.image_abs_path, TEST_IMAGE_SIZE_MB)
+		self.__attach_loop_device__()
+		mk_filesystem_in_file(self.loop_device_path, file_system = TEST_FS_EXT4)
 		self.__mk_dir__(self.mount_parent_abs_path)
 		self.__mount_parent_fs__()
 		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
@@ -113,6 +115,17 @@ class fstest_pre_class():
 
 		self.loggedfs_log_abs_path = os.path.join(self.logs_abs_path, TEST_LOGGEDFS_LOG_FN)
 		self.loggedfs_cfg_abs_path = os.path.join(self.root_abs_path, TEST_LOGGEDFS_CFG_FN)
+
+
+	def __attach_loop_device__(self):
+
+		loop_status = attach_loop_device(self.image_abs_path)
+		assert loop_status
+		loop_device_list = find_loop_devices(self.image_abs_path)
+		assert isinstance(loop_device_list, list)
+		assert len(loop_device_list) == 1
+
+		self.loop_device_path = loop_device_list[0]
 
 
 	def __cleanup_image__(self):
@@ -162,12 +175,6 @@ class fstest_pre_class():
 		assert find_loop_devices(self.image_abs_path) == []
 
 
-	def __mk_image__(self, in_path, size_in_mb):
-
-		create_zero_file(in_path, size_in_mb)
-		mk_filesystem_in_file(in_path, file_system = TEST_FS_EXT4)
-
-
 	def __mk_dir__(self, in_path, in_fs_root = False):
 
 		if not in_fs_root:
@@ -201,14 +208,7 @@ class fstest_pre_class():
 
 	def __mount_parent_fs__(self):
 
-		loop_status = attach_loop_device(self.image_abs_path)
-		assert loop_status
-		loop_device_list = find_loop_devices(self.image_abs_path)
-		assert isinstance(loop_device_list, list)
-		assert len(loop_device_list) == 1
-		loop_device_path = loop_device_list[0]
-
 		assert not is_path_mountpoint(self.mount_parent_abs_path)
-		mount_status = mount(self.mount_parent_abs_path, loop_device_path)
+		mount_status = mount(self.mount_parent_abs_path, self.loop_device_path)
 		assert mount_status
 		assert is_path_mountpoint(self.mount_parent_abs_path)

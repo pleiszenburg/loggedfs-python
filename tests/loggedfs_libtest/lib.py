@@ -127,7 +127,6 @@ def create_zero_file(filename, size_in_mb):
 
 def mk_filesystem_in_file(filename, file_system = TEST_FS_EXT4):
 
-	assert os.path.isfile(filename)
 	assert file_system == TEST_FS_EXT4 # TODO add support for other filesystems?
 	status = run_command(
 		['mke2fs', '-t', file_system, '-E', 'lazy_itable_init=0', '-O', '^has_journal', filename],
