@@ -62,7 +62,7 @@ def kill_proc(pid, k_signal = signal.SIGINT, entire_group = False, sudo = False)
 
 
 def run_command(
-	cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None, setsid = False
+	cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None, setsid = False, return_status_code = False
 	):
 
 	cmd_prefix = []
@@ -99,9 +99,11 @@ def run_command(
 	else:
 		outs, errs = proc.communicate()
 
+	status_value = proc.returncode if return_status_code else not bool(proc.returncode)
+
 	if return_output:
-		return (not bool(proc.returncode), outs.decode('utf-8'), errs.decode('utf-8') + timeout_alert)
-	return not bool(proc.returncode)
+		return (status_value, outs.decode('utf-8'), errs.decode('utf-8') + timeout_alert)
+	return status_value
 
 
 def __get_pid__(cmd_line_list):
@@ -117,6 +119,15 @@ def __get_pid__(cmd_line_list):
 # ROUTINES: FILESYSTEM
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def ck_filesystem(filename, file_system = TEST_FS_EXT4):
+
+	assert file_system == TEST_FS_EXT4 # TODO add support for other filesystems?
+	return run_command(
+		['fsck.ext4', '-f', '-F', '-n', '-v', filename],
+		return_output = True, sudo = True, return_status_code = True
+		)
+
+
 def create_zero_file(filename, size_in_mb):
 
 	assert not os.path.isfile(filename)
@@ -125,7 +136,7 @@ def create_zero_file(filename, size_in_mb):
 	assert os.path.isfile(filename)
 
 
-def mk_filesystem_in_file(filename, file_system = TEST_FS_EXT4):
+def mk_filesystem(filename, file_system = TEST_FS_EXT4):
 
 	assert file_system == TEST_FS_EXT4 # TODO add support for other filesystems?
 	status = run_command(

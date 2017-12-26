@@ -47,6 +47,7 @@ TEST_FSTEST_TESTS_SUBPATH = 'tests'
 TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
 
 TEST_IMAGE_FN = 'test_image.bin'
+TEST_FSCK_FN = 'fsck.log'
 
 TEST_LOGGEDFS_CFG_FN = 'test_loggedfs_cfg.xml'
 TEST_LOGGEDFS_LOG_FN = 'loggedfs.log'

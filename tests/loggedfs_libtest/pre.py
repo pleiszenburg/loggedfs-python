@@ -57,7 +57,7 @@ from .mount import (
 	)
 from .lib import (
 	create_zero_file,
-	mk_filesystem_in_file,
+	mk_filesystem,
 	run_command,
 	write_file
 	)
@@ -87,7 +87,7 @@ class fstest_pre_class():
 
 		create_zero_file(self.image_abs_path, TEST_IMAGE_SIZE_MB)
 		self.__attach_loop_device__()
-		mk_filesystem_in_file(self.loop_device_path, file_system = TEST_FS_EXT4)
+		mk_filesystem(self.loop_device_path, file_system = TEST_FS_EXT4)
 		self.__mk_dir__(self.mount_parent_abs_path)
 		self.__mount_parent_fs__()
 		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)

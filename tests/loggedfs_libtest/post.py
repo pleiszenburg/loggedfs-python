@@ -32,13 +32,21 @@ specific language governing rights and limitations under the License.
 import os
 import time
 
-from .const import TEST_FS_LOGGEDFS
+from .const import (
+	TEST_FS_LOGGEDFS,
+	TEST_FSCK_FN,
+	TEST_LOG_HEAD
+	)
 from .mount import (
 	detach_loop_device,
 	find_loop_devices,
 	is_path_mountpoint,
 	umount,
 	umount_fuse
+	)
+from .lib import (
+	ck_filesystem,
+	write_file
 	)
 
 
@@ -71,7 +79,20 @@ class fstest_post_class:
 		assert len(loop_device_list) == 1
 		loop_device_path = loop_device_list[0]
 
-		# TODO file system check on loop_device_path
+		ck_status_code, ck_out, ck_err = ck_filesystem(loop_device_path)
+		write_file(
+			os.path.join(self.logs_abs_path, TEST_FSCK_FN),
+			''.join([
+				TEST_LOG_HEAD % 'EXIT STATUS',
+				'%d\n' % ck_status_code,
+				TEST_LOG_HEAD % 'OUT',
+				ck_out,
+				TEST_LOG_HEAD % 'ERR',
+				ck_err
+				])
+			)
 
 		detach_status = detach_loop_device(loop_device_path)
 		assert detach_status
+
+		assert not bool(ck_status_code) # not 0 for just about any type of error! Therefore asserting at the very end.
