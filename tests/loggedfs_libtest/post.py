@@ -34,6 +34,8 @@ import time
 
 from .const import TEST_FS_LOGGEDFS
 from .mount import (
+	detach_loop_device,
+	find_loop_devices,
 	is_path_mountpoint,
 	umount,
 	umount_fuse
@@ -63,3 +65,13 @@ class fstest_post_class:
 		umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)
 		assert umount_parent_status
 		assert not is_path_mountpoint(self.mount_parent_abs_path)
+
+		loop_device_list = find_loop_devices(self.image_abs_path)
+		assert isinstance(loop_device_list, list)
+		assert len(loop_device_list) == 1
+		loop_device_path = loop_device_list[0]
+
+		# TODO file system check on loop_device_path
+
+		detach_status = detach_loop_device(loop_device_path)
+		assert detach_status

@@ -36,6 +36,25 @@ from .lib import run_command
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def attach_loop_device(in_abs_path):
+
+	return run_command(['losetup', '-f', in_abs_path], sudo = True)
+
+
+def detach_loop_device(device_path):
+
+	return run_command(['losetup', '-d', device_path], sudo = True)
+
+
+def find_loop_devices(in_abs_path):
+
+	status, out, err = run_command(['losetup', '-j', in_abs_path], return_output = True, sudo = True)
+	if status:
+		return [line.strip().split(':')[0] for line in out.split('\n') if line.strip() != '']
+	else:
+		return None
+
+
 def is_path_mountpoint(in_abs_path):
 
 	return run_command(['mountpoint', '-q', in_abs_path])

@@ -46,6 +46,9 @@ from .const import (
 	TEST_LOGGEDFS_OUT_FN
 	)
 from .mount import (
+	attach_loop_device,
+	detach_loop_device,
+	find_loop_devices,
 	is_path_mountpoint,
 	mount,
 	mount_loggedfs_python,
@@ -79,6 +82,7 @@ class fstest_pre_class():
 		self.__cleanup_logfiles__() # rm -r log_dir
 		self.__cleanup_mountpoint__(self.mount_child_abs_path) # umount & rmdir
 		self.__cleanup_mountpoint__(self.mount_parent_abs_path) # umount & rmdir
+		self.__cleanup_loop_devices__() # losetup -d /dev/loopX
 		self.__cleanup_image__() # rm file
 
 		self.__mk_image__(self.image_abs_path, size_in_mb = TEST_IMAGE_SIZE_MB)
@@ -142,6 +146,22 @@ class fstest_pre_class():
 		assert os.path.isdir(self.logs_abs_path)
 
 
+	def __cleanup_loop_devices__(self):
+
+		if not os.path.isfile(self.image_abs_path):
+			assert find_loop_devices(self.image_abs_path) == []
+			return
+
+		loop_dev_list = find_loop_devices(self.image_abs_path)
+		assert loop_dev_list is not None
+
+		for loop_dev in loop_dev_list:
+			detach_status = detach_loop_device(loop_dev)
+			assert detach_status
+
+		assert find_loop_devices(self.image_abs_path) == []
+
+
 	def __mk_image__(self, in_path, size_in_mb):
 
 		create_zero_file(in_path, size_in_mb)
@@ -181,7 +201,14 @@ class fstest_pre_class():
 
 	def __mount_parent_fs__(self):
 
+		loop_status = attach_loop_device(self.image_abs_path)
+		assert loop_status
+		loop_device_list = find_loop_devices(self.image_abs_path)
+		assert isinstance(loop_device_list, list)
+		assert len(loop_device_list) == 1
+		loop_device_path = loop_device_list[0]
+
 		assert not is_path_mountpoint(self.mount_parent_abs_path)
-		mount_status = mount(self.mount_parent_abs_path, self.image_abs_path)
+		mount_status = mount(self.mount_parent_abs_path, loop_device_path)
 		assert mount_status
 		assert is_path_mountpoint(self.mount_parent_abs_path)
