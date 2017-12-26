@@ -80,6 +80,9 @@ class fstest_prove_class:
 		report.append(TEST_LOG_STATS % (len_expected, len_passed, len_failed))
 		report.append(format_yaml(res_dict))
 
+		report.append(TEST_LOG_HEAD % 'TEST SUITE LOG RAW')
+		report.append(out)
+
 		if err.strip() != '':
 			report.append(TEST_LOG_HEAD % 'TEST SUITE ERR')
 			report.append(err)
@@ -146,5 +149,6 @@ class fstest_prove_class:
 	def __run_fstest__(self, abs_test_path):
 
 		return run_command(
-			['prove', '-v', abs_test_path], return_output = True, sudo = self.with_sudo, timeout = 39, setsid = True
+			['prove', '-v', abs_test_path],
+			return_output = True, sudo = self.with_sudo, timeout = 20, setsid = True
 			)

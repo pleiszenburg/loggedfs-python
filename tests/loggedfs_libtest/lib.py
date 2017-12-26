@@ -59,7 +59,9 @@ def kill_proc(pid, k_signal = signal.SIGINT, entire_group = False, sudo = False)
 			run_command(['kill', '-%d' % k_signal, '%d' % pid], sudo = sudo)
 
 
-def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None, setsid = False):
+def run_command(
+	cmd_list, return_output = False, sudo = False, sudo_env = False, timeout = None, setsid = False
+	):
 
 	cmd_prefix = []
 
@@ -71,6 +73,8 @@ def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False,
 			cmd_prefix.append('env')
 			cmd_prefix.append('%s=%s' % ('VIRTUAL_ENV', os.environ['VIRTUAL_ENV']))
 			cmd_prefix.append('%s=%s:%s' % ('PATH', os.path.join(os.environ['VIRTUAL_ENV'], 'bin'), os.environ['PATH']))
+	elif setsid:
+		cmd_prefix.append('setsid') # TODO untested codepath
 
 	full_cmd = cmd_prefix + cmd_list
 
@@ -89,7 +93,7 @@ def run_command(cmd_list, return_output = False, sudo = False, sudo_env = False,
 			else:
 				kill_pid = proc.pid
 			kill_proc(kill_pid, k_signal = signal.SIGINT, entire_group = setsid, sudo = sudo)
-			outs, errs = proc.communicate()
+			outs, errs = proc.communicate() # (proc.stdout.read(), proc.stderr.read())
 	else:
 		outs, errs = proc.communicate()
 

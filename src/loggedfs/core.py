@@ -173,7 +173,7 @@ def __log__(
 
 			try:
 
-				ret_value = __time_out_func__(15, func, self, func_args, func_kwargs)
+				ret_value = __time_out_func__(10, func, self, func_args, func_kwargs)
 				ret_status = 'SUCCESS'
 
 			except FuseOSError as e:
