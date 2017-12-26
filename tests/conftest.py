@@ -53,6 +53,12 @@ def pytest_addoption(parser):
 		nargs = 1,
 		type = __arg_type_testfile__
 		)
+	parser.addoption(
+		'-M',
+		action = 'store',
+		default = 'loggedfs',
+		help = 'specify tested filesystem'
+		)
 
 
 def pytest_generate_tests(metafunc):

@@ -30,9 +30,11 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os
+import time
 
 from .mount import (
 	is_path_mountpoint,
+	umount,
 	umount_fuse
 	)
 
@@ -50,6 +52,12 @@ class fstest_post_class:
 
 		os.chdir(self.prj_abs_path)
 
-		umount_fuse_status = umount_fuse(self.mount_abs_path, sudo = self.with_sudo)
-		assert umount_fuse_status
-		assert not is_path_mountpoint(self.mount_abs_path)
+		umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
+		assert umount_child_status
+		assert not is_path_mountpoint(self.mount_child_abs_path)
+
+		time.sleep(0.1) # HACK ... otherwise parent will be busy
+
+		umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)
+		assert umount_parent_status
+		assert not is_path_mountpoint(self.mount_parent_abs_path)

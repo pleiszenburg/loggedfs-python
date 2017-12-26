@@ -39,11 +39,14 @@ TEST_FSTEST_GITREPO = 'https://github.com/pjd/pjdfstest.git'
 TEST_ROOT_PATH = 'tests'
 
 TEST_FSTEST_PATH = 'test_suite'
-TEST_MOUNT_PATH = 'test_mount'
+TEST_MOUNT_PARENT_PATH = 'test_mount'
+TEST_MOUNT_CHILD_PATH = 'test_child'
 TEST_LOG_PATH = 'test_logs'
 
 TEST_FSTEST_TESTS_SUBPATH = 'tests'
 TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
+
+TEST_IMAGE_FN = 'test_image.bin'
 
 TEST_LOGGEDFS_CFG_FN = 'test_loggedfs_cfg.xml'
 TEST_LOGGEDFS_LOG_FN = 'loggedfs.log'
@@ -55,6 +58,15 @@ TEST_ERRORS_FN = 'test_fstest_errors.log'
 TEST_STATUS_CURRENT_FN = 'test_status_current.yaml'
 TEST_STATUS_DIFF_FN = 'test_status_diff.yaml'
 TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# MODES
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+TEST_FS_EXT4 = 'ext4'
+TEST_FS_LOGGEDFS = 'logggedfs'
+TEST_IMAGE_SIZE_MB = 50
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

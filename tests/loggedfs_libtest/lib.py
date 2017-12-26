@@ -40,6 +40,8 @@ try:
 except ImportError:
 	from yaml import Loader, Dumper
 
+from .const import TEST_FS_EXT4
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES: SHELL OUT
@@ -109,6 +111,29 @@ def __get_pid__(cmd_line_list):
 		if cmd_line_list == proc.cmdline():
 			return proc.pid
 	return None
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ROUTINES: FILESYSTEM
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def create_zero_file(filename, size_in_mb):
+
+	assert not os.path.isfile(filename)
+	status = run_command(['dd', 'if=/dev/zero', 'of=%s' % filename, 'bs=1M', 'count=%d' % size_in_mb])
+	assert status
+	assert os.path.isfile(filename)
+
+
+def mk_filesystem_in_file(filename, file_system = TEST_FS_EXT4):
+
+	assert os.path.isfile(filename)
+	assert file_system == TEST_FS_EXT4 # TODO add support for other filesystems?
+	status = run_command(
+		['mke2fs', '-t', file_system, '-E', 'lazy_itable_init=0', '-O', '^has_journal', filename],
+		sudo = True
+		)
+	assert status
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

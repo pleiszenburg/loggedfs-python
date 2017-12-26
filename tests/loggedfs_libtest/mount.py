@@ -41,6 +41,11 @@ def is_path_mountpoint(in_abs_path):
 	return run_command(['mountpoint', '-q', in_abs_path])
 
 
+def mount(in_abs_path, device_path):
+
+	return run_command(['mount', device_path, in_abs_path], sudo = True)
+
+
 def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 
 	return run_command(
