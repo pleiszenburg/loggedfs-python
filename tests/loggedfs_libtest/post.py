@@ -32,6 +32,7 @@ specific language governing rights and limitations under the License.
 import os
 import time
 
+from .const import TEST_FS_LOGGEDFS
 from .mount import (
 	is_path_mountpoint,
 	umount,
@@ -52,9 +53,10 @@ class fstest_post_class:
 
 		os.chdir(self.prj_abs_path)
 
-		umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
-		assert umount_child_status
-		assert not is_path_mountpoint(self.mount_child_abs_path)
+		if self.fs_type == TEST_FS_LOGGEDFS:
+			umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
+			assert umount_child_status
+			assert not is_path_mountpoint(self.mount_child_abs_path)
 
 		time.sleep(0.1) # HACK ... otherwise parent will be busy
 

@@ -68,10 +68,12 @@ class fstest_pre_class():
 
 
 	with_sudo = True
+	fs_type = TEST_FS_LOGGEDFS
 
 
 	def init(self, fs_type = TEST_FS_LOGGEDFS):
 
+		self.fs_type = fs_type
 		self.set_paths()
 
 		self.__cleanup_logfiles__() # rm -r log_dir
@@ -83,8 +85,11 @@ class fstest_pre_class():
 		self.__mk_dir__(self.mount_parent_abs_path)
 		self.__mount_parent_fs__()
 		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
-		if fs_type == TEST_FS_LOGGEDFS:
+
+		if self.fs_type == TEST_FS_LOGGEDFS:
 			self.__mount_child_fs__()
+		else:
+			open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
 
 		os.chdir(self.mount_child_abs_path)
 
