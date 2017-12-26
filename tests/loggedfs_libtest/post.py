@@ -68,6 +68,9 @@ class fstest_post_class:
 			assert umount_child_status
 			assert not is_path_mountpoint(self.mount_child_abs_path)
 
+		if self.travis:
+			return
+
 		time.sleep(0.1) # HACK ... otherwise parent will be busy
 
 		umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)

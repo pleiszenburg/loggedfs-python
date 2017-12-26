@@ -72,6 +72,7 @@ class fstest_pre_class():
 
 	with_sudo = True
 	fs_type = TEST_FS_LOGGEDFS
+	travis = False
 
 
 	def init(self, fs_type = TEST_FS_LOGGEDFS):
@@ -79,17 +80,20 @@ class fstest_pre_class():
 		self.fs_type = fs_type
 		self.set_paths()
 
-		self.__cleanup_logfiles__() # rm -r log_dir
-		self.__cleanup_mountpoint__(self.mount_child_abs_path) # umount & rmdir
-		self.__cleanup_mountpoint__(self.mount_parent_abs_path) # umount & rmdir
-		self.__cleanup_loop_devices__() # losetup -d /dev/loopX
-		self.__cleanup_image__() # rm file
+		if not self.travis:
+			self.__cleanup_logfiles__() # rm -r log_dir
+			self.__cleanup_mountpoint__(self.mount_child_abs_path) # umount & rmdir
+			self.__cleanup_mountpoint__(self.mount_parent_abs_path) # umount & rmdir
+			self.__cleanup_loop_devices__() # losetup -d /dev/loopX
+			self.__cleanup_image__() # rm file
 
-		create_zero_file(self.image_abs_path, TEST_IMAGE_SIZE_MB)
-		self.__attach_loop_device__()
-		mk_filesystem(self.loop_device_path, file_system = TEST_FS_EXT4)
+		if not self.travis:
+			create_zero_file(self.image_abs_path, TEST_IMAGE_SIZE_MB)
+			self.__attach_loop_device__()
+			mk_filesystem(self.loop_device_path, file_system = TEST_FS_EXT4)
 		self.__mk_dir__(self.mount_parent_abs_path)
-		self.__mount_parent_fs__()
+		if not self.travis:
+			self.__mount_parent_fs__()
 		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
 
 		if self.fs_type == TEST_FS_LOGGEDFS:
@@ -115,6 +119,9 @@ class fstest_pre_class():
 
 		self.loggedfs_log_abs_path = os.path.join(self.logs_abs_path, TEST_LOGGEDFS_LOG_FN)
 		self.loggedfs_cfg_abs_path = os.path.join(self.root_abs_path, TEST_LOGGEDFS_CFG_FN)
+
+		if 'TRAVIS' in os.environ.keys():
+			self.travis = os.environ['TRAVIS'] == 'true'
 
 
 	def __attach_loop_device__(self):
