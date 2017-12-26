@@ -152,5 +152,5 @@ class fstest_prove_class:
 
 		return run_command(
 			['prove', '-v', abs_test_path],
-			return_output = True, sudo = self.with_sudo, timeout = 20, setsid = True
+			return_output = True, sudo = self.with_sudo, timeout = 40, setsid = True
 			)
