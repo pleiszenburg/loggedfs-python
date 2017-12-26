@@ -95,6 +95,7 @@ class fstest_pre_class():
 		if not self.travis:
 			self.__mount_parent_fs__()
 		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
+		self.__mk_dir__(self.logs_abs_path)
 
 		if self.fs_type == TEST_FS_LOGGEDFS:
 			self.__mount_child_fs__()
@@ -161,9 +162,6 @@ class fstest_pre_class():
 		if os.path.isdir(self.logs_abs_path):
 			assert self.logs_abs_path != '/'
 			run_command(['rm', '-r', self.logs_abs_path], sudo = self.with_sudo)
-
-		os.mkdir(self.logs_abs_path)
-		assert os.path.isdir(self.logs_abs_path)
 
 
 	def __cleanup_loop_devices__(self):
