@@ -60,6 +60,7 @@ test:
 	-rm tests/__pycache__/*.pyc
 	-rm tests/loggedfs_libtest/__pycache__/*.pyc
 	# USAGE: make test T="-T chmod/01.t -T chmod/02.t"
+	# REFERENCE TEST WITH EXT4: make test T="-M ext4"
 	pytest $(T)
 
 # test_freeze:

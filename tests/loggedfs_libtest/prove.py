@@ -32,6 +32,7 @@ specific language governing rights and limitations under the License.
 import os
 
 from .const import (
+	TEST_FS_LOGGEDFS,
 	TEST_LOG_HEAD,
 	TEST_LOG_STATS
 	)
@@ -57,7 +58,8 @@ class fstest_prove_class:
 		"""Called from mountpoint!
 		"""
 
-		assert is_path_mountpoint(self.mount_abs_path)
+		if self.fs_type == TEST_FS_LOGGEDFS:
+			assert is_path_mountpoint(self.mount_abs_path)
 
 		status, out, err = self.__run_fstest__(test_path)
 		len_expected, len_passed, len_failed, res_dict = self.__process_raw_results__(out)
