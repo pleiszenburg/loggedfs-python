@@ -151,6 +151,7 @@ class fstest_prove_class:
 	def __run_fstest__(self, abs_test_path):
 
 		return run_command(
-			['prove', '-v', abs_test_path],
-			return_output = True, sudo = self.with_sudo, timeout = 40, setsid = True
+			# ['prove', '-v', abs_test_path],
+			['bash', abs_test_path],
+			return_output = True, sudo = self.with_sudo, timeout = 90, setsid = True
 			)
