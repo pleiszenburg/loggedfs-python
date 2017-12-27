@@ -62,9 +62,9 @@ class fstest_prove_class:
 			assert is_path_mountpoint(self.mount_abs_path)
 
 		status, out, err = self.__run_fstest__(test_path)
-		len_expected, len_passed, len_failed, res_dict = self.__process_raw_results__(out)
+		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)
 
-		pass_condition = len_failed == 0 and len_expected == (len_passed + len_failed) and len_expected != 0 and err.strip() == ''
+		pass_condition = len_failed == 0 and len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) and len_expected != 0 and err.strip() == ''
 
 		if pass_condition:
 			self.__clear_loggedfs_log__()
@@ -126,7 +126,9 @@ class fstest_prove_class:
 		tap_lines_generator = tap_parser.parse_text(in_str)
 
 		len_passed = 0
+		len_passed_todo = 0
 		len_failed = 0
+		len_failed_todo = 0
 		len_expected = 0
 		for line in tap_lines_generator:
 			if line.category == 'plan':
@@ -136,16 +138,22 @@ class fstest_prove_class:
 				continue
 			if line.number is None:
 				continue
-			if line.ok:
-				len_passed += 1
+			if line.todo:
+				if line.ok:
+					len_passed_todo += 1
+				else:
+					len_failed_todo += 1
 			else:
-				len_failed += 1
+				if line.ok:
+					len_passed += 1
+				else:
+					len_failed += 1
 			ret_dict.update({line.number: {
 				'ok': line.ok,
 				'description' : line.description
 				}})
 
-		return len_expected, len_passed, len_failed, ret_dict
+		return len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, ret_dict
 
 
 	def __run_fstest__(self, abs_test_path):
