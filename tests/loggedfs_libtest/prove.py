@@ -32,6 +32,7 @@ specific language governing rights and limitations under the License.
 import os
 
 from .const import (
+	TEST_FS_LOGGEDFS,
 	TEST_LOG_HEAD,
 	TEST_LOG_STATS
 	)
@@ -57,12 +58,15 @@ class fstest_prove_class:
 		"""Called from mountpoint!
 		"""
 
-		assert is_path_mountpoint(self.mount_abs_path)
+		if self.fs_type == TEST_FS_LOGGEDFS:
+			assert is_path_mountpoint(self.mount_child_abs_path)
 
 		status, out, err = self.__run_fstest__(test_path)
-		len_passed, len_failed, res_dict = self.__process_raw_results__(out)
+		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)
 
-		if len_failed == 0:
+		pass_condition = len_failed == 0 and len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) and len_expected != 0 and err.strip() == ''
+
+		if pass_condition:
 			self.__clear_loggedfs_log__()
 			assert True # Test is good, nothing more to do
 			return # Get out of here ...
@@ -74,8 +78,12 @@ class fstest_prove_class:
 		report = []
 
 		report.append(TEST_LOG_HEAD % 'TEST SUITE LOG')
-		report.append(TEST_LOG_STATS % (len_passed, len_failed))
+		report.append(test_path)
+		report.append(TEST_LOG_STATS % (len_expected, len_passed, len_failed))
 		report.append(format_yaml(res_dict))
+
+		report.append(TEST_LOG_HEAD % 'TEST SUITE LOG RAW')
+		report.append(out)
 
 		if err.strip() != '':
 			report.append(TEST_LOG_HEAD % 'TEST SUITE ERR')
@@ -93,12 +101,14 @@ class fstest_prove_class:
 			), '\n'.join(report))
 
 		self.__clear_loggedfs_log__()
-		assert len_failed == 0 # will always fail at this point
+
+		# will always fail at this point
+		assert pass_condition
 
 
 	def __clear_loggedfs_log__(self):
 
-		write_file(self.loggedfs_log_abs_path, '')
+		run_command(['truncate', '-s', '0', self.loggedfs_log_abs_path], sudo = self.with_sudo)
 
 
 	def __get_group_id_from_path__(self, in_path):
@@ -116,24 +126,40 @@ class fstest_prove_class:
 		tap_lines_generator = tap_parser.parse_text(in_str)
 
 		len_passed = 0
+		len_passed_todo = 0
 		len_failed = 0
+		len_failed_todo = 0
+		len_expected = 0
 		for line in tap_lines_generator:
+			if line.category == 'plan':
+				len_expected = line.expected_tests
+				continue
 			if not hasattr(line, 'ok'):
 				continue
-			if line.ok:
-				len_passed += 1
+			if line.number is None:
+				continue
+			if line.todo:
+				if line.ok:
+					len_passed_todo += 1
+				else:
+					len_failed_todo += 1
 			else:
-				len_failed += 1
+				if line.ok:
+					len_passed += 1
+				else:
+					len_failed += 1
 			ret_dict.update({line.number: {
 				'ok': line.ok,
 				'description' : line.description
 				}})
 
-		return len_passed, len_failed, ret_dict
+		return len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, ret_dict
 
 
 	def __run_fstest__(self, abs_test_path):
 
 		return run_command(
-			['prove', '-v', abs_test_path], return_output = True
+			# ['prove', '-v', abs_test_path],
+			['bash', abs_test_path],
+			return_output = True, sudo = self.with_sudo, timeout = 90, setsid = True
 			)
