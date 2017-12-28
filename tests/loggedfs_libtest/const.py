@@ -67,7 +67,7 @@ TEST_STATUS_FROZEN_FN = 'test_status_frozen.yaml'
 
 TEST_FS_EXT4 = 'ext4'
 TEST_FS_LOGGEDFS = 'logggedfs'
-TEST_IMAGE_SIZE_MB = 50
+TEST_IMAGE_SIZE_MB = 150 # > 129
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -139,8 +139,10 @@ def create_zero_file(filename, size_in_mb):
 def mk_filesystem(filename, file_system = TEST_FS_EXT4):
 
 	assert file_system == TEST_FS_EXT4 # TODO add support for other filesystems?
+	# https://github.com/pjd/pjdfstest/issues/24
+	# Block size must be equal or greater than PATH_MAX or symlink/03.t tests 1&2 fail
 	status = run_command(
-		['mke2fs', '-b', '4096', '-t', file_system, '-E', 'lazy_itable_init=0', '-O', '^has_journal', filename],
+		['mke2fs', '-b', '4096', '-I', '256', '-t', file_system, '-E', 'lazy_itable_init=0', '-O', '^has_journal', filename],
 		sudo = True
 		)
 	assert status
