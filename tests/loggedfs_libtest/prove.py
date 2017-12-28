@@ -59,7 +59,7 @@ class fstest_prove_class:
 		"""
 
 		if self.fs_type == TEST_FS_LOGGEDFS:
-			assert is_path_mountpoint(self.mount_abs_path)
+			assert is_path_mountpoint(self.mount_child_abs_path)
 
 		status, out, err = self.__run_fstest__(test_path)
 		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)
