@@ -140,7 +140,7 @@ def mk_filesystem(filename, file_system = TEST_FS_EXT4):
 
 	assert file_system == TEST_FS_EXT4 # TODO add support for other filesystems?
 	status = run_command(
-		['mke2fs', '-t', file_system, '-E', 'lazy_itable_init=0', '-O', '^has_journal', filename],
+		['mke2fs', '-b', '4096', '-t', file_system, '-E', 'lazy_itable_init=0', '-O', '^has_journal', filename],
 		sudo = True
 		)
 	assert status
