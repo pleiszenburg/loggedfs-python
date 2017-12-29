@@ -36,29 +36,53 @@ from .lib import run_command
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def attach_loop_device(in_abs_path):
+
+	return run_command(['losetup', '-f', in_abs_path], sudo = True)
+
+
+def detach_loop_device(device_path):
+
+	return run_command(['losetup', '-d', device_path], sudo = True)
+
+
+def find_loop_devices(in_abs_path):
+
+	status, out, err = run_command(['losetup', '-j', in_abs_path], return_output = True, sudo = True)
+	if status:
+		return [line.strip().split(':')[0] for line in out.split('\n') if line.strip() != '']
+	else:
+		return None
+
+
 def is_path_mountpoint(in_abs_path):
 
 	return run_command(['mountpoint', '-q', in_abs_path])
 
 
-def mount_loggedfs_python(in_abs_path, logfile, cfgfile):
+def mount(in_abs_path, device_path):
 
-	return run_command(['loggedfs', '-l', logfile, '-c', cfgfile, in_abs_path], return_output = True)
+	return run_command(['mount', device_path, in_abs_path], sudo = True)
+
+
+def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
+
+	return run_command(
+		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path],
+		return_output = True, sudo = sudo, sudo_env = sudo
+		)
 
 
 def umount(in_abs_path, sudo = False, force = False):
 
-	cmd_list = []
-	if sudo:
-		cmd_list.append('sudo')
-	cmd_list.append('umount')
+	cmd_list = ['umount']
 	if force:
 		cmd_list.append('-f')
 	cmd_list.append(in_abs_path)
 
-	return run_command(cmd_list)
+	return run_command(cmd_list, sudo = sudo)
 
 
-def umount_fuse(in_abs_path):
+def umount_fuse(in_abs_path, sudo):
 
-	return run_command(['fusermount', '-u', in_abs_path])
+	return run_command(['fusermount', '-u', in_abs_path], sudo = sudo)

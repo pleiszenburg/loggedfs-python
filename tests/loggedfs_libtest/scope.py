@@ -31,6 +31,7 @@ specific language governing rights and limitations under the License.
 
 import pytest
 
+from .const import TEST_FS_LOGGEDFS
 from .pre import fstest_pre_class
 from .prove import fstest_prove_class
 from .post import fstest_post_class
@@ -45,7 +46,9 @@ def fstest_scope(request):
 	"""Runs in project root!
 	"""
 
-	fstest = fstest_class()
+	fs_type = request.config.getoption('M')
+
+	fstest = fstest_class(fs_type = fs_type)
 
 	def __finalizer__():
 		fstest.postproc()
@@ -62,6 +65,6 @@ def fstest_scope(request):
 class fstest_class(fstest_pre_class, fstest_prove_class, fstest_post_class):
 
 
-	def __init__(self):
+	def __init__(self, fs_type = TEST_FS_LOGGEDFS):
 
-		self.init()
+		self.init(fs_type = fs_type)

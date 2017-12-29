@@ -5,28 +5,28 @@
 		<include extension=".*" uid="*" action=".*" retname=".*"/>
 	</includes>
 	<excludes>
-		<exclude extension=".*.proverc" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*.prove" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*autorun.inf" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*AACS" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*BDMV" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*tls" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*x86_64" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libblkid.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libc.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libcrypt.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libcrypto.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libdl.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libm.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libmount.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libpcre.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libpthread.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libreadline.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*librt.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libselinux.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libssl.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libtinfo.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libuuid.so.*" uid="*" action=".*" retname="FAILURE"/>
-		<exclude extension=".*libz.so.*" uid="*" action=".*" retname="FAILURE"/>
+		<exclude extension=".*.proverc" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*.prove" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*autorun.inf" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*AACS" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*BDMV" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*tls" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*x86_64" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libblkid.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libc.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libcrypt.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libcrypto.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libdl.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libm.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libmount.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libpcre.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libpthread.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libreadline.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*librt.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libselinux.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libssl.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libtinfo.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libuuid.so.*" uid="*" action=".*" retname=".*"/>
+		<exclude extension=".*libz.so.*" uid="*" action=".*" retname=".*"/>
 	</excludes>
 </loggedFS>

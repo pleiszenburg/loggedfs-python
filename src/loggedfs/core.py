@@ -38,6 +38,8 @@ import os
 from pprint import pformat as pf
 import pwd
 import re
+import signal
+import sys
 
 from fuse import (
 	FUSE,
@@ -46,6 +48,14 @@ from fuse import (
 	Operations
 	)
 import xmltodict
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ERRORS
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class loggedfs_timeout_error(Exception):
+	pass
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -70,7 +80,7 @@ def loggedfs_factory(
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
-		# allow_other = allow_other,
+		allow_other = allow_other,
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
@@ -114,12 +124,18 @@ def __get_process_cmdline__(pid):
 
 def __get_group_name_from_gid__(gid):
 
-	return grp.getgrgid(gid).gr_name
+	try:
+		return grp.getgrgid(gid).gr_name
+	except KeyError:
+		return '[gid: omitted argument]'
 
 
 def __get_user_name_from_uid__(uid):
 
-	return pwd.getpwuid(uid).pw_name
+	try:
+		return pwd.getpwuid(uid).pw_name
+	except KeyError:
+		return '[uid: omitted argument]'
 
 
 def __log__(
@@ -133,56 +149,93 @@ def __log__(
 		@wraps(func)
 		def wrapped(self, *func_args, **func_kwargs):
 
-			uid, gid, pid = fuse_get_context()
-			p_cmdname = __get_process_cmdline__(pid)
-
-			abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
-
-			func_args_f = list(deepcopy(func_args))
-			func_kwargs_f = deepcopy(func_kwargs)
-
-			for field_list, format_func in [
-				(abs_path_fields, lambda x: self._full_path(x)),
-				(length_fields, lambda x: len(x)),
-				(uid_fields, lambda x: '%s(%d)' % (__get_user_name_from_uid__(x), x)),
-				(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x))
-				]:
-				__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
-
-			log_msg = ' '.join([
-				'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-				'{%s}',
-				'[ pid = %d %s uid = %d ]' % (pid, p_cmdname, uid)
-				])
-
 			try:
 
-				ret_value = func(self, *func_args, **func_kwargs)
+				uid, gid, pid = fuse_get_context()
+				p_cmdname = __get_process_cmdline__(pid)
 
-				__log_filter__(
-					self.logger.info, log_msg,
-					abs_path, uid, func.__name__, 'SUCCESS',
-					self._f_incl, self._f_excl
-					)
+				abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
 
-				return ret_value
+				func_args_f = list(deepcopy(func_args))
+				func_kwargs_f = deepcopy(func_kwargs)
 
-			except FuseOSError as e:
+				for field_list, format_func in [
+					(abs_path_fields, lambda x: self._full_path(x)),
+					(length_fields, lambda x: len(x)),
+					(uid_fields, lambda x: '%s(%d)' % (__get_user_name_from_uid__(x), x)),
+					(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x))
+					]:
+					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
 
-				__log_filter__(
-					self.logger.error, log_msg,
-					abs_path, uid, func.__name__, 'FAILURE',
-					self._f_incl, self._f_excl
-					)
+				log_msg = ' '.join([
+					'%s \n\t%s\n\t' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
+					'{%s}\n\t',
+					'[ pid = %d %s uid = %d ]\n\t' % (pid, p_cmdname, uid),
+					'( %s )'
+					])
 
-				raise e
+				# __log_filter__(
+				# 	self.logger.error, log_msg,
+				# 	abs_path, uid, func.__name__, '...', '...',
+				# 	self._f_incl, self._f_excl
+				# 	)
 
 			except:
 
-				self.logger.exception('Something just went terribly wrong unexpectedly ...')
-				self.logger.error(log_msg % '{FAILURE}')
+				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
+				raise
 
-				raise FuseOSError(errno.EIO) # HACK this is probably not the right kind of error ...
+			try:
+
+				# ret_value = __time_out_func__(10, func, self, func_args, func_kwargs)
+				ret_value = func(self, *func_args, **func_kwargs)
+				ret_str = 'r = %s' % str(ret_value)
+				ret_status = 'SUCCESS'
+
+			except FuseOSError as e:
+
+				ret_status = 'FAILURE'
+				ret_str = 'FuseOS_e = %s' % errno.errorcode[e.errno]
+				raise e
+
+			except OSError as e:
+
+				ret_status = 'FAILURE'
+				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
+				raise FuseOSError(e.errno)
+
+			# except loggedfs_timeout_error:
+            #
+			# 	self.logger.error('TIMEOUT IN CALL "%s"', func.__name__)
+			# 	self.logger.error(pf(func_args))
+			# 	self.logger.error(pf(func_kwargs))
+			# 	ret_status = 'FAILURE'
+			# 	ret_str = 'Timeout!'
+            #
+			except:
+
+				ret_status = 'FAILURE'
+				e = sys.exc_info()[0]
+
+				if hasattr(e, 'errno'): # all subclasses of OSError
+					ret_str = 'e = %s' % errno.errorcode[e.errno]
+					raise FuseOSError(e.errno)
+				else:
+					ret_str = '?'
+					self.logger.exception('Something just went terribly wrong unexpectedly ...')
+					raise e
+
+			else:
+
+				return ret_value
+
+			finally:
+
+				__log_filter__(
+					self.logger.error, log_msg,
+					abs_path, uid, func.__name__, ret_status, ret_str,
+					self._f_incl, self._f_excl
+					)
 
 		return wrapped
 
@@ -191,7 +244,7 @@ def __log__(
 
 def __log_filter__(
 	out_func, log_msg,
-	abs_path, uid, action, status,
+	abs_path, uid, action, status, return_message,
 	incl_filter_list, excl_filter_list
 	):
 
@@ -216,7 +269,23 @@ def __log_filter__(
 		if match_filter(*filter_tuple):
 			return
 
-	out_func(log_msg % status)
+	out_func(log_msg % (status, return_message))
+
+
+# def __time_out_func__(timeout, func, self, args, kwargs):
+#
+# 	def handler(signum, frame):
+# 		raise loggedfs_timeout_error()
+#
+# 	signal.signal(signal.SIGALRM, handler)
+# 	signal.alarm(timeout)
+#
+# 	try:
+# 		return func(self, *args, **kwargs)
+# 	except loggedfs_timeout_error:
+# 		raise
+# 	finally:
+# 		signal.alarm(0)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -249,6 +318,15 @@ class loggedfs(Operations):
 			fh.setLevel(logging.DEBUG)
 			fh.setFormatter(log_formater)
 			self.logger.addHandler(fh)
+
+
+	# def __call__(self, op, *args):
+    #
+	# 	if not hasattr(self, op):
+	# 		self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
+	# 		raise FuseOSError(EFAULT)
+    #
+	# 	return getattr(self, op)(*args)
 
 
 	def _compile_filter(self):
@@ -331,10 +409,6 @@ class loggedfs(Operations):
 		except FileNotFoundError:
 
 			raise FuseOSError(errno.ENOENT)
-
-		except OSError:
-
-			raise
 
 
 	@__log__(format_pattern = '{0}')
