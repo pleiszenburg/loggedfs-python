@@ -38,6 +38,7 @@ from .const import (
 	)
 from .mount import is_path_mountpoint
 from .lib import (
+	append_to_file,
 	format_yaml,
 	read_file,
 	run_command,
@@ -60,6 +61,8 @@ class fstest_prove_class:
 
 		if self.fs_type == TEST_FS_LOGGEDFS:
 			assert is_path_mountpoint(self.mount_child_abs_path)
+
+		append_to_file(self.fstest_log_abs_path, test_path + '\n')
 
 		status, out, err = self.__run_fstest__(test_path)
 		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)

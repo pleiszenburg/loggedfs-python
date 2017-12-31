@@ -152,6 +152,13 @@ def mk_filesystem(filename, file_system = TEST_FS_EXT4):
 # ROUTINES: I/O
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+def append_to_file(filename, data):
+
+	f = open(filename, 'a')
+	f.write(data)
+	f.close()
+
+
 def format_yaml(data):
 
 	return dump(data, Dumper = Dumper, default_flow_style = False)
