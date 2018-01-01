@@ -34,6 +34,7 @@ import os
 from .const import (
 	TEST_FS_EXT4,
 	TEST_FS_LOGGEDFS,
+	TEST_FSTEST_LOG_FN,
 	TEST_IMAGE_FN,
 	TEST_IMAGE_SIZE_MB,
 	TEST_MOUNT_CHILD_PATH,
@@ -102,6 +103,8 @@ class fstest_pre_class():
 		else:
 			open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
 
+		open(self.fstest_log_abs_path, 'a').close()
+
 		os.chdir(self.mount_child_abs_path)
 
 
@@ -123,6 +126,8 @@ class fstest_pre_class():
 
 		if 'TRAVIS' in os.environ.keys():
 			self.travis = os.environ['TRAVIS'] == 'true'
+
+		self.fstest_log_abs_path = os.path.join(self.logs_abs_path, TEST_FSTEST_LOG_FN)
 
 
 	def __attach_loop_device__(self):

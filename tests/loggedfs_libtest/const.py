@@ -45,6 +45,7 @@ TEST_LOG_PATH = 'test_logs'
 
 TEST_FSTEST_TESTS_SUBPATH = 'tests'
 TEST_FSTEST_CONF_SUBPATH = 'tests/conf'
+TEST_FSTEST_LOG_FN = 'fstest.log'
 
 TEST_IMAGE_FN = 'test_image.bin'
 TEST_FSCK_FN = 'fsck.log'

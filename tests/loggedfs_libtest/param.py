@@ -62,6 +62,7 @@ def fstest_parameters():
 
 	test_group_list = []
 	__get_recursive_inventory_list__(fstests_root_abs_path, fstests_root_abs_path, test_group_list)
+	test_group_list = __ignore_tests__(test_group_list)
 
 	return test_group_list
 
@@ -103,3 +104,36 @@ def __get_recursive_inventory_list__(root_path, scan_root_path, test_group_list)
 			pass
 		else:
 			raise # TODO
+
+
+def __ignore_tests__(old_group_list):
+
+	new_group_list = []
+
+	ignore_group_list = []
+		# [
+		# ('truncate', 3),
+		# ('open', 3),
+		# ('mkdir', 3),
+		# ('chmod', 3),
+		# ('mknod', 3),
+		# ('mkfifo', 3),
+		# ('unlink', 3),
+		# ('symlink', 3),
+		# ('link', 3),
+		# ('chown', 3),
+		# ('ftruncate', 3),
+		# ('rmdir', 3),
+		# ('rename', 2)
+		# ] # The original LoggedFS crashes when tested against those.
+
+	for group_path in old_group_list:
+
+		group_path_segment, group_number_str = os.path.split(group_path)
+		group_number = int(group_number_str.split('.')[0])
+		_, group_folder = os.path.split(group_path_segment)
+
+		if (group_folder, group_number) not in ignore_group_list:
+			new_group_list.append(group_path)
+
+	return new_group_list
