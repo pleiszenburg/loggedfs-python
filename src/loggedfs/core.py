@@ -33,6 +33,7 @@ from copy import deepcopy
 import errno
 from functools import wraps
 import grp
+import math
 import logging
 import os
 from pprint import pformat as pf
@@ -424,20 +425,21 @@ class loggedfs: # (Operations):
 		try:
 
 			st = os.lstat(rel_path)
-			return {key: getattr(st, key) for key in (
-				'st_atime',
+			ret_dict = {key: getattr(st, key) for key in (
 				'st_atime_ns',
 				'st_blocks',
-				'st_ctime',
 				'st_ctime_ns',
 				'st_gid',
 				'st_mode',
-				'st_mtime',
 				'st_mtime_ns',
 				'st_nlink',
 				'st_size',
 				'st_uid'
 				)}
+			for key in ['st_atime', 'st_ctime', 'st_mtime']:
+				ret_dict[key] = int(math.floor(ret_dict[key + '_ns'] / 10 ** 9))
+				ret_dict[key + '_ns'] -= int(ret_dict[key] * 10 ** 9)
+			return ret_dict
 
 		except FileNotFoundError:
 
@@ -627,8 +629,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
-		self.logger.info('a %d / m %d' % times)
-		return os.utime(self._rel_path(path), ns = times)
+		os.utime(self._rel_path(path), ns = times)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
