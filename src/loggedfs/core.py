@@ -39,6 +39,7 @@ from pprint import pformat as pf
 import pwd
 import re
 import signal
+import stat
 import sys
 
 from fuse import (
@@ -292,7 +293,7 @@ def __log_filter__(
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class loggedfs(Operations):
+class loggedfs: # (Operations):
 
 
 	def __init__(self, root, root_fd, param_dict = {}, log_file = None):
@@ -320,13 +321,13 @@ class loggedfs(Operations):
 			self.logger.addHandler(fh)
 
 
-	# def __call__(self, op, *args):
-    #
-	# 	if not hasattr(self, op):
-	# 		self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
-	# 		raise FuseOSError(EFAULT)
-    #
-	# 	return getattr(self, op)(*args)
+	def __call__(self, op, *args):
+
+		if not hasattr(self, op):
+			self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
+			raise FuseOSError(EFAULT)
+
+		return getattr(self, op)(*args)
 
 
 	def _compile_filter(self):
@@ -386,33 +387,33 @@ class loggedfs(Operations):
 		return os.chown(self._rel_path(path), uid, gid)
 
 
-	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	def create(self, path, mode, fi = None):
-
-		# NOT provided by original LoggedFS
-
-		uid, gid, pid = fuse_get_context()
-		rel_path = self._rel_path(path)
-		fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
-		os.chown(rel_path, uid, gid)
-		return fd
-
-
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def flush(self, path, fh):
-
-		# NOT provided by original LoggedFS
-
-		return os.fsync(fh)
-
-
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def fsync(self, path, fdatasync, fh):
-
-		# The original LoggedFS has a stub, only:
-		# "This method is optional and can safely be left unimplemented"
-
-		return self.flush(path, fh)
+	# @__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
+	# def create(self, path, mode, fi = None):
+    #
+	# 	# NOT provided by original LoggedFS
+    #
+	# 	uid, gid, pid = fuse_get_context()
+	# 	rel_path = self._rel_path(path)
+	# 	fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
+	# 	os.chown(rel_path, uid, gid)
+	# 	return fd
+    #
+    #
+	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
+	# def flush(self, path, fh):
+    #
+	# 	# NOT provided by original LoggedFS
+    #
+	# 	return os.fsync(fh)
+    #
+    #
+	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
+	# def fsync(self, path, fdatasync, fh):
+    #
+	# 	# The original LoggedFS has a stub, only:
+	# 	# "This method is optional and can safely be left unimplemented"
+    #
+	# 	return self.flush(path, fh)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -425,11 +426,14 @@ class loggedfs(Operations):
 			st = os.lstat(rel_path)
 			return {key: getattr(st, key) for key in (
 				'st_atime',
+				'st_atime_ns',
 				'st_blocks',
 				'st_ctime',
+				'st_ctime_ns',
 				'st_gid',
 				'st_mode',
 				'st_mtime',
+				'st_mtime_ns',
 				'st_nlink',
 				'st_size',
 				'st_uid'
@@ -488,18 +492,28 @@ class loggedfs(Operations):
 
 		rel_path = self._rel_path(path)
 
-		res = os.mknod(rel_path, mode, dev)
+		if stat.S_ISREG(mode):
+			res = os.open(rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode)
+			if res >= 0:
+				os.close(res)
+		elif stat.S_ISFIFO(mode):
+			os.mkfifo(rel_path, mode)
+		else:
+			os.mknod(rel_path, mode, dev)
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(rel_path, uid, gid)
 
-		return res
+		return 0
 
 
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
 	def open(self, path, flags):
 
-		return os.open(self._rel_path(path), flags)
+		res = os.open(self._rel_path(path), flags)
+		os.close(res)
+
+		return 0
 
 
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
@@ -613,7 +627,8 @@ class loggedfs(Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
-		return os.utime(self._rel_path(path), times)
+		self.logger.info('a %d / m %d' % times)
+		return os.utime(self._rel_path(path), ns = times)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
