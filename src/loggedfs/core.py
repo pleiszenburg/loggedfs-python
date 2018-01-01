@@ -496,8 +496,9 @@ class loggedfs: # (Operations):
 
 		rel_path = self._rel_path(path)
 
+
 		if stat.S_ISREG(mode):
-			res = os.open(rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode)
+			res = os.open(rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode) # TODO broken, applies umask to mode no matter what ...
 			if res >= 0:
 				os.close(res)
 		elif stat.S_ISFIFO(mode):
@@ -507,6 +508,7 @@ class loggedfs: # (Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(rel_path, uid, gid)
+		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
 
 		return 0
 
