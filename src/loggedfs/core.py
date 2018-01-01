@@ -647,7 +647,7 @@ class loggedfs: # (Operations):
 		# buf is a bytestring!
 
 		fh_loc = os.open(self._rel_path(path), os.O_WRONLY)
-		os.pwrite(fh_loc, buf, offset)
+		res = os.pwrite(fh_loc, buf, offset)
 		os.close(fh_loc)
 
-		return 0
+		return res
