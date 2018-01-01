@@ -83,6 +83,7 @@ def loggedfs_factory(
 		nothreads = True,
 		foreground = no_daemon_bool,
 		allow_other = allow_other,
+		default_permissions = True,
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
