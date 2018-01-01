@@ -17,8 +17,11 @@ LoggedFS-python - Filesystem monitoring with Fuse and Python
 
 CURRENT STATUS: **12 TEST** OUT OF 232 (5%) ARE **FAILING**.
 
+A CUSTOM BUG-FIXED VERSION OF `FUSEPY`_ IS REQUIRED.
+
 BESIDES, CLI SWITCHES ARE NOT FULLY TESTED. THERE ARE ODD EDGE CASES ...
 
+.. _FUSEPY: https://github.com/s-m-e/fusepy
 .. _TEST SUITE FOR POSIX COMPLIANCE: https://github.com/pjd/pjdfstest
 
 Description
