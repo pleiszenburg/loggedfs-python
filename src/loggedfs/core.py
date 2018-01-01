@@ -363,7 +363,7 @@ class loggedfs(Operations):
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CORE CLASS: Filesystem methods
+# CORE CLASS: Filesystem & file methods
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -384,6 +384,35 @@ class loggedfs(Operations):
 	def chown(self, path, uid, gid):
 
 		return os.chown(self._rel_path(path), uid, gid)
+
+
+	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
+	def create(self, path, mode, fi = None):
+
+		# NOT provided by original LoggedFS
+
+		uid, gid, pid = fuse_get_context()
+		rel_path = self._rel_path(path)
+		fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
+		os.chown(rel_path, uid, gid)
+		return fd
+
+
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def flush(self, path, fh):
+
+		# NOT provided by original LoggedFS
+
+		return os.fsync(fh)
+
+
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def fsync(self, path, fdatasync, fh):
+
+		# The original LoggedFS has a stub, only:
+		# "This method is optional and can safely be left unimplemented"
+
+		return self.flush(path, fh)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -467,6 +496,19 @@ class loggedfs(Operations):
 		return res
 
 
+	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
+	def open(self, path, flags):
+
+		return os.open(self._rel_path(path), flags)
+
+
+	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
+	def read(self, path, length, offset, fh):
+
+		os.lseek(fh, offset, os.SEEK_SET)
+		return os.read(fh, length)
+
+
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def readdir(self, path, fh):
 
@@ -492,6 +534,15 @@ class loggedfs(Operations):
 			return os.path.relpath(pathname, self.root_path)
 		else:
 			return pathname
+
+
+	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	def release(self, path, fh):
+
+		# The original LoggedFS has a stub, only:
+		# "This method is optional and can safely be left unimplemented"
+
+		return os.close(fh)
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
@@ -546,6 +597,13 @@ class loggedfs(Operations):
 		return res
 
 
+	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
+	def truncate(self, path, length, fh = None):
+
+		with open(self._rel_path(path), 'r+') as f:
+			f.truncate(length)
+
+
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def unlink(self, path):
 
@@ -556,68 +614,6 @@ class loggedfs(Operations):
 	def utimens(self, path, times = None):
 
 		return os.utime(self._rel_path(path), times)
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CORE CLASS: File methods
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	def open(self, path, flags):
-
-		return os.open(self._rel_path(path), flags)
-
-
-	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	def create(self, path, mode, fi = None):
-
-		# NOT provided by original LoggedFS
-
-		uid, gid, pid = fuse_get_context()
-		rel_path = self._rel_path(path)
-		fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
-		os.chown(rel_path, uid, gid)
-		return fd
-
-
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def flush(self, path, fh):
-
-		# NOT provided by original LoggedFS
-
-		return os.fsync(fh)
-
-
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def fsync(self, path, fdatasync, fh):
-
-		# The original LoggedFS has a stub, only:
-		# "This method is optional and can safely be left unimplemented"
-
-		return self.flush(path, fh)
-
-
-	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
-	def read(self, path, length, offset, fh):
-
-		os.lseek(fh, offset, os.SEEK_SET)
-		return os.read(fh, length)
-
-
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def release(self, path, fh):
-
-		# The original LoggedFS has a stub, only:
-		# "This method is optional and can safely be left unimplemented"
-
-		return os.close(fh)
-
-
-	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
-	def truncate(self, path, length, fh = None):
-
-		with open(self._rel_path(path), 'r+') as f:
-			f.truncate(length)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
