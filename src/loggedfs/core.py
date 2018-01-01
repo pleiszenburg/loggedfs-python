@@ -84,6 +84,7 @@ def loggedfs_factory(
 		foreground = no_daemon_bool,
 		allow_other = allow_other,
 		default_permissions = True,
+		# direct_io = True,
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
@@ -522,8 +523,13 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
 	def read(self, path, length, offset, fh):
 
-		os.lseek(fh, offset, os.SEEK_SET)
-		return os.read(fh, length)
+		# ret is a bytestring!
+
+		fh_loc = os.open(self._rel_path(path), os.O_RDONLY)
+		ret = os.pread(fh_loc, length, offset)
+		os.close(fh_loc)
+
+		return ret
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -553,13 +559,13 @@ class loggedfs: # (Operations):
 			return pathname
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def release(self, path, fh):
-
-		# The original LoggedFS has a stub, only:
-		# "This method is optional and can safely be left unimplemented"
-
-		return os.close(fh)
+	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
+	# def release(self, path, fh):
+    #
+	# 	# The original LoggedFS has a stub, only:
+	# 	# "This method is optional and can safely be left unimplemented"
+    #
+	# 	return os.close(fh)
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
@@ -636,5 +642,10 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
 	def write(self, path, buf, offset, fh):
 
-		os.lseek(fh, offset, os.SEEK_SET)
-		return os.write(fh, buf)
+		# buf is a bytestring!
+
+		fh_loc = os.open(self._rel_path(path), os.O_WRONLY)
+		os.pwrite(fh_loc, buf, offset)
+		os.close(fh_loc)
+
+		return 0
