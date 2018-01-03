@@ -98,10 +98,9 @@ class fstest_pre_class():
 		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
 		self.__mk_dir__(self.logs_abs_path)
 
+		open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
 		if self.fs_type == TEST_FS_LOGGEDFS:
 			self.__mount_child_fs__()
-		else:
-			open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
 
 		open(self.fstest_log_abs_path, 'a').close()
 
