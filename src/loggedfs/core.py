@@ -86,6 +86,7 @@ def loggedfs_factory(
 		allow_other = allow_other,
 		default_permissions = True,
 		# direct_io = True,
+		attr_timeout = 0,
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
