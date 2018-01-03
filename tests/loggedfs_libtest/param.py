@@ -38,6 +38,8 @@ try:
 except ImportError:
 	from scandir import scandir
 
+import pytest
+
 from .const import (
 	TEST_ROOT_PATH,
 	TEST_FSTEST_PATH,
@@ -126,6 +128,10 @@ def __ignore_tests__(old_group_list):
 		# ('rmdir', 3),
 		# ('rename', 2)
 		# ] # The original LoggedFS crashes when tested against those.
+	xfail_group_list = [
+		('utimensat', 2),
+		('utimensat', 5)
+		] # likely bugs in libfuse 2.9
 
 	for group_path in old_group_list:
 
@@ -133,7 +139,9 @@ def __ignore_tests__(old_group_list):
 		group_number = int(group_number_str.split('.')[0])
 		_, group_folder = os.path.split(group_path_segment)
 
-		if (group_folder, group_number) not in ignore_group_list:
+		if (group_folder, group_number) not in ignore_group_list and (group_folder, group_number) not in xfail_group_list:
 			new_group_list.append(group_path)
+		elif (group_folder, group_number) in xfail_group_list and (group_folder, group_number) not in ignore_group_list:
+			new_group_list.append(pytest.param(group_path, marks = pytest.mark.xfail))
 
 	return new_group_list
