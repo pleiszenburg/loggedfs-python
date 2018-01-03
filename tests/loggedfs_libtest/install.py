@@ -35,7 +35,10 @@ import shutil
 from .const import (
 	TEST_FSTEST_GITREPO,
 	TEST_FSTEST_PATH,
-	TEST_FSTEST_CONF_SUBPATH,
+	TEST_FSTEST_CONF_FN,
+	TEST_FSTEST_MISC_FN,
+	TEST_FSTEST_MISCPATCH_FN,
+	TEST_FSTEST_TESTS_SUBPATH,
 	TEST_ROOT_PATH
 	)
 from .lib import (
@@ -67,12 +70,21 @@ def __build_fstest__(abs_in_path, filesystem = 'ext4'):
 	os.chdir(abs_in_path)
 
 	# Fix filesystem in test config
-	fstest_conf = read_file(TEST_FSTEST_CONF_SUBPATH).split('\n')
+	conf_rel_path = os.path.join(TEST_FSTEST_TESTS_SUBPATH, TEST_FSTEST_CONF_FN)
+	fstest_conf = read_file(conf_rel_path).split('\n')
 	for index, line in enumerate(fstest_conf):
 		if line.startswith('fs=') or line.startswith('#fs='):
 			fstest_conf[index] = 'fs="%s"' % filesystem
 			break
-	write_file(TEST_FSTEST_CONF_SUBPATH, '\n'.join(fstest_conf))
+	write_file(conf_rel_path, '\n'.join(fstest_conf))
+
+	# Apply patch to mish.sh
+	patch_status = run_command([
+		'patch',
+		os.path.join(TEST_FSTEST_TESTS_SUBPATH, TEST_FSTEST_MISC_FN),
+		os.path.join('..', TEST_FSTEST_MISCPATCH_FN)
+		])
+	assert patch_status
 
 	autoreconf_status = run_command(['autoreconf', '-ifs'])
 	assert autoreconf_status
