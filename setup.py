@@ -97,9 +97,12 @@ setup(
 	license = 'Apache License 2.0',
 	keywords = ['filesystem', 'fuse', 'logging', 'monitoring'],
 	include_package_data = True,
+	dependency_links = [
+		'https://github.com/s-m-e/fusepy/tarball/master#egg=fusepy-2.0.99'
+		],
 	install_requires = [
 		'click',
-		'fusepy',
+		'fusepy==2.0.99',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},
