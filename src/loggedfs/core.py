@@ -76,9 +76,10 @@ def loggedfs_factory(
 	os.chdir(directory)
 	# Open mount point
 	directory_fd = os.open('.', os.O_RDONLY);
+	directory_pcpathmax = os.pathconf('.', os.pathconf_names['PC_PATH_MAX'])
 
 	return FUSE(
-		loggedfs(directory, directory_fd, loggedfs_param_dict, log_file),
+		loggedfs(directory, directory_fd, directory_pcpathmax, loggedfs_param_dict, log_file),
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
@@ -299,10 +300,11 @@ def __log_filter__(
 class loggedfs: # (Operations):
 
 
-	def __init__(self, root, root_fd, param_dict = {}, log_file = None):
+	def __init__(self, root, root_fd, root_pcpathmax, param_dict = {}, log_file = None):
 
 		self.root_path = root
 		self.root_path_fd = root_fd
+		self.root_path_pcpathmax = root_pcpathmax
 		self._p = param_dict
 
 		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
@@ -611,6 +613,9 @@ class loggedfs: # (Operations):
 		# FUSEPY:
 		# 	def symlink(self, target, source):
 		# 		'creates a symlink `target -> source` (e.g. ln -s source target)'
+
+		if len(source_path) >= self.root_path_pcpathmax - 2: # HACK
+			raise FuseOSError(errno.ENAMETOOLONG)
 
 		target_rel_path = self._rel_path(target_path)
 
