@@ -392,7 +392,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
 	def chown(self, path, uid, gid):
 
-		return os.chown(self._rel_path(path), uid, gid)
+		return os.lchown(self._rel_path(path), uid, gid)
 
 
 	# @__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
@@ -434,6 +434,7 @@ class loggedfs: # (Operations):
 			st = os.lstat(rel_path)
 			ret_dict = {key: getattr(st, key) for key in (
 				'st_atime_ns',
+				'st_blksize',
 				'st_blocks',
 				'st_ctime_ns',
 				'st_dev',
@@ -442,6 +443,7 @@ class loggedfs: # (Operations):
 				'st_mode',
 				'st_mtime_ns',
 				'st_nlink',
+				'st_rdev',
 				'st_size',
 				'st_uid'
 				)}
@@ -494,6 +496,7 @@ class loggedfs: # (Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(rel_path, uid, gid)
+		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
 
 		return res
 
@@ -502,7 +505,6 @@ class loggedfs: # (Operations):
 	def mknod(self, path, mode, dev):
 
 		rel_path = self._rel_path(path)
-
 
 		if stat.S_ISREG(mode):
 			res = os.open(rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode) # TODO broken, applies umask to mode no matter what ...
