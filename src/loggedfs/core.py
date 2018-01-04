@@ -434,6 +434,7 @@ class loggedfs: # (Operations):
 			st = os.lstat(rel_path)
 			ret_dict = {key: getattr(st, key) for key in (
 				'st_atime_ns',
+				'st_blksize',
 				'st_blocks',
 				'st_ctime_ns',
 				'st_dev',
@@ -442,6 +443,7 @@ class loggedfs: # (Operations):
 				'st_mode',
 				'st_mtime_ns',
 				'st_nlink',
+				'st_rdev',
 				'st_size',
 				'st_uid'
 				)}
