@@ -182,12 +182,6 @@ def __log__(
 					'( %s )'
 					])
 
-				# __log_filter__(
-				# 	self.logger.error, log_msg,
-				# 	abs_path, uid, func.__name__, '...', '...',
-				# 	self._f_incl, self._f_excl
-				# 	)
-
 			except:
 
 				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
@@ -195,7 +189,6 @@ def __log__(
 
 			try:
 
-				# ret_value = __time_out_func__(10, func, self, func_args, func_kwargs)
 				ret_value = func(self, *func_args, **func_kwargs)
 				ret_str = 'r = %s' % str(ret_value)
 				ret_status = 'SUCCESS'
@@ -212,14 +205,6 @@ def __log__(
 				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
 				raise FuseOSError(e.errno)
 
-			# except loggedfs_timeout_error:
-            #
-			# 	self.logger.error('TIMEOUT IN CALL "%s"', func.__name__)
-			# 	self.logger.error(pf(func_args))
-			# 	self.logger.error(pf(func_kwargs))
-			# 	ret_status = 'FAILURE'
-			# 	ret_str = 'Timeout!'
-            #
 			except:
 
 				ret_status = 'FAILURE'
@@ -278,22 +263,6 @@ def __log_filter__(
 			return
 
 	out_func(log_msg % (status, return_message))
-
-
-# def __time_out_func__(timeout, func, self, args, kwargs):
-#
-# 	def handler(signum, frame):
-# 		raise loggedfs_timeout_error()
-#
-# 	signal.signal(signal.SIGALRM, handler)
-# 	signal.alarm(timeout)
-#
-# 	try:
-# 		return func(self, *args, **kwargs)
-# 	except loggedfs_timeout_error:
-# 		raise
-# 	finally:
-# 		signal.alarm(0)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -371,8 +340,6 @@ class loggedfs: # (Operations):
 	@staticmethod
 	def _rel_path(partial_path):
 
-		# return '.' + partial_path
-
 		if len(partial_path) == 0:
 			return '.'
 		elif partial_path == '/':
@@ -408,39 +375,10 @@ class loggedfs: # (Operations):
 		return os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	# @__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	# def create(self, path, mode, fi = None):
-    #
-	# 	# NOT provided by original LoggedFS
-    #
-	# 	uid, gid, pid = fuse_get_context()
-	# 	rel_path = self._rel_path(path)
-	# 	fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
-	# 	os.chown(rel_path, uid, gid)
-	# 	return fd
-
-
 	@__log__(format_pattern = '{0}')
 	def destroy(self, path):
 
 		os.close(self.root_path_fd)
-
-
-	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
-	# def flush(self, path, fh):
-    #
-	# 	# NOT provided by original LoggedFS
-    #
-	# 	return os.fsync(fh)
-    #
-    #
-	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
-	# def fsync(self, path, fdatasync, fh):
-    #
-	# 	# The original LoggedFS has a stub, only:
-	# 	# "This method is optional and can safely be left unimplemented"
-    #
-	# 	return self.flush(path, fh)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -470,16 +408,6 @@ class loggedfs: # (Operations):
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
 	def link(self, target_path, source_path):
-
-		# TODO Check order of arguments, possible bug in original LoggedFS
-
-		# PYTHON:
-		# 	os.link(src, dst, *, src_dir_fd=None, dst_dir_fd=None, follow_symlinks=True)
-		# 	Create a hard link to a file.
-		# 	(From symlink: Create a symbolic link pointing to src named dst.)
-		# FUSEPY:
-		# 	def link(self, target, source):
-		# 		'creates a hard link `target -> source` (e.g. ln source target)'
 
 		target_rel_path = self._rel_path(target_path)
 
@@ -564,10 +492,6 @@ class loggedfs: # (Operations):
 			dirents.extend(os.listdir(dir_fd))
 			os.close(dir_fd)
 
-		# TODO
-		# https://github.com/rflament/loggedfs/blob/master/src/loggedfs.cpp#L248
-		# The original loggedfs does some inode number stuff here
-
 		return dirents
 
 
@@ -580,15 +504,6 @@ class loggedfs: # (Operations):
 			return os.path.relpath(pathname, self.root_path)
 		else:
 			return pathname
-
-
-	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
-	# def release(self, path, fh):
-    #
-	# 	# The original LoggedFS has a stub, only:
-	# 	# "This method is optional and can safely be left unimplemented"
-    #
-	# 	return os.close(fh)
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
@@ -618,18 +533,6 @@ class loggedfs: # (Operations):
 
 	@__log__(format_pattern = 'from {1} to {0}', abs_path_fields = [1])
 	def symlink(self, target_path, source_path):
-
-		# TODO Check order of arguments, possible bug in original LoggedFS
-
-		# PYTHON:
-		# 	os.symlink(src, dst, target_is_directory=False, *, dir_fd=None)
-		# 	Create a symbolic link pointing to src named dst.
-		# FUSEPY:
-		# 	def symlink(self, target, source):
-		# 		'creates a symlink `target -> source` (e.g. ln -s source target)'
-
-		# if len(source_path) >= self.root_path_pcpathmax - 2: # HACK
-		# 	raise FuseOSError(errno.ENAMETOOLONG)
 
 		target_rel_path = self._rel_path(target_path)
 
