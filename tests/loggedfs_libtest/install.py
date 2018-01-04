@@ -36,8 +36,6 @@ from .const import (
 	TEST_FSTEST_GITREPO,
 	TEST_FSTEST_PATH,
 	TEST_FSTEST_CONF_FN,
-	TEST_FSTEST_MISC_FN,
-	TEST_FSTEST_MISCPATCH_FN,
 	TEST_FSTEST_TESTS_SUBPATH,
 	TEST_ROOT_PATH
 	)
@@ -77,14 +75,6 @@ def __build_fstest__(abs_in_path, filesystem = 'ext4'):
 			fstest_conf[index] = 'fs="%s"' % filesystem
 			break
 	write_file(conf_rel_path, '\n'.join(fstest_conf))
-
-	# Apply patch to mish.sh
-	patch_status = run_command([
-		'patch',
-		os.path.join(TEST_FSTEST_TESTS_SUBPATH, TEST_FSTEST_MISC_FN),
-		os.path.join('..', TEST_FSTEST_MISCPATCH_FN)
-		])
-	assert patch_status
 
 	autoreconf_status = run_command(['autoreconf', '-ifs'])
 	assert autoreconf_status
