@@ -182,12 +182,6 @@ def __log__(
 					'( %s )'
 					])
 
-				# __log_filter__(
-				# 	self.logger.error, log_msg,
-				# 	abs_path, uid, func.__name__, '...', '...',
-				# 	self._f_incl, self._f_excl
-				# 	)
-
 			except:
 
 				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
@@ -195,7 +189,6 @@ def __log__(
 
 			try:
 
-				# ret_value = __time_out_func__(10, func, self, func_args, func_kwargs)
 				ret_value = func(self, *func_args, **func_kwargs)
 				ret_str = 'r = %s' % str(ret_value)
 				ret_status = 'SUCCESS'
@@ -212,14 +205,6 @@ def __log__(
 				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
 				raise FuseOSError(e.errno)
 
-			# except loggedfs_timeout_error:
-            #
-			# 	self.logger.error('TIMEOUT IN CALL "%s"', func.__name__)
-			# 	self.logger.error(pf(func_args))
-			# 	self.logger.error(pf(func_kwargs))
-			# 	ret_status = 'FAILURE'
-			# 	ret_str = 'Timeout!'
-            #
 			except:
 
 				ret_status = 'FAILURE'
@@ -280,22 +265,6 @@ def __log_filter__(
 	out_func(log_msg % (status, return_message))
 
 
-# def __time_out_func__(timeout, func, self, args, kwargs):
-#
-# 	def handler(signum, frame):
-# 		raise loggedfs_timeout_error()
-#
-# 	signal.signal(signal.SIGALRM, handler)
-# 	signal.alarm(timeout)
-#
-# 	try:
-# 		return func(self, *args, **kwargs)
-# 	except loggedfs_timeout_error:
-# 		raise
-# 	finally:
-# 		signal.alarm(0)
-
-
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -320,6 +289,9 @@ class loggedfs: # (Operations):
 		self.logger.addHandler(ch)
 
 		self._compile_filter()
+
+		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
+		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
 		if log_file is not None:
 
@@ -368,7 +340,16 @@ class loggedfs: # (Operations):
 	@staticmethod
 	def _rel_path(partial_path):
 
-		return '.' + partial_path
+		if len(partial_path) == 0:
+			return '.'
+		elif partial_path == '/':
+			return '.'
+		elif partial_path.startswith('/'):
+			return partial_path[1:]
+		elif partial_path.startswith('./'):
+			return partial_path[2:]
+		else:
+			return partial_path
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -378,78 +359,40 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def access(self, path, mode):
 
-		rel_path = self._rel_path(path)
-		if not os.access(rel_path, mode):
+		if not os.access(self._rel_path(path), mode, dir_fd = self.root_path_fd):
 			raise FuseOSError(errno.EACCES)
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0])
 	def chmod(self, path, mode):
 
-		return os.chmod(self._rel_path(path), mode)
+		return os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
 	def chown(self, path, uid, gid):
 
-		return os.lchown(self._rel_path(path), uid, gid)
+		return os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	# @__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	# def create(self, path, mode, fi = None):
-    #
-	# 	# NOT provided by original LoggedFS
-    #
-	# 	uid, gid, pid = fuse_get_context()
-	# 	rel_path = self._rel_path(path)
-	# 	fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
-	# 	os.chown(rel_path, uid, gid)
-	# 	return fd
-    #
-    #
-	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
-	# def flush(self, path, fh):
-    #
-	# 	# NOT provided by original LoggedFS
-    #
-	# 	return os.fsync(fh)
-    #
-    #
-	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
-	# def fsync(self, path, fdatasync, fh):
-    #
-	# 	# The original LoggedFS has a stub, only:
-	# 	# "This method is optional and can safely be left unimplemented"
-    #
-	# 	return self.flush(path, fh)
+	@__log__(format_pattern = '{0}')
+	def destroy(self, path):
+
+		os.close(self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def getattr(self, path, fh = None):
 
-		rel_path = self._rel_path(path)
-
 		try:
 
-			st = os.lstat(rel_path)
-			ret_dict = {key: getattr(st, key) for key in (
-				'st_atime_ns',
-				'st_blksize',
-				'st_blocks',
-				'st_ctime_ns',
-				'st_dev',
-				'st_gid',
-				'st_ino',
-				'st_mode',
-				'st_mtime_ns',
-				'st_nlink',
-				'st_rdev',
-				'st_size',
-				'st_uid'
-				)}
+			st = os.lstat(self._rel_path(path), dir_fd = self.root_path_fd)
+			ret_dict = {key: getattr(st, key) for key in self.st_fields}
+
 			for key in ['st_atime', 'st_ctime', 'st_mtime']:
 				ret_dict[key] = int(math.floor(ret_dict[key + '_ns'] / 10 ** 9))
 				ret_dict[key + '_ns'] -= int(ret_dict[key] * 10 ** 9)
+
 			return ret_dict
 
 		except FileNotFoundError:
@@ -461,25 +404,17 @@ class loggedfs: # (Operations):
 	def init(self, path):
 
 		os.fchdir(self.root_path_fd)
-		os.close(self.root_path_fd)
 
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
 	def link(self, target_path, source_path):
 
-		# TODO Check order of arguments, possible bug in original LoggedFS
-
-		# PYTHON:
-		# 	os.link(src, dst, *, src_dir_fd=None, dst_dir_fd=None, follow_symlinks=True)
-		# 	Create a hard link to a file.
-		# 	(From symlink: Create a symbolic link pointing to src named dst.)
-		# FUSEPY:
-		# 	def link(self, target, source):
-		# 		'creates a hard link `target -> source` (e.g. ln source target)'
-
 		target_rel_path = self._rel_path(target_path)
 
-		res = os.link(self._rel_path(source_path), target_rel_path)
+		res = os.link(
+			self._rel_path(source_path), target_rel_path,
+			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
+			)
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(target_rel_path, uid, gid)
@@ -492,7 +427,7 @@ class loggedfs: # (Operations):
 
 		rel_path = self._rel_path(path)
 
-		res = os.mkdir(rel_path, mode)
+		res = os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(rel_path, uid, gid)
@@ -507,17 +442,20 @@ class loggedfs: # (Operations):
 		rel_path = self._rel_path(path)
 
 		if stat.S_ISREG(mode):
-			res = os.open(rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode) # TODO broken, applies umask to mode no matter what ...
+			res = os.open(
+				rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode,
+				dir_fd = self.root_path_fd
+				) # TODO broken, applies umask to mode no matter what ...
 			if res >= 0:
 				os.close(res)
 		elif stat.S_ISFIFO(mode):
-			os.mkfifo(rel_path, mode)
+			os.mkfifo(rel_path, mode, dir_fd = self.root_path_fd)
 		else:
-			os.mknod(rel_path, mode, dev)
+			os.mknod(rel_path, mode, dev, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.lchown(rel_path, uid, gid)
-		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
+		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # HACK should be lchmod, which is only available on BSD
 
 		return 0
 
@@ -525,7 +463,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
 	def open(self, path, flags):
 
-		res = os.open(self._rel_path(path), flags)
+		res = os.open(self._rel_path(path), flags, dir_fd = self.root_path_fd)
 		os.close(res)
 
 		return 0
@@ -536,7 +474,7 @@ class loggedfs: # (Operations):
 
 		# ret is a bytestring!
 
-		fh_loc = os.open(self._rel_path(path), os.O_RDONLY)
+		fh_loc = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
 		ret = os.pread(fh_loc, length, offset)
 		os.close(fh_loc)
 
@@ -549,12 +487,10 @@ class loggedfs: # (Operations):
 		rel_path = self._rel_path(path)
 
 		dirents = ['.', '..']
-		if os.path.isdir(rel_path):
-			dirents.extend(os.listdir(rel_path))
-
-		# TODO
-		# https://github.com/rflament/loggedfs/blob/master/src/loggedfs.cpp#L248
-		# The original loggedfs does some inode number stuff here
+		if stat.S_ISDIR(os.lstat(rel_path, dir_fd = self.root_path_fd).st_mode):
+			dir_fd = os.open(rel_path, os.O_RDONLY, dir_fd = self.root_path_fd)
+			dirents.extend(os.listdir(dir_fd))
+			os.close(dir_fd)
 
 		return dirents
 
@@ -562,7 +498,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def readlink(self, path):
 
-		pathname = os.readlink(self._rel_path(path))
+		pathname = os.readlink(self._rel_path(path), dir_fd = self.root_path_fd)
 
 		if pathname.startswith('/'): # TODO check this ... actually required?
 			return os.path.relpath(pathname, self.root_path)
@@ -570,66 +506,40 @@ class loggedfs: # (Operations):
 			return pathname
 
 
-	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
-	# def release(self, path, fh):
-    #
-	# 	# The original LoggedFS has a stub, only:
-	# 	# "This method is optional and can safely be left unimplemented"
-    #
-	# 	return os.close(fh)
-
-
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
 	def rename(self, old, new):
 
-		return os.rename(self._rel_path(old), self._rel_path(new))
+		return os.rename(
+			self._rel_path(old), self._rel_path(new),
+			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
+			)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def rmdir(self, path):
 
-		return os.rmdir(self._rel_path(path))
+		return os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def statfs(self, path):
 
-		stv = os.statvfs(self._rel_path(path))
-		return {key: getattr(stv, key) for key in (
-			'f_bavail',
-			'f_bfree',
-			'f_blocks',
-			'f_bsize',
-			'f_favail',
-			'f_ffree',
-			'f_files',
-			'f_flag',
-			'f_frsize',
-			'f_namemax'
-			)}
+		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
+		stv = os.statvfs(fd)
+		os.close(fd)
+
+		return {key: getattr(stv, key) for key in self.stvfs_fields}
 
 
 	@__log__(format_pattern = 'from {1} to {0}', abs_path_fields = [1])
 	def symlink(self, target_path, source_path):
 
-		# TODO Check order of arguments, possible bug in original LoggedFS
-
-		# PYTHON:
-		# 	os.symlink(src, dst, target_is_directory=False, *, dir_fd=None)
-		# 	Create a symbolic link pointing to src named dst.
-		# FUSEPY:
-		# 	def symlink(self, target, source):
-		# 		'creates a symlink `target -> source` (e.g. ln -s source target)'
-
-		if len(source_path) >= self.root_path_pcpathmax - 2: # HACK
-			raise FuseOSError(errno.ENAMETOOLONG)
-
 		target_rel_path = self._rel_path(target_path)
 
-		res = os.symlink(source_path, target_rel_path)
+		res = os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.lchown(target_rel_path, uid, gid)
+		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 		return res
 
@@ -637,20 +547,21 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
 	def truncate(self, path, length, fh = None):
 
-		with open(self._rel_path(path), 'r+') as f:
-			f.truncate(length)
+		fd = os.open(self._rel_path(path), os.O_WRONLY | os.O_TRUNC, dir_fd = self.root_path_fd)
+		os.truncate(fd, length)
+		os.close(fd)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def unlink(self, path):
 
-		return os.unlink(self._rel_path(path))
+		return os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
-		os.utime(self._rel_path(path), ns = times)
+		os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
@@ -658,7 +569,7 @@ class loggedfs: # (Operations):
 
 		# buf is a bytestring!
 
-		fh_loc = os.open(self._rel_path(path), os.O_WRONLY)
+		fh_loc = os.open(self._rel_path(path), os.O_WRONLY, dir_fd = self.root_path_fd)
 		res = os.pwrite(fh_loc, buf, offset)
 		os.close(fh_loc)
 
