@@ -392,7 +392,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
 	def chown(self, path, uid, gid):
 
-		return os.chown(self._rel_path(path), uid, gid)
+		return os.lchown(self._rel_path(path), uid, gid)
 
 
 	# @__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
