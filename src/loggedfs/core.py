@@ -405,8 +405,14 @@ class loggedfs: # (Operations):
 	# 	fd = os.open(rel_path, os.O_WRONLY | os.O_CREAT, mode)
 	# 	os.chown(rel_path, uid, gid)
 	# 	return fd
-    #
-    #
+
+
+	@__log__(format_pattern = '{0}')
+	def destroy(self, path):
+
+		os.close(self.root_path_fd)
+
+
 	# @__log__(format_pattern = '{0}', abs_path_fields = [0])
 	# def flush(self, path, fh):
     #
@@ -461,7 +467,6 @@ class loggedfs: # (Operations):
 	def init(self, path):
 
 		os.fchdir(self.root_path_fd)
-		os.close(self.root_path_fd)
 
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
