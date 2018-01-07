@@ -43,6 +43,7 @@ import signal
 import stat
 import sys
 
+import fuse
 from fuse import (
 	FUSE,
 	fuse_get_context,
@@ -272,12 +273,17 @@ def __log_filter__(
 class loggedfs: # (Operations):
 
 
+	WITH_NANOSECOND_INT = True
+
+
 	def __init__(self, root, root_fd, root_pcpathmax, param_dict = {}, log_file = None):
 
 		self.root_path = root
 		self.root_path_fd = root_fd
 		self.root_path_pcpathmax = root_pcpathmax
 		self._p = param_dict
+
+		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
 
 		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
 		self.logger = logging.getLogger('LoggedFS-python')
@@ -390,8 +396,10 @@ class loggedfs: # (Operations):
 			ret_dict = {key: getattr(st, key) for key in self.st_fields}
 
 			for key in ['st_atime', 'st_ctime', 'st_mtime']:
-				ret_dict[key] = int(math.floor(ret_dict[key + '_ns'] / 10 ** 9))
-				ret_dict[key + '_ns'] -= int(ret_dict[key] * 10 ** 9)
+				if self.flag_nanosecond_int:
+					ret_dict[key] = ret_dict.pop(key + '_ns')
+				else:
+					ret_dict.pop(key + '_ns')
 
 			return ret_dict
 
@@ -561,7 +569,10 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
-		os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd)
+		if self.flag_nanosecond_int:
+			os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd)
+		else:
+			os.utime(self._rel_path(path), times = times, dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
