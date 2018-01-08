@@ -90,7 +90,6 @@ def loggedfs_factory(
 		foreground = no_daemon_bool,
 		allow_other = allow_other,
 		default_permissions = True,
-		# direct_io = True,
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
