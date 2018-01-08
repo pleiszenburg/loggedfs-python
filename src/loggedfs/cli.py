@@ -78,10 +78,6 @@ def cli_entry(f, p, c, l, directory):
 	filters are regular expressions.
 	"""
 
-	click.echo(pf((
-		f, p, c, l, directory
-		)))
-
 	loggedfs_factory(
 		directory,
 		no_daemon_bool = f,
