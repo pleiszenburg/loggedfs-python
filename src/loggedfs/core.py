@@ -276,7 +276,7 @@ class loggedfs: # (Operations):
 	WITH_NANOSECOND_INT = True
 
 
-	def __init__(self, root_tup, param_dict = {}, log_file = None):
+	def __init__(self, root_tup, param_dict = {}):
 
 		self.root_path, self.root_path_fd = root_tup
 		self._p = param_dict
