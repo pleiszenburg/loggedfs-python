@@ -77,7 +77,6 @@ def loggedfs_factory(
 	os.chdir(directory)
 	# Open mount point
 	directory_fd = os.open('.', os.O_RDONLY);
-	directory_pcpathmax = os.pathconf('.', os.pathconf_names['PC_PATH_MAX'])
 
 	return FUSE(
 		loggedfs(
