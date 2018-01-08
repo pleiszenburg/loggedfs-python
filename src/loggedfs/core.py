@@ -69,8 +69,7 @@ def loggedfs_factory(
 	directory,
 	no_daemon_bool = False,
 	allow_other = False,
-	loggedfs_param_dict = {},
-	log_file = None
+	loggedfs_param_dict = {}
 	):
 
 	# Change into mountpoint (must be abs path!)
@@ -81,8 +80,7 @@ def loggedfs_factory(
 	return FUSE(
 		loggedfs(
 			(directory, directory_fd),
-			loggedfs_param_dict,
-			log_file
+			loggedfs_param_dict
 			),
 		directory,
 		nothreads = True,
@@ -283,7 +281,25 @@ class loggedfs: # (Operations):
 		self.root_path, self.root_path_fd = root_tup
 		self._p = param_dict
 
+		self._init_logger()
+
 		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
+		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
+		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
+
+		self._compile_filter()
+
+
+	def __call__(self, op, *args):
+
+		if not hasattr(self, op):
+			self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
+			raise FuseOSError(EFAULT)
+
+		return getattr(self, op)(*args)
+
+
+	def _init_logger(self):
 
 		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
 		self.logger = logging.getLogger('LoggedFS-python')
@@ -294,26 +310,15 @@ class loggedfs: # (Operations):
 		ch.setFormatter(log_formater)
 		self.logger.addHandler(ch)
 
-		self._compile_filter()
+		if 'logfile' not in self._p.keys():
+			return
+		if self._p['logfile'] is None:
+			return
 
-		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
-		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
-
-		if log_file is not None:
-
-			fh = logging.FileHandler(os.path.join(log_file))
-			fh.setLevel(logging.DEBUG)
-			fh.setFormatter(log_formater)
-			self.logger.addHandler(fh)
-
-
-	def __call__(self, op, *args):
-
-		if not hasattr(self, op):
-			self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
-			raise FuseOSError(EFAULT)
-
-		return getattr(self, op)(*args)
+		fh = logging.FileHandler(os.path.join(self._p['logfile']))
+		fh.setLevel(logging.DEBUG)
+		fh.setFormatter(log_formater)
+		self.logger.addHandler(fh)
 
 
 	def _compile_filter(self):
