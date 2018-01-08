@@ -80,7 +80,11 @@ def loggedfs_factory(
 	directory_pcpathmax = os.pathconf('.', os.pathconf_names['PC_PATH_MAX'])
 
 	return FUSE(
-		loggedfs(directory, directory_fd, directory_pcpathmax, loggedfs_param_dict, log_file),
+		loggedfs(
+			(directory, directory_fd),
+			loggedfs_param_dict,
+			log_file
+			),
 		directory,
 		nothreads = True,
 		foreground = no_daemon_bool,
@@ -276,11 +280,9 @@ class loggedfs: # (Operations):
 	WITH_NANOSECOND_INT = True
 
 
-	def __init__(self, root, root_fd, root_pcpathmax, param_dict = {}, log_file = None):
+	def __init__(self, root_tup, param_dict = {}, log_file = None):
 
-		self.root_path = root
-		self.root_path_fd = root_fd
-		self.root_path_pcpathmax = root_pcpathmax
+		self.root_path, self.root_path_fd = root_tup
 		self._p = param_dict
 
 		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
