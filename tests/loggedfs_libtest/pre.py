@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	tests/loggedfs_libtest/pre.py: Stuff happening before test(s)
 
-	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
