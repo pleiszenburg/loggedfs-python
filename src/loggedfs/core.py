@@ -331,8 +331,14 @@ class loggedfs: # (Operations):
 				return [proc_filter_item(in_list)]
 			return [proc_filter_item(item) for item in in_list]
 
-		self._f_incl = proc_filter_list(self._p['includes']['include']) if self._p['includes'] is not None else []
-		self._f_excl = proc_filter_list(self._p['excludes']['exclude']) if self._p['excludes'] is not None else []
+		for f_type_pl, f_type_sg, f_field in [
+			('includes', 'include', '_f_incl'),
+			('excludes', 'exclude', '_f_excl')
+			]:
+			f_list = []
+			if f_type_pl in self._p.keys():
+				f_list = proc_filter_list(self._p[f_type_pl][f_type_sg]) if self._p[f_type_pl] is not None else []
+			setattr(self, f_field, f_list)
 
 
 	def _full_path(self, partial_path):
