@@ -338,6 +338,13 @@ class loggedfs: # (Operations):
 			f_list = []
 			if f_type_pl in self._p.keys():
 				f_list = proc_filter_list(self._p[f_type_pl][f_type_sg]) if self._p[f_type_pl] is not None else []
+			elif f_type_pl == 'includes':
+				f_list = proc_filter_list({
+					'@extension': '.*',
+					'@uid': '*',
+					'@action': '.*',
+					'@retname': '.*'
+					})
 			setattr(self, f_field, f_list)
 
 
