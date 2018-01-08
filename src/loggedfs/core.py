@@ -75,7 +75,7 @@ def loggedfs_factory(
 	# Change into mountpoint (must be abs path!)
 	os.chdir(directory)
 	# Open mount point
-	directory_fd = os.open('.', os.O_RDONLY);
+	directory_fd = os.open('.', os.O_RDONLY)
 
 	return FUSE(
 		loggedfs(
