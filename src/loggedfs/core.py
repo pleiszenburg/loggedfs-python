@@ -33,13 +33,10 @@ from copy import deepcopy
 import errno
 from functools import wraps
 import grp
-import math
 import logging
 import os
-from pprint import pformat as pf
 import pwd
 import re
-import signal
 import stat
 import sys
 
@@ -50,7 +47,6 @@ from fuse import (
 	FuseOSError,
 	Operations
 	)
-import xmltodict
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
