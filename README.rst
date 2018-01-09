@@ -31,8 +31,6 @@ THE FILESYSTEM HAS YET **NOT** BEEN **STRESS-TESTED**.
 THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
 ANYONE INTERESTED IN ADDING MACOS AND/OR BSD SUPPORT?
 
-BESIDES, CLI SWITCHES ARE NOT FULLY TESTED. THERE CAN BE ODD EDGE CASES ...
-
 .. _FUSEPY: https://github.com/s-m-e/fusepy
 .. _TEST SUITE FOR POSIX COMPLIANCE: https://github.com/pjd/pjdfstest
 .. _PENDING PULL REQUEST: https://github.com/terencehonles/fusepy/pull/76
@@ -123,14 +121,13 @@ Just use that command:
 
 	loggedfs -f -p /var
 
-You should see logs like these :
+You should see logs like these:
 
 ::
-
 	tail -f /var/log/syslog
 	2017-12-09 17:29:34,910 (loggedfs-python) LoggedFS-python running as a public filesystem
 	2017-12-09 17:29:34,915 (loggedfs-python) LoggedFS-python not running as a daemon
-	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var.
+	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var
 	2017-12-09 17:29:34,950 (loggedfs-python) chdir to /var
 	2017-12-09 17:29:35,246 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 8700 kded [kdeinit] uid = 1000 ]
 	2017-12-09 17:29:41,841 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 10923 ls uid = 1000 ]
