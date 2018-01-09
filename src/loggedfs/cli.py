@@ -29,7 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pformat as pf
+from collections import OrderedDict
 
 from .core import loggedfs_factory
 
@@ -80,27 +80,55 @@ def cli_entry(f, p, c, l, directory):
 
 	loggedfs_factory(
 		directory,
-		no_daemon_bool = f,
-		allow_other = p,
-		loggedfs_param_dict = __process_config__(c, f, l)
+		**__process_config__(c, l, f, p)
 		)
 
 
-def __process_config__(config_fh, no_daemon_bool, logfile):
+def __process_config__(
+	config_fh,
+	log_file,
+	fuse_foreground_bool,
+	fuse_allowother_bool
+	):
 
-	def __process_xml__(in_xml):
-		return xmltodict.parse(in_xml)['loggedFS']
+	def proc_filter_item(in_item):
+		return {
+			'extension': in_item['@extension'],
+			'uid': in_item['@uid'],
+			'action': in_item['@action'],
+			'retname': in_item['@retname']
+			}
 
-	if config_fh is not None:
-		param = __process_xml__(config_fh.read())
-	elif False: # TODO check /etc
-		param = {} # TODO fetch from /etc
-	else:
-		param = {}
+	def proc_filter_list(in_list):
+		if in_list is None:
+			return []
+		if not isinstance(in_list, list):
+			return [proc_filter_item(in_list)]
+		return [proc_filter_item(item) for item in in_list]
 
-	param.update({
-		'daemon': not no_daemon_bool,
-		'logfile': logfile
+	config_dict = OrderedDict({
+		'@logEnabled': True,
+		'@printProcessName': True,
+		'includes': [],
+		'excludes': []
 		})
 
-	return param
+	config_file = None
+	if config_fh is not None:
+		config_file = config_fh.name
+		config_dict.update(xmltodict.parse(config_fh.read())['loggedFS'])
+		config_fh.close()
+
+	for f_type in ['includes', 'excludes']:
+		config_dict[f_type] = proc_filter_list(config_dict[f_type][f_type[:-1]])
+
+	return {
+		'log_includes': config_dict['includes'],
+		'log_excludes': config_dict['excludes'],
+		'log_file': log_file,
+		'log_configmsg': 'Using configuration file %s.' % config_file,
+		'log_enabled': config_dict['@logEnabled'],
+		'log_printprocessname': config_dict['@printProcessName'],
+		'fuse_foreground_bool': fuse_foreground_bool,
+		'fuse_allowother_bool': fuse_allowother_bool
+		}

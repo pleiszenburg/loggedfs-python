@@ -53,12 +53,7 @@ from fuse import (
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def loggedfs_factory(
-	directory,
-	no_daemon_bool = False,
-	allow_other = False,
-	loggedfs_param_dict = {}
-	):
+def loggedfs_factory(directory, **kwargs):
 
 	# Change into mountpoint (must be abs path!)
 	os.chdir(directory)
@@ -68,13 +63,13 @@ def loggedfs_factory(
 	return FUSE(
 		loggedfs(
 			(directory, directory_fd),
-			loggedfs_param_dict
+			**kwargs
 			),
 		directory,
 		nothreads = True,
-		foreground = no_daemon_bool,
-		allow_other = allow_other,
-		default_permissions = True,
+		foreground = bool(kwargs['fuse_foreground_bool']) if 'fuse_foreground_bool' in kwargs.keys() else False,
+		allow_other = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
+		default_permissions = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
@@ -112,7 +107,7 @@ def __get_process_cmdline__(pid):
 		cmdline = f.read()
 		f.close()
 
-		return cmdline
+		return cmdline.replace('\x00', ' ').strip()
 
 	except FileNotFoundError:
 
@@ -149,7 +144,13 @@ def __log__(
 			try:
 
 				uid, gid, pid = fuse_get_context()
-				p_cmdname = __get_process_cmdline__(pid)
+
+				if self._log_printprocessname:
+					p_cmdname = __get_process_cmdline__(pid).strip()
+					if len(p_cmdname) > 0:
+						p_cmdname = '%s ' % p_cmdname
+				else:
+					p_cmdname = ''
 
 				abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
 
@@ -167,7 +168,7 @@ def __log__(
 				log_msg = ' '.join([
 					'%s \n\t%s\n\t' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
 					'{%s}\n\t',
-					'[ pid = %d %s uid = %d ]\n\t' % (pid, p_cmdname, uid),
+					'[ pid = %d %suid = %d ]\n\t' % (pid, p_cmdname, uid),
 					'( %s )'
 					])
 
@@ -264,18 +265,29 @@ class loggedfs: # (Operations):
 	WITH_NANOSECOND_INT = True
 
 
-	def __init__(self, root_tup, param_dict = {}):
+	def __init__(self,
+		root_tup,
+		log_includes = [],
+		log_excludes = [],
+		log_file = None,
+		log_enabled = True,
+		log_printprocessname = True,
+		log_configmsg = None,
+		fuse_foreground_bool = None,
+		fuse_allowother_bool = None
+		):
 
 		self.root_path, self.root_path_fd = root_tup
-		self._p = param_dict
 
-		self._init_logger()
+		self._init_logger(log_enabled, log_file, log_printprocessname)
+
+		# log_configfile, fuse_foreground_bool, fuse_allowother_bool
 
 		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
-		self._compile_filter()
+		self._compile_filter(log_includes, log_excludes)
 
 
 	def __call__(self, op, *args):
@@ -287,10 +299,16 @@ class loggedfs: # (Operations):
 		return getattr(self, op)(*args)
 
 
-	def _init_logger(self):
+	def _init_logger(self, log_enabled, log_file, log_printprocessname):
 
 		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
+		self._log_printprocessname = bool(log_printprocessname)
+
 		self.logger = logging.getLogger('LoggedFS-python')
+
+		if not bool(log_enabled):
+			self.logger.setLevel(logging.CRITICAL)
+			return
 		self.logger.setLevel(logging.DEBUG)
 
 		ch = logging.StreamHandler()
@@ -298,47 +316,38 @@ class loggedfs: # (Operations):
 		ch.setFormatter(log_formater)
 		self.logger.addHandler(ch)
 
-		if 'logfile' not in self._p.keys():
-			return
-		if self._p['logfile'] is None:
+		if log_file is None:
 			return
 
-		fh = logging.FileHandler(os.path.join(self._p['logfile']))
+		fh = logging.FileHandler(os.path.join(log_file)) # TODO
 		fh.setLevel(logging.DEBUG)
 		fh.setFormatter(log_formater)
 		self.logger.addHandler(fh)
 
 
-	def _compile_filter(self):
+	def _compile_filter(self, include_list, exclude_list):
 
 		def proc_filter_item(in_item):
 			return (
-				re.compile(in_item['@extension']),
-				int(in_item['@uid']) if in_item['@uid'].isnumeric() else None,
-				re.compile(in_item['@action']),
-				re.compile(in_item['@retname'])
+				re.compile(in_item['extension']),
+				int(in_item['uid']) if in_item['uid'].isnumeric() else None,
+				re.compile(in_item['action']),
+				re.compile(in_item['retname'])
 				)
 
-		def proc_filter_list(in_list):
-			if not isinstance(in_list, list):
-				return [proc_filter_item(in_list)]
-			return [proc_filter_item(item) for item in in_list]
+		if len(include_list) == 0:
+			include_list.append({
+				'extension': '.*',
+				'uid': '*',
+				'action': '.*',
+				'retname': '.*'
+				})
 
-		for f_type_pl, f_type_sg, f_field in [
-			('includes', 'include', '_f_incl'),
-			('excludes', 'exclude', '_f_excl')
+		for in_list, f_field in [
+			(include_list, '_f_incl'),
+			(exclude_list, '_f_excl')
 			]:
-			f_list = []
-			if f_type_pl in self._p.keys():
-				f_list = proc_filter_list(self._p[f_type_pl][f_type_sg]) if self._p[f_type_pl] is not None else []
-			elif f_type_pl == 'includes':
-				f_list = proc_filter_list({
-					'@extension': '.*',
-					'@uid': '*',
-					'@action': '.*',
-					'@retname': '.*'
-					})
-			setattr(self, f_field, f_list)
+			setattr(self, f_field, [proc_filter_item(item) for item in in_list])
 
 
 	def _full_path(self, partial_path):
