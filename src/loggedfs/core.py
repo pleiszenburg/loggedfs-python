@@ -55,14 +55,9 @@ from fuse import (
 
 def loggedfs_factory(directory, **kwargs):
 
-	# Change into mountpoint (must be abs path!)
-	os.chdir(directory)
-	# Open mount point
-	directory_fd = os.open('.', os.O_RDONLY)
-
 	return FUSE(
 		loggedfs(
-			(directory, directory_fd),
+			directory,
 			**kwargs
 			),
 		directory,
@@ -266,7 +261,7 @@ class loggedfs: # (Operations):
 
 
 	def __init__(self,
-		root_tup,
+		directory,
 		log_includes = [],
 		log_excludes = [],
 		log_file = None,
@@ -277,7 +272,12 @@ class loggedfs: # (Operations):
 		fuse_allowother_bool = None
 		):
 
-		self.root_path, self.root_path_fd = root_tup
+		# Store mountpoint
+		self.root_path = directory
+		# Change into mountpoint (must be abs path!)
+		os.chdir(directory)
+		# Open mount point
+		self.root_path_fd = os.open('.', os.O_RDONLY)
 
 		self._init_logger(log_enabled, log_file, log_printprocessname)
 
