@@ -4,7 +4,7 @@
 #
 #	makefile: GNU makefile for project management
 #
-# 	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
+# 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 #
 # <LICENSE_BLOCK>
 # The contents of this file are subject to the Apache License
@@ -61,11 +61,7 @@ test:
 	-rm tests/loggedfs_libtest/__pycache__/*.pyc
 	# USAGE: make test T="-T chmod/01.t -T chmod/02.t"
 	# REFERENCE TEST WITH EXT4: make test T="-M ext4"
-	# pytest -M ext4
 	pytest $(T)
-
-# test_freeze:
-# 	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.freeze_results()'
 
 umount:
 	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_umount()'

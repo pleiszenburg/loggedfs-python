@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	src/loggedfs/core.py: Module core
 
-	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -33,59 +33,39 @@ from copy import deepcopy
 import errno
 from functools import wraps
 import grp
-import math
 import logging
+import logging.handlers
 import os
-from pprint import pformat as pf
 import pwd
 import re
-import signal
 import stat
 import sys
 
+import fuse
 from fuse import (
 	FUSE,
 	fuse_get_context,
 	FuseOSError,
 	Operations
 	)
-import xmltodict
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ERRORS
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-class loggedfs_timeout_error(Exception):
-	pass
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def loggedfs_factory(
-	directory,
-	no_daemon_bool = False,
-	allow_other = False,
-	loggedfs_param_dict = {},
-	log_file = None
-	):
-
-	# Change into mountpoint (must be abs path!)
-	os.chdir(directory)
-	# Open mount point
-	directory_fd = os.open('.', os.O_RDONLY);
-	directory_pcpathmax = os.pathconf('.', os.pathconf_names['PC_PATH_MAX'])
+def loggedfs_factory(directory, **kwargs):
 
 	return FUSE(
-		loggedfs(directory, directory_fd, directory_pcpathmax, loggedfs_param_dict, log_file),
+		loggedfs(
+			directory,
+			**kwargs
+			),
 		directory,
 		nothreads = True,
-		foreground = no_daemon_bool,
-		allow_other = allow_other,
-		default_permissions = True,
-		# direct_io = True,
+		foreground = bool(kwargs['fuse_foreground_bool']) if 'fuse_foreground_bool' in kwargs.keys() else False,
+		allow_other = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
+		default_permissions = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
@@ -123,7 +103,7 @@ def __get_process_cmdline__(pid):
 		cmdline = f.read()
 		f.close()
 
-		return cmdline
+		return cmdline.replace('\x00', ' ').strip()
 
 	except FileNotFoundError:
 
@@ -160,7 +140,13 @@ def __log__(
 			try:
 
 				uid, gid, pid = fuse_get_context()
-				p_cmdname = __get_process_cmdline__(pid)
+
+				if self._log_printprocessname:
+					p_cmdname = __get_process_cmdline__(pid).strip()
+					if len(p_cmdname) > 0:
+						p_cmdname = '%s ' % p_cmdname
+				else:
+					p_cmdname = ''
 
 				abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
 
@@ -175,10 +161,11 @@ def __log__(
 					]:
 					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
 
+				log_break = '' # '\n\t'
 				log_msg = ' '.join([
-					'%s \n\t%s\n\t' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-					'{%s}\n\t',
-					'[ pid = %d %s uid = %d ]\n\t' % (pid, p_cmdname, uid),
+					'%s %s%s%s' % (func.__name__, log_break, format_pattern.format(*func_args_f, **func_kwargs_f), log_break),
+					'{%s}' + log_break,
+					'[ pid = %d %suid = %d ]%s' % (pid, p_cmdname, uid, log_break),
 					'( %s )'
 					])
 
@@ -225,7 +212,7 @@ def __log__(
 			finally:
 
 				__log_filter__(
-					self.logger.error, log_msg,
+					self.logger.info, log_msg,
 					abs_path, uid, func.__name__, ret_status, ret_str,
 					self._f_incl, self._f_excl
 					)
@@ -272,33 +259,47 @@ def __log_filter__(
 class loggedfs: # (Operations):
 
 
-	def __init__(self, root, root_fd, root_pcpathmax, param_dict = {}, log_file = None):
+	WITH_NANOSECOND_INT = True
 
-		self.root_path = root
-		self.root_path_fd = root_fd
-		self.root_path_pcpathmax = root_pcpathmax
-		self._p = param_dict
 
-		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
-		self.logger = logging.getLogger('LoggedFS-python')
-		self.logger.setLevel(logging.DEBUG)
+	def __init__(self,
+		directory,
+		log_includes = [],
+		log_excludes = [],
+		log_file = None,
+		log_syslog = False,
+		log_enabled = True,
+		log_printprocessname = True,
+		log_configmsg = None,
+		fuse_foreground_bool = None,
+		fuse_allowother_bool = None
+		):
 
-		ch = logging.StreamHandler()
-		ch.setLevel(logging.DEBUG)
-		ch.setFormatter(log_formater)
-		self.logger.addHandler(ch)
+		self._init_logger(log_enabled, log_file, log_syslog, log_printprocessname)
 
-		self._compile_filter()
+		if bool(fuse_foreground_bool):
+			self.logger.info('LoggedFS-python not running as a daemon')
+		if bool(fuse_allowother_bool):
+			self.logger.info('LoggedFS-python running as a public filesystem')
+		if bool(log_file):
+			self.logger.info('LoggedFS-python log file: %s' % log_file)
 
+		self.logger.info('LoggedFS-python starting at %s' % directory)
+		try:
+			self.root_path = directory
+			os.chdir(directory)
+			self.root_path_fd = os.open('.', os.O_RDONLY)
+		except:
+			self.logger.exception('Directory access failed.')
+			sys.exit(1)
+
+		self.logger.info(log_configmsg)
+
+		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
-		if log_file is not None:
-
-			fh = logging.FileHandler(os.path.join(log_file))
-			fh.setLevel(logging.DEBUG)
-			fh.setFormatter(log_formater)
-			self.logger.addHandler(fh)
+		self._compile_filter(log_includes, log_excludes)
 
 
 	def __call__(self, op, *args):
@@ -310,23 +311,63 @@ class loggedfs: # (Operations):
 		return getattr(self, op)(*args)
 
 
-	def _compile_filter(self):
+	def _init_logger(self, log_enabled, log_file, log_syslog, log_printprocessname):
+
+		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
+		log_formater_short = logging.Formatter('%(message)s')
+
+		self._log_printprocessname = bool(log_printprocessname)
+
+		self.logger = logging.getLogger('LoggedFS-python')
+
+		if not bool(log_enabled):
+			self.logger.setLevel(logging.CRITICAL)
+			return
+		self.logger.setLevel(logging.DEBUG)
+
+		ch = logging.StreamHandler()
+		ch.setLevel(logging.DEBUG)
+		ch.setFormatter(log_formater)
+		self.logger.addHandler(ch)
+
+		if bool(log_syslog):
+			sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
+			sl.setLevel(logging.DEBUG)
+			sl.setFormatter(log_formater_short)
+			self.logger.addHandler(sl)
+
+		if log_file is None:
+			return
+
+		fh = logging.FileHandler(os.path.join(log_file)) # TODO
+		fh.setLevel(logging.DEBUG)
+		fh.setFormatter(log_formater)
+		self.logger.addHandler(fh)
+
+
+	def _compile_filter(self, include_list, exclude_list):
 
 		def proc_filter_item(in_item):
 			return (
-				re.compile(in_item['@extension']),
-				int(in_item['@uid']) if in_item['@uid'].isnumeric() else None,
-				re.compile(in_item['@action']),
-				re.compile(in_item['@retname'])
+				re.compile(in_item['extension']),
+				int(in_item['uid']) if in_item['uid'].isnumeric() else None,
+				re.compile(in_item['action']),
+				re.compile(in_item['retname'])
 				)
 
-		def proc_filter_list(in_list):
-			if not isinstance(in_list, list):
-				return [proc_filter_item(in_list)]
-			return [proc_filter_item(item) for item in in_list]
+		if len(include_list) == 0:
+			include_list.append({
+				'extension': '.*',
+				'uid': '*',
+				'action': '.*',
+				'retname': '.*'
+				})
 
-		self._f_incl = proc_filter_list(self._p['includes']['include']) if self._p['includes'] is not None else []
-		self._f_excl = proc_filter_list(self._p['excludes']['exclude']) if self._p['excludes'] is not None else []
+		for in_list, f_field in [
+			(include_list, '_f_incl'),
+			(exclude_list, '_f_excl')
+			]:
+			setattr(self, f_field, [proc_filter_item(item) for item in in_list])
 
 
 	def _full_path(self, partial_path):
@@ -390,8 +431,10 @@ class loggedfs: # (Operations):
 			ret_dict = {key: getattr(st, key) for key in self.st_fields}
 
 			for key in ['st_atime', 'st_ctime', 'st_mtime']:
-				ret_dict[key] = int(math.floor(ret_dict[key + '_ns'] / 10 ** 9))
-				ret_dict[key + '_ns'] -= int(ret_dict[key] * 10 ** 9)
+				if self.flag_nanosecond_int:
+					ret_dict[key] = ret_dict.pop(key + '_ns')
+				else:
+					ret_dict.pop(key + '_ns')
 
 			return ret_dict
 
@@ -561,7 +604,10 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
-		os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd)
+		if self.flag_nanosecond_int:
+			os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd)
+		else:
+			os.utime(self._rel_path(path), times = times, dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])

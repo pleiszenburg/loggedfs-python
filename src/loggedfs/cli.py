@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	src/loggedfs/cli.py: Command line interface
 
-	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -29,7 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pformat as pf
+from collections import OrderedDict
 
 from .core import loggedfs_factory
 
@@ -58,17 +58,21 @@ import xmltodict
 	help = 'Use the "config-file" to filter what you want to log.'
 	)
 @click.option(
+	'-s',
+	is_flag = True,
+	help = 'Deactivate logging to syslog.'
+	)
+@click.option(
 	'-l',
 	# type = click.File(mode = 'a'),
 	type = click.Path(file_okay = True, dir_okay = False, resolve_path = True),
-	help = ('Use the "log-file" to write logs to. If no log file is specified'
-		'then logs are only written to syslog or to stdout, depending on -f.')
+	help = ('Use the "log-file" to write logs to.')
 	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, l, directory):
+def cli_entry(f, p, c, s, l, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operations that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
@@ -78,31 +82,59 @@ def cli_entry(f, p, c, l, directory):
 	filters are regular expressions.
 	"""
 
-	click.echo(pf((
-		f, p, c, l, directory
-		)))
-
 	loggedfs_factory(
 		directory,
-		no_daemon_bool = f,
-		allow_other = p,
-		loggedfs_param_dict = __process_config__(c, f),
-		log_file = l
+		**__process_config__(c, l, s, f, p)
 		)
 
 
-def __process_config__(config_fh, no_daemon_bool):
+def __process_config__(
+	config_fh,
+	log_file,
+	log_syslog_off,
+	fuse_foreground_bool,
+	fuse_allowother_bool
+	):
 
-	def __process_xml__(in_xml):
-		return xmltodict.parse(in_xml)['loggedFS']
+	def proc_filter_item(in_item):
+		return {
+			'extension': in_item['@extension'],
+			'uid': in_item['@uid'],
+			'action': in_item['@action'],
+			'retname': in_item['@retname']
+			}
 
+	def proc_filter_list(in_list):
+		if in_list is None:
+			return []
+		if not isinstance(in_list, list):
+			return [proc_filter_item(in_list)]
+		return [proc_filter_item(item) for item in in_list]
+
+	config_dict = OrderedDict({
+		'@logEnabled': True,
+		'@printProcessName': True,
+		'includes': [],
+		'excludes': []
+		})
+
+	config_file = None
 	if config_fh is not None:
-		param = __process_xml__(config_fh.read())
-	elif False: # TODO check /etc
-		param = {} # TODO fetch from /etc
-	else:
-		param = {}
+		config_file = config_fh.name
+		config_dict.update(xmltodict.parse(config_fh.read())['loggedFS'])
+		config_fh.close()
 
-	param.update({'daemon': not no_daemon_bool})
+	for f_type in ['includes', 'excludes']:
+		config_dict[f_type] = proc_filter_list(config_dict[f_type][f_type[:-1]])
 
-	return param
+	return {
+		'log_includes': config_dict['includes'],
+		'log_excludes': config_dict['excludes'],
+		'log_file': log_file,
+		'log_syslog': not log_syslog_off,
+		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
+		'log_enabled': config_dict['@logEnabled'],
+		'log_printprocessname': config_dict['@printProcessName'],
+		'fuse_foreground_bool': fuse_foreground_bool,
+		'fuse_allowother_bool': fuse_allowother_bool
+		}

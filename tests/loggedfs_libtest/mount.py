@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	tests/loggedfs_libtest/mount.py: Mount & umount routines
 
-	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -68,7 +68,7 @@ def mount(in_abs_path, device_path):
 def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 
 	return run_command(
-		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path],
+		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path, '-s'],
 		return_output = True, sudo = sudo, sudo_env = sudo
 		)
 

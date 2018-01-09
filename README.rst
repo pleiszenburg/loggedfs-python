@@ -11,21 +11,29 @@
 LoggedFS-python - Filesystem monitoring with Fuse and Python
 ============================================================
 
-**PROJECT STATUS IS BETA** (UNDER DEVELOPMENT).
+PROJECT STATUS NOTICE: **BETA** (UNDER DEVELOPMENT)
+---------------------------------------------------
 
-FILESYSTEM PASSES `TEST SUITE FOR POSIX COMPLIANCE`_ - (ALL) EXCEPTIONS:
+FILESYSTEM PASSES `TEST SUITE FOR POSIX COMPLIANCE`_ - WITH ONE EXCEPTION:
 
-- UPDATING *ATIME* AND *MTIME* FAILS UNDER CERTAIN CIRCUMSTANCES DUE TO BUGS IN LIBFUSE2. TWO TESTS WHICH FAIL BECAUSE OF IT ARE THEREFORE IGNORED.
+- UPDATING *ATIME* AND *MTIME* FAILS UNDER CERTAIN CIRCUMSTANCES.
+  THE ROOT SOURCE CAN LIKELY BE FOUND IN LIBFUSE **2**.
+  THIS IS UNDER FURTHER INVESTIGATION.
+  TWO TESTS WHICH FAIL BECAUSE OF IT ARE THEREFORE CURRENTLY BEING IGNORED.
 
-A CUSTOM BUG-FIXED VERSION OF `FUSEPY`_ IS REQUIRED.
+A CUSTOM BUG-FIXED VERSION OF `FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
+IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
+INACCURATE ON A NANOSECOND TO MICROSECOND SCALE.
+THERE IS A `PENDING PULL REQUEST`_.
+
+THE FILESYSTEM HAS YET **NOT** BEEN **STRESS-TESTED**.
 
 THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
 ANYONE INTERESTED IN ADDING MACOS AND/OR BSD SUPPORT?
 
-BESIDES, CLI SWITCHES ARE NOT FULLY TESTED. THERE ARE ODD EDGE CASES ...
-
 .. _FUSEPY: https://github.com/s-m-e/fusepy
 .. _TEST SUITE FOR POSIX COMPLIANCE: https://github.com/pjd/pjdfstest
+.. _PENDING PULL REQUEST: https://github.com/terencehonles/fusepy/pull/76
 
 Description
 -----------
@@ -113,14 +121,14 @@ Just use that command:
 
 	loggedfs -f -p /var
 
-You should see logs like these :
+You should see logs like these:
 
 ::
 
 	tail -f /var/log/syslog
 	2017-12-09 17:29:34,910 (loggedfs-python) LoggedFS-python running as a public filesystem
 	2017-12-09 17:29:34,915 (loggedfs-python) LoggedFS-python not running as a daemon
-	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var.
+	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var
 	2017-12-09 17:29:34,950 (loggedfs-python) chdir to /var
 	2017-12-09 17:29:35,246 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 8700 kded [kdeinit] uid = 1000 ]
 	2017-12-09 17:29:41,841 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 10923 ls uid = 1000 ]
@@ -133,7 +141,7 @@ If you have a configuration file to use you should use this command:
 
 .. code:: bash
 
-	./loggedfs -c loggedfs.xml -p /var
+	loggedfs -c loggedfs.xml -p /var
 
 If you want to log what other users do on your filesystem, you should use the
 ``-p`` option to allow them to see your mounted files. For a complete

@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	setup.py: Used for package distribution
 
-	Copyright (C) 2017 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
