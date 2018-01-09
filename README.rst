@@ -121,7 +121,7 @@ Just use that command:
 
 	loggedfs -f -p /var
 
-You should see logs like these:
+You should see logs like these :
 
 ::
 	tail -f /var/log/syslog
