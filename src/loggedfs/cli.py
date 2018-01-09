@@ -126,7 +126,7 @@ def __process_config__(
 		'log_includes': config_dict['includes'],
 		'log_excludes': config_dict['excludes'],
 		'log_file': log_file,
-		'log_configmsg': 'Using configuration file %s.' % config_file,
+		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
 		'log_enabled': config_dict['@logEnabled'],
 		'log_printprocessname': config_dict['@printProcessName'],
 		'fuse_foreground_bool': fuse_foreground_bool,

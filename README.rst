@@ -126,11 +126,10 @@ Just use that command:
 You should see logs like these :
 
 ::
-
 	tail -f /var/log/syslog
 	2017-12-09 17:29:34,910 (loggedfs-python) LoggedFS-python running as a public filesystem
 	2017-12-09 17:29:34,915 (loggedfs-python) LoggedFS-python not running as a daemon
-	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var.
+	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var
 	2017-12-09 17:29:34,950 (loggedfs-python) chdir to /var
 	2017-12-09 17:29:35,246 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 8700 kded [kdeinit] uid = 1000 ]
 	2017-12-09 17:29:41,841 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 10923 ls uid = 1000 ]

@@ -210,7 +210,7 @@ def __log__(
 			finally:
 
 				__log_filter__(
-					self.logger.error, log_msg,
+					self.logger.info, log_msg,
 					abs_path, uid, func.__name__, ret_status, ret_str,
 					self._f_incl, self._f_excl
 					)
@@ -272,16 +272,25 @@ class loggedfs: # (Operations):
 		fuse_allowother_bool = None
 		):
 
-		# Store mountpoint
-		self.root_path = directory
-		# Change into mountpoint (must be abs path!)
-		os.chdir(directory)
-		# Open mount point
-		self.root_path_fd = os.open('.', os.O_RDONLY)
-
 		self._init_logger(log_enabled, log_file, log_printprocessname)
 
-		# log_configfile, fuse_foreground_bool, fuse_allowother_bool
+		if bool(fuse_foreground_bool):
+			self.logger.info('LoggedFS-python not running as a daemon')
+		if bool(fuse_allowother_bool):
+			self.logger.info('LoggedFS-python running as a public filesystem')
+		if bool(log_file):
+			self.logger.info('LoggedFS-python log file: %s' % log_file)
+
+		self.logger.info('LoggedFS-python starting at %s' % directory)
+		try:
+			self.root_path = directory
+			os.chdir(directory)
+			self.root_path_fd = os.open('.', os.O_RDONLY)
+		except:
+			self.logger.exception('Directory access failed.')
+			sys.exit(1)
+
+		self.logger.info(log_configmsg)
 
 		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
