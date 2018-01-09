@@ -140,7 +140,7 @@ If you have a configuration file to use you should use this command:
 
 .. code:: bash
 
-	./loggedfs -c loggedfs.xml -p /var
+	loggedfs -c loggedfs.xml -p /var
 
 If you want to log what other users do on your filesystem, you should use the
 ``-p`` option to allow them to see your mounted files. For a complete
