@@ -34,6 +34,7 @@ import errno
 from functools import wraps
 import grp
 import logging
+import logging.handlers
 import os
 import pwd
 import re
@@ -160,10 +161,11 @@ def __log__(
 					]:
 					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
 
+				log_break = '' # '\n\t'
 				log_msg = ' '.join([
-					'%s \n\t%s\n\t' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-					'{%s}\n\t',
-					'[ pid = %d %suid = %d ]\n\t' % (pid, p_cmdname, uid),
+					'%s %s%s%s' % (func.__name__, log_break, format_pattern.format(*func_args_f, **func_kwargs_f), log_break),
+					'{%s}' + log_break,
+					'[ pid = %d %suid = %d ]%s' % (pid, p_cmdname, uid, log_break),
 					'( %s )'
 					])
 
@@ -311,6 +313,8 @@ class loggedfs: # (Operations):
 	def _init_logger(self, log_enabled, log_file, log_printprocessname):
 
 		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
+		log_formater_short = logging.Formatter('%(message)s')
+
 		self._log_printprocessname = bool(log_printprocessname)
 
 		self.logger = logging.getLogger('LoggedFS-python')
@@ -324,6 +328,11 @@ class loggedfs: # (Operations):
 		ch.setLevel(logging.DEBUG)
 		ch.setFormatter(log_formater)
 		self.logger.addHandler(ch)
+
+		sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
+		sl.setLevel(logging.DEBUG)
+		sl.setFormatter(log_formater_short)
+		self.logger.addHandler(sl)
 
 		if log_file is None:
 			return
