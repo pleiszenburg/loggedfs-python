@@ -58,17 +58,21 @@ import xmltodict
 	help = 'Use the "config-file" to filter what you want to log.'
 	)
 @click.option(
+	'-s',
+	is_flag = True,
+	help = 'Deactivate logging to syslog.'
+	)
+@click.option(
 	'-l',
 	# type = click.File(mode = 'a'),
 	type = click.Path(file_okay = True, dir_okay = False, resolve_path = True),
-	help = ('Use the "log-file" to write logs to. If no log file is specified'
-		'then logs are only written to syslog or to stdout, depending on -f.')
+	help = ('Use the "log-file" to write logs to.')
 	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, l, directory):
+def cli_entry(f, p, c, s, l, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operations that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
@@ -80,13 +84,14 @@ def cli_entry(f, p, c, l, directory):
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, f, p)
+		**__process_config__(c, l, s, f, p)
 		)
 
 
 def __process_config__(
 	config_fh,
 	log_file,
+	log_syslog_off,
 	fuse_foreground_bool,
 	fuse_allowother_bool
 	):
@@ -126,6 +131,7 @@ def __process_config__(
 		'log_includes': config_dict['includes'],
 		'log_excludes': config_dict['excludes'],
 		'log_file': log_file,
+		'log_syslog': not log_syslog_off,
 		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
 		'log_enabled': config_dict['@logEnabled'],
 		'log_printprocessname': config_dict['@printProcessName'],

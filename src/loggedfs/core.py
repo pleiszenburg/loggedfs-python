@@ -267,6 +267,7 @@ class loggedfs: # (Operations):
 		log_includes = [],
 		log_excludes = [],
 		log_file = None,
+		log_syslog = False,
 		log_enabled = True,
 		log_printprocessname = True,
 		log_configmsg = None,
@@ -274,7 +275,7 @@ class loggedfs: # (Operations):
 		fuse_allowother_bool = None
 		):
 
-		self._init_logger(log_enabled, log_file, log_printprocessname)
+		self._init_logger(log_enabled, log_file, log_syslog, log_printprocessname)
 
 		if bool(fuse_foreground_bool):
 			self.logger.info('LoggedFS-python not running as a daemon')
@@ -310,7 +311,7 @@ class loggedfs: # (Operations):
 		return getattr(self, op)(*args)
 
 
-	def _init_logger(self, log_enabled, log_file, log_printprocessname):
+	def _init_logger(self, log_enabled, log_file, log_syslog, log_printprocessname):
 
 		log_formater = logging.Formatter('%(asctime)s (%(name)s) %(message)s')
 		log_formater_short = logging.Formatter('%(message)s')
@@ -329,10 +330,11 @@ class loggedfs: # (Operations):
 		ch.setFormatter(log_formater)
 		self.logger.addHandler(ch)
 
-		sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
-		sl.setLevel(logging.DEBUG)
-		sl.setFormatter(log_formater_short)
-		self.logger.addHandler(sl)
+		if bool(log_syslog):
+			sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
+			sl.setLevel(logging.DEBUG)
+			sl.setFormatter(log_formater_short)
+			self.logger.addHandler(sl)
 
 		if log_file is None:
 			return
