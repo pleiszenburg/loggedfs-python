@@ -605,9 +605,9 @@ class loggedfs: # (Operations):
 	def utimens(self, path, times = None):
 
 		if self.flag_nanosecond_int:
-			os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd)
+			os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 		else:
-			os.utime(self._rel_path(path), times = times, dir_fd = self.root_path_fd)
+			os.utime(self._rel_path(path), times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
