@@ -68,7 +68,7 @@ def mount(in_abs_path, device_path):
 def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 
 	return run_command(
-		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path],
+		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path, '-s'],
 		return_output = True, sudo = sudo, sudo_env = sudo
 		)
 
