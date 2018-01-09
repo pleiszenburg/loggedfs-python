@@ -129,8 +129,7 @@ def __ignore_tests__(old_group_list):
 		# ('rename', 2)
 		# ] # The original LoggedFS crashes when tested against those.
 	xfail_group_list = [
-		('utimensat', 2),
-		('utimensat', 5)
+		('utimensat', 2)
 		] # likely bugs in libfuse 2.9
 
 	for group_path in old_group_list:
