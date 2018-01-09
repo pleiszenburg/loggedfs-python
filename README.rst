@@ -121,9 +121,10 @@ Just use that command:
 
 	loggedfs -f -p /var
 
-You should see logs like these :
+You should see logs like these:
 
 ::
+
 	tail -f /var/log/syslog
 	2017-12-09 17:29:34,910 (loggedfs-python) LoggedFS-python running as a public filesystem
 	2017-12-09 17:29:34,915 (loggedfs-python) LoggedFS-python not running as a daemon
