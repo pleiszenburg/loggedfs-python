@@ -40,6 +40,7 @@ import pwd
 import re
 import stat
 import sys
+import time
 
 import fuse
 from fuse import (
@@ -260,6 +261,7 @@ class loggedfs: # (Operations):
 
 
 	WITH_NANOSECOND_INT = True
+	flag_utime_omit_ok = 1
 
 
 	def __init__(self,
@@ -604,10 +606,30 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
+		UTIME_OMIT = (1 << 30) - 2
+		UTIME_NOW = (1 << 30) - 1
+
+		def _fix_time_(atime, mtime):
+			if UTIME_OMIT in (atime, mtime):
+				st = os.lstat(relpath, dir_fd = self.root_path_fd)
+				if atime == UTIME_OMIT:
+					atime = st.st_atime_ns
+				if mtime == UTIME_OMIT:
+					mtime = st.st_mtime_ns
+			if UTIME_NOW in (atime, mtime):
+				now = int(time.time() * 10**9)
+				if atime == UTIME_NOW:
+					atime = now
+				if mtime == UTIME_NOW:
+					mtime = now
+			return (atime, mtime)
+
+		relpath = self._rel_path(path)
+
 		if self.flag_nanosecond_int:
-			os.utime(self._rel_path(path), ns = times, dir_fd = self.root_path_fd, follow_symlinks = False)
+			os.utime(relpath, ns = _fix_time_(*times), dir_fd = self.root_path_fd, follow_symlinks = False)
 		else:
-			os.utime(self._rel_path(path), times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
+			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
