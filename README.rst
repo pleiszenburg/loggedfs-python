@@ -28,7 +28,7 @@ ANYONE INTERESTED IN ADDING MACOS AND/OR BSD SUPPORT?
 
 .. _FUSEPY: https://github.com/s-m-e/fusepy
 .. _TEST SUITE FOR POSIX COMPLIANCE: https://github.com/pjd/pjdfstest
-.. _PENDING PULL REQUEST: https://github.com/terencehonles/fusepy/pull/76
+.. _PENDING PULL REQUEST: https://github.com/terencehonles/fusepy/pull/79
 
 Description
 -----------
