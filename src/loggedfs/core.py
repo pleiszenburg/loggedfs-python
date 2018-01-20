@@ -42,14 +42,18 @@ import stat
 import sys
 import time
 
-import fuse
 from fuse import (
 	FUSE,
 	fuse_get_context,
 	FuseOSError,
-	Operations
+	Operations,
+	UTIME_NOW,
+	UTIME_OMIT
 	)
-
+try:
+	from fuse import __features__ as fuse_features
+except ImportError:
+	fuse_features = {}
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
@@ -260,8 +264,14 @@ def __log_filter__(
 class loggedfs: # (Operations):
 
 
-	WITH_NANOSECOND_INT = True
 	flag_utime_omit_ok = 1
+
+
+	requested_features = {
+		'nanosecond_int': True,
+		'utime_omit_none': True,
+		'utime_now_auto': True
+		}
 
 
 	def __init__(self,
@@ -297,7 +307,13 @@ class loggedfs: # (Operations):
 
 		self.logger.info(log_configmsg)
 
-		self.flag_nanosecond_int = hasattr(self, 'WITH_NANOSECOND_INT') and hasattr(fuse, 'NANOSECOND_INT_AVAILABLE')
+		for flag_name in self.requested_features.keys():
+			setattr(
+				self,
+				'flag_' + flag_name,
+				self.requested_features[flag_name] and fuse_features.get(flag_name, False)
+				)
+
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
@@ -606,15 +622,12 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
-		UTIME_OMIT = (1 << 30) - 2
-		UTIME_NOW = (1 << 30) - 1
-
 		def _fix_time_(atime, mtime):
-			if UTIME_OMIT in (atime, mtime):
+			if any(val in (atime, mtime) for val in [UTIME_OMIT, None]):
 				st = os.lstat(relpath, dir_fd = self.root_path_fd)
-				if atime == UTIME_OMIT:
+				if atime in [UTIME_OMIT, None]:
 					atime = st.st_atime_ns
-				if mtime == UTIME_OMIT:
+				if mtime in [UTIME_OMIT, None]:
 					mtime = st.st_mtime_ns
 			if UTIME_NOW in (atime, mtime):
 				now = int(time.time() * 10**9)
