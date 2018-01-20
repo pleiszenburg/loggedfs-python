@@ -114,8 +114,8 @@ def __process_config__(
 	config_dict = OrderedDict({
 		'@logEnabled': True,
 		'@printProcessName': True,
-		'includes': [],
-		'excludes': []
+		'includes': {},
+		'excludes': {}
 		})
 
 	config_file = None
@@ -125,7 +125,7 @@ def __process_config__(
 		config_fh.close()
 
 	for f_type in ['includes', 'excludes']:
-		config_dict[f_type] = proc_filter_list(config_dict[f_type][f_type[:-1]])
+		config_dict[f_type] = proc_filter_list(config_dict[f_type].get(f_type[:-1], None))
 
 	return {
 		'log_includes': config_dict['includes'],
