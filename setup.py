@@ -60,6 +60,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
 
 # Development dependencies
 development_deps_list = [
+	'coverage',
 	'psutil',
 	'pytest',
 	'python-language-server',
