@@ -50,7 +50,7 @@ import xmltodict
 @click.option(
 	'-p',
 	is_flag = True,
-	help = 'Allow every users to see the new loggedfs.'
+	help = 'Allow every user to see the new loggedfs.'
 	)
 @click.option(
 	'-c',
