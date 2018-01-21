@@ -266,7 +266,7 @@ def __log_filter__(
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class loggedfs: # (Operations):
+class loggedfs(Operations):
 
 
 	flag_utime_omit_ok = 1
@@ -323,15 +323,6 @@ class loggedfs: # (Operations):
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
 		self._compile_filter(log_includes, log_excludes)
-
-
-	def __call__(self, op, *args):
-
-		if not hasattr(self, op):
-			self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
-			raise FuseOSError(EFAULT)
-
-		return getattr(self, op)(*args)
 
 
 	def _init_logger(self, log_enabled, log_file, log_syslog, log_printprocessname):
@@ -437,6 +428,12 @@ class loggedfs: # (Operations):
 	def chown(self, path, uid, gid):
 
 		return os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+
+
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
+	def create(self, path, mode, fi = None):
+
+		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0}')
