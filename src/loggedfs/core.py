@@ -40,7 +40,12 @@ import pwd
 import re
 import stat
 import sys
-import time
+
+try:
+	from time import time_ns
+except ImportError:
+	from time import time as _time
+	time_ns = lambda: int(_time() * 1e9)
 
 from fuse import (
 	FUSE,
@@ -630,7 +635,7 @@ class loggedfs: # (Operations):
 				if mtime in [UTIME_OMIT, None]:
 					mtime = st.st_mtime_ns
 			if UTIME_NOW in (atime, mtime):
-				now = int(time.time() * 10**9)
+				now = time_ns()
 				if atime == UTIME_NOW:
 					atime = now
 				if mtime == UTIME_NOW:
