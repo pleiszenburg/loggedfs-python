@@ -9,9 +9,19 @@
 |build_master| |build_develop|
 
 
-LoggedFS-python - Filesystem monitoring with Fuse and Python
-************************************************************
+..
 
+	#                                          #######  #####
+	#        ####   ####   ####  ###### #####  #       #     #
+	#       #    # #    # #    # #      #    # #       #
+	#       #    # #      #      #####  #    # #####    #####
+	#       #    # #  ### #  ### #      #    # #             #
+	#       #    # #    # #    # #      #    # #       #     #
+	#######  ####   ####   ####  ###### #####  #        #####
+
+	                                                   -PYTHON
+
+	Filesystem monitoring with Fuse and Python
 
 Synopsis
 ========
