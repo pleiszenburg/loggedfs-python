@@ -44,13 +44,18 @@ upload_test:
 install:
 	pip install --process-dependency-links .[dev]
 	make install_fstest
+	make install_fsx
 
 install_link:
 	pip install --process-dependency-links -e .[dev]
 	make install_fstest
+	make install_fsx
 
 install_fstest:
 	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fstest()'
+
+install_fsx:
+	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fsx()'
 
 mount:
 	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_mount()'
