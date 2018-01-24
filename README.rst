@@ -22,7 +22,7 @@ It is a pure Python re-implementation of `LoggedFS`_ by `Rémi Flament`_ maintai
 The project is heavily inspired by `Stavros Korokithakis`_' 2013 blog post entitled
 "`Writing a FUSE filesystem in Python`_" (`source code repository`_).
 The filesystem is fully `POSIX`_ compliant (passing the `pjdfstest test-suite`_)
-and intended to be suitable for production system.
+and intended to be suitable for production systems (it is not yet!).
 
 .. _LoggedFS: https://github.com/rflament/loggedfs
 .. _Rémi Flament: https://github.com/rflament
@@ -37,7 +37,10 @@ CAVEATS
 =======
 
 * PROJECT STATUS: **BETA**
-* THE FILESYSTEM HAS YET **NOT** BEEN **STRESS-TESTED**.
+* THE FILESYSTEM HAS RECEIVED **SOME STRESS TESTS WITH FSX-LINUX**
+  BASED ON THE `FSX-FLAVOR`_ RELEASED BY THE `LINUX TEST PROJECT`_.
+  **FSX REPORTS WRITE HOLES!**
+  FULL TESTS UND RELATED BUG-FIXES ARE UNDER WAY.
 * A `CUSTOM BUG-FIXED VERSION OF FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
   IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
   INACCURATE ON A NANOSECOND TO MICROSECOND SCALE AND UTIME_NOW AS WELL AS
@@ -45,6 +48,8 @@ CAVEATS
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
   ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
 
+.. _FSX-FLAVOR: http://codemonkey.org.uk/projects/fsx/
+.. _LINUX TEST PROJECT: https://github.com/linux-test-project/ltp
 .. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
 .. _PENDING PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
 
@@ -60,7 +65,7 @@ This project has intentionally not yet been published in the `Python Package Ind
 It will be released on PyPI once critical changes have been merged into `fusepy`_,
 a dependency of LoggedFS-python.
 
-**Supports Python 3.{4,5,6,7}.**
+**Supports Python 3.{4,5,6}.**
 
 **Supports Linux.**
 Support for MAC OS X and BSD likely requires minor changes only, but has yet not been added.
