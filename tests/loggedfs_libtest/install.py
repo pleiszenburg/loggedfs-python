@@ -37,9 +37,12 @@ from .const import (
 	TEST_FSTEST_PATH,
 	TEST_FSTEST_CONF_FN,
 	TEST_FSTEST_TESTS_SUBPATH,
+	TEST_FSX_PATH,
+	TEST_FSX_SOURCE_URL,
 	TEST_ROOT_PATH
 	)
 from .lib import (
+	download_file,
 	read_file,
 	run_command,
 	write_file
@@ -60,6 +63,28 @@ def install_fstest():
 	git_clone_result = run_command(['git', 'clone', TEST_FSTEST_GITREPO, install_path])
 	assert git_clone_result
 	__build_fstest__(install_path)
+
+
+def install_fsx():
+	"""PUBLIC: Called from project root
+	"""
+
+	install_path = os.path.join(TEST_ROOT_PATH, TEST_FSX_PATH)
+	source_path = os.path.join(install_path, TEST_FSX_SOURCE_URL.split('/')[-1])
+
+	if os.path.isfile(source_path):
+		os.remove(source_path)
+	write_file(source_path, download_file(TEST_FSX_SOURCE_URL).decode('utf-8'))
+
+	old_path = os.getcwd()
+	os.chdir(install_path)
+
+	compile_status = run_command(['make', 'all'])
+	assert compile_status
+	install_status = run_command(['make', 'install'])
+	assert install_status
+
+	os.chdir(old_path)
 
 
 def __build_fstest__(abs_in_path, filesystem = 'ext4'):

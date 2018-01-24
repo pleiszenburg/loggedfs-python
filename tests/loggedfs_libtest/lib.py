@@ -32,6 +32,7 @@ specific language governing rights and limitations under the License.
 import os
 import signal
 import subprocess
+import urllib.request
 
 import psutil
 from yaml import load, dump
@@ -162,6 +163,15 @@ def append_to_file(filename, data):
 def format_yaml(data):
 
 	return dump(data, Dumper = Dumper, default_flow_style = False)
+
+
+def download_file(in_url):
+
+	req = urllib.request.urlopen(in_url)
+	data = req.read()
+	req.close()
+
+	return data
 
 
 def dump_yaml(filename, data):

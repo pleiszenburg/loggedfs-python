@@ -30,6 +30,7 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 TEST_FSTEST_GITREPO = 'https://github.com/pjd/pjdfstest.git'
+TEST_FSX_SOURCE_URL = 'https://github.com/linux-test-project/ltp/raw/master/testcases/kernel/fs/fsx-linux/fsx-linux.c'
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,6 +40,7 @@ TEST_FSTEST_GITREPO = 'https://github.com/pjd/pjdfstest.git'
 TEST_ROOT_PATH = 'tests'
 
 TEST_FSTEST_PATH = 'test_suite'
+TEST_FSX_PATH = 'test_fsx'
 TEST_MOUNT_PARENT_PATH = 'test_mount'
 TEST_MOUNT_CHILD_PATH = 'test_child'
 TEST_LOG_PATH = 'test_logs'

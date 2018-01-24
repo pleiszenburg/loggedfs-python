@@ -6,84 +6,96 @@
 	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
 	:alt: Build Status: development branch
 
+.. |loggedfs_python_logo| image:: http://www.pleiszenburg.de/loggedfs-python_logo.png
+	:target: https://github.com/pleiszenburg/loggedfs-python
+	:alt: LoggedFS-python repository
+
 |build_master| |build_develop|
 
-LoggedFS-python - Filesystem monitoring with Fuse and Python
-============================================================
+|loggedfs_python_logo|
 
-PROJECT STATUS NOTICE: **BETA** (UNDER DEVELOPMENT)
----------------------------------------------------
+Synopsis
+========
 
-FILESYSTEM PASSES `TEST SUITE FOR POSIX COMPLIANCE`_ - ALL OF IT.
-
-A CUSTOM BUG-FIXED VERSION OF `FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
-IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
-INACCURATE ON A NANOSECOND TO MICROSECOND SCALE.
-THERE IS A `PENDING PULL REQUEST`_.
-
-THE FILESYSTEM HAS YET **NOT** BEEN **STRESS-TESTED**.
-
-THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
-ANYONE INTERESTED IN ADDING MACOS AND/OR BSD SUPPORT?
-
-.. _FUSEPY: https://github.com/s-m-e/fusepy
-.. _TEST SUITE FOR POSIX COMPLIANCE: https://github.com/pjd/pjdfstest
-.. _PENDING PULL REQUEST: https://github.com/terencehonles/fusepy/pull/76
-
-Description
------------
-
-LoggedFS-python is a fuse-based filesystem which can log every operation that
-happens in it. It is a pure Python re-implementation of
-`LoggedFS`_ by `Rémi Flament`_ - heavily inspired by `Stavros Korokithakis`_'
-2013 blog post entitled "`Writing a FUSE filesystem in Python`_"
-(`source code repository`_).
-
-How does it work?
-
-Fuse does almost everything. LoggedFS-python only sends a message to ``syslog``
-when called by fuse and then let the real filesystem do the rest of the job.
+LoggedFS-python is a FUSE-based filesystem which can log every operation that happens in it.
+It is a pure Python re-implementation of `LoggedFS`_ by `Rémi Flament`_ maintaining CLI compatibility.
+The project is heavily inspired by `Stavros Korokithakis`_' 2013 blog post entitled
+"`Writing a FUSE filesystem in Python`_" (`source code repository`_).
+The filesystem is fully `POSIX`_ compliant (passing the `pjdfstest test-suite`_)
+and intended to be suitable for production systems (it is not yet!).
 
 .. _LoggedFS: https://github.com/rflament/loggedfs
 .. _Rémi Flament: https://github.com/rflament
 .. _Stavros Korokithakis: https://github.com/skorokithakis
 .. _Writing a FUSE filesystem in Python: https://www.stavros.io/posts/python-fuse-filesystem/
 .. _source code repository: https://github.com/skorokithakis/python-fuse-sample
+.. _POSIX: https://en.wikipedia.org/wiki/POSIX
+.. _pjdfstest test-suite: https://github.com/pjd/pjdfstest
+
+
+CAVEATS
+=======
+
+* PROJECT STATUS: **BETA**
+* THE FILESYSTEM HAS RECEIVED **SOME STRESS TESTS WITH FSX-LINUX**
+  BASED ON THE `FSX-FLAVOR`_ RELEASED BY THE `LINUX TEST PROJECT`_.
+  **FSX REPORTS WRITE HOLES!**
+  FULL TESTS UND RELATED BUG-FIXES ARE UNDER WAY.
+* A `CUSTOM BUG-FIXED VERSION OF FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
+  IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
+  INACCURATE ON A NANOSECOND TO MICROSECOND SCALE AND UTIME_NOW AS WELL AS
+  UTIME_OMIT WILL NOT BE HONORED. THERE IS A `PENDING PULL REQUEST`_.
+* THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
+  ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
+
+.. _FSX-FLAVOR: http://codemonkey.org.uk/projects/fsx/
+.. _LINUX TEST PROJECT: https://github.com/linux-test-project/ltp
+.. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
+.. _PENDING PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
+
 
 Installation
-------------
+============
 
 .. code:: bash
 
 	pip install git+https://github.com/pleiszenburg/loggedfs-python.git@master
 
-Simplest usage
---------------
+This project has intentionally not yet been published in the `Python Package Index`_ (PyPI).
+It will be released on PyPI once critical changes have been merged into `fusepy`_,
+a dependency of LoggedFS-python.
 
-To record access to ``/tmp/TEST`` into ``~/log.txt``, just do:
+**Supports Python 3.{4,5,6}.**
+
+**Supports Linux.**
+Support for MAC OS X and BSD likely requires minor changes only, but has yet not been added.
+
+.. _Python Package Index: https://pypi.org/
+.. _fusepy: https://github.com/fusepy/fusepy
+
+
+Simple usage example
+====================
+
+To start recording access to ``/tmp/TEST`` into ``/root/log.txt``, just do:
 
 .. code:: bash
 
-	loggedfs -l ~/log.txt /tmp/TEST
+	sudo loggedfs -p -s -l /root/log.txt /tmp/TEST
 
 To stop recording, just unmount as usual:
 
 .. code:: bash
 
-	sudo umount /tmp/TEST
+	sudo fusermount -u /tmp/TEST
 
-``~/log.txt`` will need to be changed to readable by setting permissions:
-
-.. code:: bash
-
-	chmod 0666 ~/log.txt
 
 Configuration
--------------
+=============
 
 LoggedFS-python can use an XML configuration file if you want it to log
 operations only for certain files, for certain users, or for certain operations.
-The format is compatible with LoggedFS' original format.
+The format is fully compatible with LoggedFS' original format.
 
 Here is a sample configuration file :
 
@@ -105,39 +117,43 @@ Here is a sample configuration file :
 This configuration can be used to log everything except if it concerns a
 ``*.bak`` file, or if the ``uid`` is 1000, or if the operation is ``getattr``.
 
-Launching LoggedFS-python
--------------------------
 
-If you just want to test LoggedFS-python you don't need any configuration file.
+Need help?
+==========
 
-Just use that command:
+Feel free to post questions in the `GitHub issue tracker`_ of this project.
 
-.. code:: bash
+.. _GitHub issue tracker: https://github.com/pleiszenburg/loggedfs-python/issues
 
-	loggedfs -f -p /var
 
-You should see logs like these:
+Bugs & issues
+=============
 
-::
+Please report bugs in LoggedFS-python here in its `GitHub issue tracker`_.
 
-	tail -f /var/log/syslog
-	2017-12-09 17:29:34,910 (loggedfs-python) LoggedFS-python running as a public filesystem
-	2017-12-09 17:29:34,915 (loggedfs-python) LoggedFS-python not running as a daemon
-	2017-12-09 17:29:34,920 (loggedfs-python) LoggedFS-python starting at /var
-	2017-12-09 17:29:34,950 (loggedfs-python) chdir to /var
-	2017-12-09 17:29:35,246 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 8700 kded [kdeinit] uid = 1000 ]
-	2017-12-09 17:29:41,841 (loggedfs-python) getattr /var/ {SUCCESS} [ pid = 10923 ls uid = 1000 ]
-	2017-12-09 17:29:41,858 (loggedfs-python) getattr /var/run {SUCCESS} [ pid = 10923 ls uid = 1000 ]
-	2017-12-09 17:29:41,890 (loggedfs-python) getattr /var/run/nscd {FAILURE} [ pid = 10923 ls uid = 1000 ]
-	2017-12-09 17:29:41,912 (loggedfs-python) readdir /var/ {SUCCESS} [ pid = 10923 ls uid = 1000 ]
-	2017-12-09 17:29:41,987 (loggedfs-python) getattr /var/pouak {SUCCESS} [ pid = 10923 ls uid = 1000 ]
 
-If you have a configuration file to use you should use this command:
+Miscellaneous
+=============
 
-.. code:: bash
+- Full project documentation
 
-	loggedfs -c loggedfs.xml -p /var
+  - at `Read the Docs`_
+  - at `LoggedFS-python repository`_
 
-If you want to log what other users do on your filesystem, you should use the
-``-p`` option to allow them to see your mounted files. For a complete
-documentation see the manual page.
+- `License`_ (**Apache License 2.0**)
+- `Contributing`_ (**Contributions are highly welcomed!**)
+- `FAQ`_
+- `Authors`_
+- `Changes`_
+- `Long-term ideas`_
+- `Upstream issues`_ (relevant bugs in dependencies)
+
+.. _Read the Docs: http://loggedfs-python.readthedocs.io/en/latest/
+.. _LoggedFS-python repository: https://github.com/pleiszenburg/loggedfs-python/blob/master/docs/index.rst
+.. _License: https://github.com/pleiszenburg/loggedfs-python/blob/master/LICENSE
+.. _Contributing: https://github.com/pleiszenburg/loggedfs-python/blob/master/CONTRIBUTING.rst
+.. _FAQ: http://loggedfs-python.readthedocs.io/en/stable/faq.html
+.. _Authors: https://github.com/pleiszenburg/loggedfs-python/blob/master/AUTHORS.rst
+.. _Changes: https://github.com/pleiszenburg/loggedfs-python/blob/master/CHANGES.rst
+.. _Long-term ideas: https://github.com/pleiszenburg/loggedfs-python/milestone/2
+.. _Upstream issues: https://github.com/pleiszenburg/loggedfs-python/issues?q=is%3Aissue+is%3Aopen+label%3Aupstream

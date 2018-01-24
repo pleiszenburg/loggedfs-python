@@ -29,6 +29,8 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import os
+
 from .lib import run_command
 
 
@@ -68,7 +70,14 @@ def mount(in_abs_path, device_path):
 def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 
 	return run_command(
-		['loggedfs', '-l', logfile, '-c', cfgfile, '-p', in_abs_path, '-s'],
+		[
+			'coverage', 'run',
+			os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'loggedfs'),
+			'-l', logfile,
+			'-c', cfgfile,
+			'-p', in_abs_path,
+			'-s'
+			],
 		return_output = True, sudo = sudo, sudo_env = sudo
 		)
 

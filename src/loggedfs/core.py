@@ -40,7 +40,12 @@ import pwd
 import re
 import stat
 import sys
-import time
+
+try:
+	from time import time_ns
+except ImportError:
+	from time import time as _time
+	time_ns = lambda: int(_time() * 1e9)
 
 from fuse import (
 	FUSE,
@@ -261,7 +266,7 @@ def __log_filter__(
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class loggedfs: # (Operations):
+class loggedfs(Operations):
 
 
 	flag_utime_omit_ok = 1
@@ -318,15 +323,6 @@ class loggedfs: # (Operations):
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
 		self._compile_filter(log_includes, log_excludes)
-
-
-	def __call__(self, op, *args):
-
-		if not hasattr(self, op):
-			self.logger.critical('CRITICAL EFAULT: Operation "%s" unknown!' % op)
-			raise FuseOSError(EFAULT)
-
-		return getattr(self, op)(*args)
 
 
 	def _init_logger(self, log_enabled, log_file, log_syslog, log_printprocessname):
@@ -425,13 +421,19 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0])
 	def chmod(self, path, mode):
 
-		return os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
+		os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
 	def chown(self, path, uid, gid):
 
-		return os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+
+
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
+	def create(self, path, mode, fi = None):
+
+		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0}')
@@ -472,7 +474,7 @@ class loggedfs: # (Operations):
 
 		target_rel_path = self._rel_path(target_path)
 
-		res = os.link(
+		os.link(
 			self._rel_path(source_path), target_rel_path,
 			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
 			)
@@ -480,21 +482,17 @@ class loggedfs: # (Operations):
 		uid, gid, pid = fuse_get_context()
 		os.lchown(target_rel_path, uid, gid)
 
-		return res
-
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
 	def mkdir(self, path, mode):
 
 		rel_path = self._rel_path(path)
 
-		res = os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
+		os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(rel_path, uid, gid)
 		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
-
-		return res
 
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
@@ -518,8 +516,6 @@ class loggedfs: # (Operations):
 		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # HACK should be lchmod, which is only available on BSD
 
-		return 0
-
 
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
 	def open(self, path, flags):
@@ -527,7 +523,7 @@ class loggedfs: # (Operations):
 		res = os.open(self._rel_path(path), flags, dir_fd = self.root_path_fd)
 		os.close(res)
 
-		return 0
+		return 0 # Must return handle or zero
 
 
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
@@ -570,7 +566,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
 	def rename(self, old, new):
 
-		return os.rename(
+		os.rename(
 			self._rel_path(old), self._rel_path(new),
 			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
 			)
@@ -579,7 +575,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def rmdir(self, path):
 
-		return os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
+		os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -597,12 +593,10 @@ class loggedfs: # (Operations):
 
 		target_rel_path = self._rel_path(target_path)
 
-		res = os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
+		os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
 		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-
-		return res
 
 
 	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
@@ -616,7 +610,7 @@ class loggedfs: # (Operations):
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
 	def unlink(self, path):
 
-		return os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
+		os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -630,7 +624,7 @@ class loggedfs: # (Operations):
 				if mtime in [UTIME_OMIT, None]:
 					mtime = st.st_mtime_ns
 			if UTIME_NOW in (atime, mtime):
-				now = int(time.time() * 10**9)
+				now = time_ns()
 				if atime == UTIME_NOW:
 					atime = now
 				if mtime == UTIME_NOW:
