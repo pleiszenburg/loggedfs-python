@@ -6,22 +6,13 @@
 	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
 	:alt: Build Status: development branch
 
+.. |loggedfs_python_logo| image:: http://www.pleiszenburg.de/loggedfs-python_logo.png
+	:target: https://github.com/pleiszenburg/loggedfs-python
+	:alt: LoggedFS-python repository
+
 |build_master| |build_develop|
 
-
-::
-
-	#                                          #######  #####
-	#        ####   ####   ####  ###### #####  #       #     #
-	#       #    # #    # #    # #      #    # #       #
-	#       #    # #      #      #####  #    # #####    #####
-	#       #    # #  ### #  ### #      #    # #             #
-	#       #    # #    # #    # #      #    # #       #     #
-	#######  ####   ####   ####  ###### #####  #        #####
-
-	                                                   -PYTHON
-
-	Filesystem monitoring with Fuse and Python
+|loggedfs_python_logo|
 
 Synopsis
 ========
