@@ -72,7 +72,7 @@ def loggedfs_factory(directory, **kwargs):
 			**kwargs
 			),
 		directory,
-		# raw_fi = True,
+		raw_fi = True,
 		nothreads = True,
 		foreground = bool(kwargs['fuse_foreground_bool']) if 'fuse_foreground_bool' in kwargs.keys() else False,
 		allow_other = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
@@ -459,28 +459,49 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
-	def getattr(self, path, fh = None):
+	def getattr(self, path, fip):
 
-		try:
+		if not fip:
+			try:
+				st = os.lstat(self._rel_path(path), dir_fd = self.root_path_fd)
+			except FileNotFoundError:
+				raise FuseOSError(errno.ENOENT)
+		else:
+			st = os.fstat(fip.fh)
 
-			st = os.lstat(self._rel_path(path), dir_fd = self.root_path_fd)
-			ret_dict = {key: getattr(st, key) for key in self.st_fields}
+		ret_dict = {key: getattr(st, key) for key in self.st_fields}
 
-			for key in ['st_atime', 'st_ctime', 'st_mtime']:
-				if self.flag_nanosecond_int:
-					ret_dict[key] = ret_dict.pop(key + '_ns')
-				else:
-					ret_dict.pop(key + '_ns')
+		for key in ['st_atime', 'st_ctime', 'st_mtime']:
+			if self.flag_nanosecond_int:
+				ret_dict[key] = ret_dict.pop(key + '_ns')
+			else:
+				ret_dict.pop(key + '_ns')
 
-			return ret_dict
+		return ret_dict
 
-		except FileNotFoundError:
 
-			raise FuseOSError(errno.ENOENT)
+	# @__log__(format_pattern = '{0} (fh={1})')
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
+	def flush(self, path, fip):
+
+		# os.fsync(fip.fh)
+		raise FuseOSError(errno.ENOSYS)
+
+
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
+	def fsync(self, path, datasync, fip):
+
+		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0}')
 	def init(self, path):
+
+		os.fchdir(self.root_path_fd)
+
+
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
+	def ioctl(self, path, cmd, arg, fh, flags, data):
 
 		os.fchdir(self.root_path_fd)
 
@@ -497,6 +518,12 @@ class loggedfs(Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(target_rel_path, uid, gid)
+
+
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
+	def lock(self, path, fh, cmd, lock):
+
+		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
@@ -534,22 +561,19 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
-	def open(self, path, flags):
+	def open(self, path, fip):
 
-		res = os.open(self._rel_path(path), flags, dir_fd = self.root_path_fd)
-		os.close(res)
+		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
 
-		return 0 # Must return handle or zero
+		return 0 # Must return handle or zero # TODO ?
 
 
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
-	def read(self, path, length, offset, fh):
+	def read(self, path, length, offset, fip):
 
 		# ret is a bytestring!
 
-		fh_loc = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
-		ret = os.pread(fh_loc, length, offset)
-		os.close(fh_loc)
+		ret = os.pread(fip.fh, length, offset)
 
 		return ret
 
@@ -577,6 +601,12 @@ class loggedfs(Operations):
 			return os.path.relpath(pathname, self.root_path)
 		else:
 			return pathname
+
+
+	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
+	def release(self, path, fip):
+
+		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
@@ -616,11 +646,9 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
-	def truncate(self, path, length, fh = None):
+	def truncate(self, path, length, fip):
 
-		fd = os.open(self._rel_path(path), os.O_WRONLY | os.O_TRUNC, dir_fd = self.root_path_fd)
-		os.truncate(fd, length)
-		os.close(fd)
+		os.truncate(fip.fh, length)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -656,12 +684,10 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
-	def write(self, path, buf, offset, fh):
+	def write(self, path, buf, offset, fip):
 
 		# buf is a bytestring!
 
-		fh_loc = os.open(self._rel_path(path), os.O_WRONLY, dir_fd = self.root_path_fd)
-		res = os.pwrite(fh_loc, buf, offset)
-		os.close(fh_loc)
+		res = os.pwrite(fip.fh, buf, offset)
 
 		return res
