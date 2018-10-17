@@ -139,9 +139,19 @@ def __get_user_name_from_uid__(uid):
 
 def __log__(
 	format_pattern = '',
-	abs_path_fields = [], length_fields = [], uid_fields = [], gid_fields = [],
+	abs_path_fields = None, length_fields = None,
+	uid_fields = None, gid_fields = None,
 	path_filter_field = 0
 	):
+
+	if abs_path_fields is None:
+		abs_path_fields = []
+	if length_fields is None:
+		length_fields = []
+	if uid_fields is None:
+		uid_fields = []
+	if gid_fields is None:
+		gid_fields = []
 
 	def wrapper(func):
 
@@ -282,8 +292,8 @@ class loggedfs(Operations):
 
 	def __init__(self,
 		directory,
-		log_includes = [],
-		log_excludes = [],
+		log_includes = None,
+		log_excludes = None,
 		log_file = None,
 		log_syslog = False,
 		log_enabled = True,
@@ -292,6 +302,11 @@ class loggedfs(Operations):
 		fuse_foreground_bool = None,
 		fuse_allowother_bool = None
 		):
+
+		if log_includes is None:
+			log_includes = []
+		if log_excludes is None:
+			log_excludes = []
 
 		self._init_logger(log_enabled, log_file, log_syslog, log_printprocessname)
 
