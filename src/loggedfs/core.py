@@ -72,6 +72,7 @@ def loggedfs_factory(directory, **kwargs):
 			**kwargs
 			),
 		directory,
+		# raw_fi = True,
 		nothreads = True,
 		foreground = bool(kwargs['fuse_foreground_bool']) if 'fuse_foreground_bool' in kwargs.keys() else False,
 		allow_other = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
