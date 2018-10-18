@@ -646,9 +646,27 @@ class loggedfs(Operations):
 
 
 	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
-	def truncate(self, path, length, fip):
+	def truncate(self, path, length, fip = None):
 
-		os.truncate(fip.fh, length)
+		if fip is None:
+
+			try:
+				fh = os.open(
+					self._rel_path(path),
+					flags = os.O_WRONLY | os.O_TRUNC,
+					dir_fd = self.root_path_fd
+					)
+			except FileNotFoundError:
+				raise FuseOSError(errno.ENOENT)
+
+			ret = os.ftruncate(fh, length)
+			os.close(fh)
+
+			return ret
+
+		else:
+
+			return os.ftruncate(fip.fh, length)
 
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
