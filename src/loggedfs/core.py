@@ -80,6 +80,9 @@ def loggedfs_factory(directory, **kwargs):
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
+		# sync_read = True,
+		# max_readahead = 0,
+		# direct_io = True,
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
@@ -503,7 +506,7 @@ class loggedfs(Operations):
 	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
 	def ioctl(self, path, cmd, arg, fh, flags, data):
 
-		os.fchdir(self.root_path_fd)
+		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
@@ -707,5 +710,9 @@ class loggedfs(Operations):
 		# buf is a bytestring!
 
 		res = os.pwrite(fip.fh, buf, offset)
+
+		#os.fdatasync(fip.fh)
+		#os.fdopen(fip.fh).flush()
+		#os.fsync(fip.fh)
 
 		return res
