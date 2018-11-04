@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/mount.py: Mount & umount routines
+	tests/lib/mount.py: Mount & umount routines
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 

@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/climount.py: Quick mount from CLI for tests
+	tests/lib/climount.py: Quick mount from CLI for tests
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 

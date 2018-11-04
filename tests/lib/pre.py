@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/pre.py: Stuff happening before test(s)
+	tests/lib/pre.py: Stuff happening before test(s)
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 

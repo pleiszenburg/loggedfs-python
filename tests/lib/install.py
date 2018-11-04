@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/install.py: Install software required for tests
+	tests/lib/install.py: Install software required for tests
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 

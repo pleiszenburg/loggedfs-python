@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/scope.py: Provides test scope
+	tests/lib/scope.py: Provides test scope
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
