@@ -42,6 +42,6 @@ from .install import (
 	install_fstest,
 	install_fsx
 	)
-from .lib import run_command
+from .procio import run_command
 from .param import fstest_parameters
 from .scope import fstest_scope

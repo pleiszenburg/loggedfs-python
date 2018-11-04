@@ -31,7 +31,7 @@ specific language governing rights and limitations under the License.
 
 import os
 
-from .lib import run_command
+from .procio import run_command
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

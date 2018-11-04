@@ -41,7 +41,7 @@ from .const import (
 	TEST_FSX_SOURCE_URL,
 	TEST_ROOT_PATH
 	)
-from .lib import (
+from .procio import (
 	download_file,
 	read_file,
 	run_command,

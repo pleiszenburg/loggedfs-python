@@ -37,7 +37,7 @@ from .const import (
 	TEST_LOG_STATS
 	)
 from .mount import is_path_mountpoint
-from .lib import (
+from .procio import (
 	append_to_file,
 	format_yaml,
 	read_file,

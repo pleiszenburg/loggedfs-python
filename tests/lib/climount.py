@@ -29,16 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from .pre import fstest_pre_class
-from .post import fstest_post_class
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CLASS
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-class fstest_quick_class(fstest_pre_class, fstest_post_class):
-	pass
+from .base import fstest_base_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -47,12 +38,16 @@ class fstest_quick_class(fstest_pre_class, fstest_post_class):
 
 def quick_cli_mount():
 
-	fs = fstest_pre_class()
-	fs.init()
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_b_cleanup()
+	fs.init_c_parentfs()
+	fs.init_d_childfs()
 
 
 def quick_cli_umount():
 
-	fs = fstest_quick_class()
-	fs.set_paths()
-	fs.postproc()
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.destroy_a_childfs()
+	fs.destroy_b_parentfs()
