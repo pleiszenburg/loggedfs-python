@@ -31,7 +31,7 @@ specific language governing rights and limitations under the License.
 
 from pprint import pprint as pp
 
-from loggedfs_libtest import fstest_scope
+from .loggedfs_libtest import fstest_scope
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
