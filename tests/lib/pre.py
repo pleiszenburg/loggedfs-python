@@ -29,6 +29,8 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import os
+
 from .const import TEST_FS_LOGGEDFS
 
 
@@ -45,3 +47,5 @@ class fstest_pre_class:
 		self.init_b_cleanup()
 		self.init_c_parentfs()
 		self.init_d_childfs()
+
+		os.chdir(self.mount_child_abs_path)

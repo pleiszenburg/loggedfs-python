@@ -136,12 +136,8 @@ class fstest_base_class():
 			self.__mount_child_fs__()
 		open(self.fstest_log_abs_path, 'a').close() # HACK create empty fstest log file
 
-		os.chdir(self.mount_child_abs_path)
-
 
 	def destroy_a_childfs(self):
-
-		os.chdir(self.prj_abs_path)
 
 		if self.fs_type == TEST_FS_LOGGEDFS:
 			umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)

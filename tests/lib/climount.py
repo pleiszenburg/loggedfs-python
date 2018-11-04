@@ -36,7 +36,14 @@ from .base import fstest_base_class
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def quick_cli_mount():
+def quick_cli_cleanup():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_b_cleanup()
+
+
+def quick_cli_init():
 
 	fs = fstest_base_class()
 	fs.init_a_members()
@@ -45,9 +52,37 @@ def quick_cli_mount():
 	fs.init_d_childfs()
 
 
-def quick_cli_umount():
+def quick_cli_init_parentfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_c_parentfs()
+
+
+def quick_cli_init_childfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_d_childfs()
+
+
+def quick_cli_destroy():
 
 	fs = fstest_base_class()
 	fs.init_a_members()
 	fs.destroy_a_childfs()
 	fs.destroy_b_parentfs()
+
+
+def quick_cli_destroy_parentfs():
+
+	fs = fstest_base_class_parentfs()
+	fs.init_a_members()
+	fs.destroy_b_parentfs()
+
+
+def quick_cli_destroy_childfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.destroy_a_childfs()

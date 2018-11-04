@@ -57,8 +57,20 @@ install_fstest:
 install_fsx:
 	python3 -c 'import tests; tests.lib.install_fsx()'
 
-mount:
-	python3 -c 'import tests; tests.lib.quick_cli_mount()'
+cleanup:
+	python3 -c 'import tests; tests.lib.quick_cli_clean()'
+init:
+	python3 -c 'import tests; tests.lib.quick_cli_init()'
+init_parentfs:
+	python3 -c 'import tests; tests.lib.quick_cli_init_parentfs()'
+init_childfs:
+	python3 -c 'import tests; tests.lib.quick_cli_init_childfs()'
+destroy:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy()'
+destroy_parentfs:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy_parentfs()'
+destroy_childfs:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy_childfs()'
 
 test:
 	# make docu
@@ -67,6 +79,3 @@ test:
 	# USAGE: make test T="-T chmod/01.t -T chmod/02.t"
 	# REFERENCE TEST WITH EXT4: make test T="-M ext4"
 	pytest $(T)
-
-umount:
-	python3 -c 'import tests; tests.lib.quick_cli_umount()'

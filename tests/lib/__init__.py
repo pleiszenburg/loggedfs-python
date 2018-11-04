@@ -30,17 +30,22 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from .climount import (
-	quick_cli_mount,
-	quick_cli_umount
+	quick_cli_cleanup,
+	quick_cli_init,
+	quick_cli_init_parentfs,
+	quick_cli_init_childfs,
+	quick_cli_destroy,
+	quick_cli_destroy_parentfs,
+	quick_cli_destroy_childfs,
 	)
 from .const import (
 	TEST_ROOT_PATH,
 	TEST_FSTEST_PATH,
-	TEST_FSTEST_TESTS_SUBPATH
+	TEST_FSTEST_TESTS_SUBPATH,
 	)
 from .install import (
 	install_fstest,
-	install_fsx
+	install_fsx,
 	)
 from .procio import run_command
 from .param import fstest_parameters
