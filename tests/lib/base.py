@@ -139,10 +139,15 @@ class fstest_base_class():
 
 	def destroy_a_childfs(self):
 
-		if self.fs_type == TEST_FS_LOGGEDFS:
-			umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
-			assert umount_child_status
-			assert not is_path_mountpoint(self.mount_child_abs_path)
+		if not self.fs_type == TEST_FS_LOGGEDFS:
+			return
+
+		if not is_path_mountpoint(self.mount_child_abs_path):
+			return
+
+		umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
+		assert umount_child_status
+		assert not is_path_mountpoint(self.mount_child_abs_path)
 
 		time.sleep(0.1) # HACK ... otherwise parent will be busy
 
@@ -151,6 +156,8 @@ class fstest_base_class():
 
 		if self.travis:
 			return
+
+		# TODO mountpoint checks ...
 
 		umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)
 		assert umount_parent_status
@@ -178,6 +185,9 @@ class fstest_base_class():
 		assert detach_status
 
 		assert not bool(ck_status_code) # not 0 for just about any type of error! Therefore asserting at the very end.
+
+		os.remove(self.image_abs_path)
+		assert not os.path.exists(self.image_abs_path)
 
 
 	def __attach_loop_device__(self):
