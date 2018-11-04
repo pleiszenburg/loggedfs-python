@@ -32,7 +32,7 @@ specific language governing rights and limitations under the License.
 import argparse
 import os
 
-from lib import (
+from .lib import (
 	fstest_parameters,
 	TEST_ROOT_PATH,
 	TEST_FSTEST_PATH,

@@ -95,4 +95,3 @@ test_suite
 test_mount
 test_logs
 fsx-linux*
-fsx

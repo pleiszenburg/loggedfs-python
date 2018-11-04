@@ -31,7 +31,7 @@ specific language governing rights and limitations under the License.
 
 from pprint import pprint as pp
 
-from lib import fstest_scope
+from .lib import fstest_scope
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

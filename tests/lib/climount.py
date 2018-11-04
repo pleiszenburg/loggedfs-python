@@ -76,7 +76,7 @@ def quick_cli_destroy():
 
 def quick_cli_destroy_parentfs():
 
-	fs = fstest_base_class_parentfs()
+	fs = fstest_base_class()
 	fs.init_a_members()
 	fs.destroy_b_parentfs()
 
