@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/scope.py: Provides test scope
+	tests/lib/climount.py: Quick mount from CLI for tests
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,42 +29,60 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import pytest
-
-from .const import TEST_FS_LOGGEDFS
-from .pre import fstest_pre_class
-from .prove import fstest_prove_class
-from .post import fstest_post_class
+from .base import fstest_base_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-@pytest.fixture(scope = 'module')
-def fstest_scope(request):
-	"""Runs in project root!
-	"""
+def quick_cli_cleanup():
 
-	fs_type = request.config.getoption('M')
-
-	fstest = fstest_class(fs_type = fs_type)
-
-	def __finalizer__():
-		fstest.postproc()
-
-	request.addfinalizer(__finalizer__)
-
-	return fstest
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_b_cleanup()
 
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CLASS: CORE
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+def quick_cli_init():
 
-class fstest_class(fstest_pre_class, fstest_prove_class, fstest_post_class):
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_b_cleanup()
+	fs.init_c_parentfs()
+	fs.init_d_childfs()
 
 
-	def __init__(self, fs_type = TEST_FS_LOGGEDFS):
+def quick_cli_init_parentfs():
 
-		self.init(fs_type = fs_type)
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_c_parentfs()
+
+
+def quick_cli_init_childfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_d_childfs()
+
+
+def quick_cli_destroy():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.destroy_a_childfs()
+	fs.destroy_b_parentfs()
+
+
+def quick_cli_destroy_parentfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.destroy_b_parentfs()
+
+
+def quick_cli_destroy_childfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.destroy_a_childfs()

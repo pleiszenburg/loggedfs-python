@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/prove.py: Stuff happening during test(s)
+	tests/lib/prove.py: Stuff happening during test(s)
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -37,7 +37,7 @@ from .const import (
 	TEST_LOG_STATS
 	)
 from .mount import is_path_mountpoint
-from .lib import (
+from .procio import (
 	append_to_file,
 	format_yaml,
 	read_file,

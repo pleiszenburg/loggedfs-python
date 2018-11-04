@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/climount.py: Quick mount from CLI for tests
+	tests/lib/post.py: Stuff happening after test(s)
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,30 +29,21 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from .pre import fstest_pre_class
-from .post import fstest_post_class
+import os
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CLASS
+# CLASS: (3/3) POST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class fstest_quick_class(fstest_pre_class, fstest_post_class):
-	pass
+class fstest_post_class:
 
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	def destroy(self):
+		"""Called from project root after tests!
+		"""
 
-def quick_cli_mount():
+		os.chdir(self.prj_abs_path)
 
-	fs = fstest_pre_class()
-	fs.init()
-
-
-def quick_cli_umount():
-
-	fs = fstest_quick_class()
-	fs.set_paths()
-	fs.postproc()
+		self.destroy_a_childfs()
+		self.destroy_b_parentfs()

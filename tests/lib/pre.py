@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/test_fstest.py: Runs the fstest-suite
+	tests/lib/pre.py: Stuff happening before test(s)
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,15 +29,23 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pprint as pp
+import os
 
-from .lib import fstest_scope
+from .const import TEST_FS_LOGGEDFS
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# TESTS
+# CLASS: (1/3) PRE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest(fstest_scope, fstest_group_path):
+class fstest_pre_class:
 
-	fstest_scope.prove(fstest_group_path)
+
+	def init(self, fs_type = TEST_FS_LOGGEDFS):
+
+		self.init_a_members(fs_type)
+		self.init_b_cleanup()
+		self.init_c_parentfs()
+		self.init_d_childfs()
+
+		os.chdir(self.mount_child_abs_path)

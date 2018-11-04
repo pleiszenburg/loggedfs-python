@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# LoggedFS-python
+# Filesystem monitoring with Fuse and Python
+# https://github.com/pleiszenburg/loggedfs-python
+#
+#	fsx: Development script for running fsx-linux
+#
+# 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+#
+# <LICENSE_BLOCK>
+# The contents of this file are subject to the Apache License
+# Version 2 ("License"). You may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+# https://www.apache.org/licenses/LICENSE-2.0
+# https://github.com/pleiszenburg/loggedfs-python/blob/master/LICENSE
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the
+# specific language governing rights and limitations under the License.
+# </LICENSE_BLOCK>
+
+
+FN=iotest
+
+make init
+cd tests/test_mount/test_child/
+fsx-linux -d -d -N 100 $FN -P ../../test_logs
+cd ../../..
+make destroy_childfs
+cp -a tests/test_mount/test_child/$FN tests/test_logs/$FN.fsxactual
+make destroy_parentfs

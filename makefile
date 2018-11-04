@@ -52,21 +52,30 @@ install_link:
 	make install_fsx
 
 install_fstest:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fstest()'
+	python3 -c 'import tests; tests.lib.install_fstest()'
 
 install_fsx:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fsx()'
+	python3 -c 'import tests; tests.lib.install_fsx()'
 
-mount:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_mount()'
+cleanup:
+	python3 -c 'import tests; tests.lib.quick_cli_clean()'
+init:
+	python3 -c 'import tests; tests.lib.quick_cli_init()'
+init_parentfs:
+	python3 -c 'import tests; tests.lib.quick_cli_init_parentfs()'
+init_childfs:
+	python3 -c 'import tests; tests.lib.quick_cli_init_childfs()'
+destroy:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy()'
+destroy_parentfs:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy_parentfs()'
+destroy_childfs:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy_childfs()'
 
 test:
 	# make docu
 	-rm tests/__pycache__/*.pyc
-	-rm tests/loggedfs_libtest/__pycache__/*.pyc
+	-rm tests/lib/__pycache__/*.pyc
 	# USAGE: make test T="-T chmod/01.t -T chmod/02.t"
 	# REFERENCE TEST WITH EXT4: make test T="-M ext4"
 	pytest $(T)
-
-umount:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_umount()'
