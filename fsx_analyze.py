@@ -22,7 +22,7 @@ def parse_timestamp(date_str):
 	seconds = int(seconds)
 	microseconds = int(microseconds)
 
-	return seconds * 10**9 + microseconds * 10**6
+	return seconds * 10**9 + microseconds * 10**3
 
 
 def hex_to_dec(hex_str):
@@ -56,6 +56,7 @@ def parse_fsx_line(line):
 	param = param.replace('\t', ' ').replace('  ', ' ').strip()
 	param = [item.strip(' ()') for item in param.split(' ')]
 	param = [hex_to_dec(item) if item.startswith('0x') else item for item in param]
+	param = [str(int((item))) if item.isdigit() else item for item in param]
 	param = ' '.join(param)
 
 	return {
@@ -77,7 +78,7 @@ def main():
 	log_fs_lines = [
 		parse_fs_line(line) for line in
 		log_fs.replace(os.path.join(os.path.abspath('.'), 'tests/test_mount/test_child'), '').split('\n')
-		if ' fsx-linux ' in line
+		if ' fsx-linux ' in line and ' getattr ' not in line
 		]
 
 	log_fsx_lines = [
