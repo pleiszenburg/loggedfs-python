@@ -37,7 +37,8 @@ def parse_fs_line(line):
 	return {
 		't': parse_iso_datestring(line[:29]), # time
 		'c': command, # command
-		'p': param # param
+		'p': param, # param
+		's': 'FS' # log source
 		}
 
 
@@ -50,7 +51,8 @@ def parse_fsx_line(line):
 	return {
 		't': parse_timestamp(ts), # time
 		'c': command, # command
-		'p': param  # param
+		'p': param,  # param
+		's': 'XX' # log source
 		}
 
 
