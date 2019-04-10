@@ -176,7 +176,7 @@ def download_file(in_url):
 
 def dump_yaml(filename, data):
 
-	f = open(filename, 'w+')
+	f = open(filename, 'w')
 	dump(data, f, Dumper = Dumper, default_flow_style = False)
 	f.close()
 
@@ -199,6 +199,6 @@ def read_file(filename):
 
 def write_file(filename, data):
 
-	f = open(filename, 'w+')
+	f = open(filename, 'w')
 	f.write(data)
 	f.close()

@@ -92,9 +92,9 @@ def __format_args__(args_list, kwargs_dict, items_list, format_func):
 
 	for item in items_list:
 		if isinstance(item, int):
-			args_list[item] = format_func(args_list[item])
+			args_list[item] = format_func(args_list[item] if item < len(args_list) else -10)
 		elif isinstance(item, str):
-			kwargs_dict[item] = format_func(kwargs_dict[item])
+			kwargs_dict[item] = format_func(kwargs_dict.get(item, -11))
 
 
 def __get_abs_path__(args_list, kwargs_dict, path_item_list, abs_func):
@@ -140,10 +140,22 @@ def __get_user_name_from_uid__(uid):
 		return '[uid: omitted argument]'
 
 
+def __get_fh_from_fip__(fip):
+
+	if fip is None:
+		return -1
+	if not hasattr(fip, 'fh'):
+		return -2
+	if not isinstance(fip.fh, int):
+		return -3
+	return fip.fh
+
+
 def __log__(
 	format_pattern = '',
 	abs_path_fields = None, length_fields = None,
 	uid_fields = None, gid_fields = None,
+	fip_fields = None,
 	path_filter_field = 0
 	):
 
@@ -155,6 +167,8 @@ def __log__(
 		uid_fields = []
 	if gid_fields is None:
 		gid_fields = []
+	if fip_fields is None:
+		fip_fields = []
 
 	def wrapper(func):
 
@@ -181,7 +195,8 @@ def __log__(
 					(abs_path_fields, lambda x: self._full_path(x)),
 					(length_fields, lambda x: len(x)),
 					(uid_fields, lambda x: '%s(%d)' % (__get_user_name_from_uid__(x), x)),
-					(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x))
+					(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x)),
+					(fip_fields, lambda x: '%d' % __get_fh_from_fip__(x))
 					]:
 					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
 
@@ -461,7 +476,7 @@ class loggedfs(Operations):
 		os.close(self.root_path_fd)
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@__log__(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def getattr(self, path, fip):
 
 		if not fip:
@@ -492,9 +507,11 @@ class loggedfs(Operations):
 
 
 	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
+	@__log__(format_pattern = '{0} (fh={2})', abs_path_fields = [0], fip_fields = [2])
 	def fsync(self, path, datasync, fip):
 
-		raise FuseOSError(errno.ENOSYS)
+		# raise FuseOSError(errno.ENOSYS)
+		return 0
 
 
 	@__log__(format_pattern = '{0}')
@@ -563,7 +580,7 @@ class loggedfs(Operations):
 		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # HACK should be lchmod, which is only available on BSD
 
 
-	@__log__(format_pattern = '({1}) {0}', abs_path_fields = [0])
+	@__log__(format_pattern = '({1}) {0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def open(self, path, fip):
 
 		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
@@ -571,7 +588,7 @@ class loggedfs(Operations):
 		return 0 # Must return handle or zero # TODO ?
 
 
-	@__log__(format_pattern = '{1} bytes from {0} at offset {2}', abs_path_fields = [0])
+	@__log__(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = [0], fip_fields = [3])
 	def read(self, path, length, offset, fip):
 
 		# ret is a bytestring!
@@ -607,9 +624,11 @@ class loggedfs(Operations):
 
 
 	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
+	@__log__(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def release(self, path, fip):
 
-		raise FuseOSError(errno.ENOSYS)
+		# raise FuseOSError(errno.ENOSYS)
+		os.close(fip.fh)
 
 
 	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
@@ -648,7 +667,7 @@ class loggedfs(Operations):
 		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@__log__(format_pattern = '{0} to {1} bytes', abs_path_fields = [0])
+	@__log__(format_pattern = '{0} to {1} bytes (fh={fip})', abs_path_fields = [0], fip_fields = ['fip'])
 	def truncate(self, path, length, fip = None):
 
 		if fip is None:
@@ -704,7 +723,7 @@ class loggedfs(Operations):
 			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@__log__(format_pattern = '{1} bytes to {0} at offset {2}', abs_path_fields = [0], length_fields = [1])
+	@__log__(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = [0], length_fields = [1], fip_fields = [3])
 	def write(self, path, buf, offset, fip):
 
 		# buf is a bytestring!
