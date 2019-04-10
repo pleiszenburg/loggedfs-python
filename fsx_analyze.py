@@ -25,6 +25,11 @@ def parse_timestamp(date_str):
 	return seconds * 10**9 + microseconds * 10**6
 
 
+def hex_to_dec(hex_str):
+
+	return str(int(hex_str[2:], 16))
+
+
 def parse_fs_line(line):
 
 	payload = line[48:]
@@ -47,6 +52,11 @@ def parse_fsx_line(line):
 	_, payload = line.split(' ', 1)
 	ts, payload = payload.split(' ', 1)
 	command, param = payload.split(' ', 1)
+
+	param = param.replace('\t', ' ').replace('  ', ' ').strip()
+	param = [item.strip(' ()') for item in param.split(' ')]
+	param = [hex_to_dec(item) if item.startswith('0x') else item for item in param]
+	param = ' '.join(param)
 
 	return {
 		't': parse_timestamp(ts), # time
