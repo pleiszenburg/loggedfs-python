@@ -86,8 +86,11 @@ def main():
 		if line[:6].isdigit() and line[6] == ' '
 		]
 
-	print(log_fs_lines[-3])
-	print(log_fsx_lines[-3])
+	log_lines = sorted(log_fs_lines + log_fsx_lines, key = lambda k: k['t'])
+
+	for line in log_lines:
+		print(line)
+
 
 if __name__ == '__main__':
 	main()
