@@ -6,9 +6,9 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/scope.py: Provides test scope
+	tests/lib/post.py: Stuff happening after test(s)
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -29,42 +29,21 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import pytest
-
-from .const import TEST_FS_LOGGEDFS
-from .pre import fstest_pre_class
-from .prove import fstest_prove_class
-from .post import fstest_post_class
+import os
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES
+# CLASS: (3/3) POST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-@pytest.fixture(scope = 'module')
-def fstest_scope(request):
-	"""Runs in project root!
-	"""
-
-	fs_type = request.config.getoption('M')
-
-	fstest = fstest_class(fs_type = fs_type)
-
-	def __finalizer__():
-		fstest.postproc()
-
-	request.addfinalizer(__finalizer__)
-
-	return fstest
+class fstest_post_class:
 
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CLASS: CORE
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	def destroy(self):
+		"""Called from project root after tests!
+		"""
 
-class fstest_class(fstest_pre_class, fstest_prove_class, fstest_post_class):
+		os.chdir(self.prj_abs_path)
 
-
-	def __init__(self, fs_type = TEST_FS_LOGGEDFS):
-
-		self.init(fs_type = fs_type)
+		self.destroy_a_childfs()
+		self.destroy_b_parentfs()

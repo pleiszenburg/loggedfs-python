@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/conftest.py: Configures the tests
+	tests/lib/scope.py: Provides test scope
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,62 +29,48 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-import argparse
-import os
+import pytest
 
-from .lib import (
-	fstest_parameters,
-	TEST_ROOT_PATH,
-	TEST_FSTEST_PATH,
-	TEST_FSTEST_TESTS_SUBPATH
-	)
+from .const import TEST_FS_LOGGEDFS
+from .base import fstest_base_class
+from .pre import fstest_pre_class
+from .prove import fstest_prove_class
+from .post import fstest_post_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES: PYTEST API
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def pytest_addoption(parser):
+@pytest.fixture(scope = 'module')
+def fstest_scope(request):
+	"""Runs in project root!
+	"""
 
-	parser.addoption(
-		'-T',
-		action = 'append',
-		help = 'run specified test file',
-		nargs = 1,
-		type = __arg_type_testfile__
-		)
-	parser.addoption(
-		'-M',
-		action = 'store',
-		default = 'loggedfs',
-		help = 'specify tested filesystem'
-		)
+	fs_type = request.config.getoption('M')
 
+	fstest = fstest_class(fs_type = fs_type)
 
-def pytest_generate_tests(metafunc):
+	def __finalizer__():
+		fstest.destroy()
 
-	if 'fstest_group_path' in metafunc.fixturenames:
-		if metafunc.config.getoption('T'):
-			test_list = [a[0] for a in metafunc.config.getoption('T')]
-		else:
-			test_list = fstest_parameters()
-		metafunc.parametrize('fstest_group_path', test_list)
+	request.addfinalizer(__finalizer__)
+
+	return fstest
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES: HELPER
+# CLASS: CORE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def __arg_type_testfile__(filename):
+class fstest_class(
+	fstest_base_class,
+	fstest_pre_class,
+	fstest_prove_class,
+	fstest_post_class
+	):
 
-	file_path = os.path.join(
-		TEST_ROOT_PATH,
-		TEST_FSTEST_PATH,
-		TEST_FSTEST_TESTS_SUBPATH,
-		filename
-		)
 
-	if os.path.isfile(file_path) and file_path.endswith('.t'):
-		return os.path.abspath(file_path)
+	def __init__(self, fs_type = TEST_FS_LOGGEDFS):
 
-	raise argparse.ArgumentTypeError('No testfile: "%s"' % filename)
+		self.init(fs_type = fs_type)

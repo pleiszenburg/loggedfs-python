@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/test_fstest.py: Runs the fstest-suite
+	tests/lib/climount.py: Quick mount from CLI for tests
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,15 +29,62 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from pprint import pprint as pp
-
-from .lib import fstest_scope
+from .base import fstest_base_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# TESTS
+# ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def test_fstest(fstest_scope, fstest_group_path):
+def quick_cli_cleanup():
 
-	fstest_scope.prove(fstest_group_path)
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_b_cleanup()
+
+
+def quick_cli_init():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_b_cleanup()
+	fs.init_c_parentfs()
+	fs.init_d_childfs()
+
+
+def quick_cli_init_parentfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_c_parentfs()
+
+
+def quick_cli_init_childfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.init_d_childfs()
+
+
+def quick_cli_destroy():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.destroy_a_childfs()
+	fs.destroy_b_parentfs()
+
+
+def quick_cli_destroy_parentfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.assert_parentfs_mountpoint()
+	fs.destroy_b_parentfs()
+
+
+def quick_cli_destroy_childfs():
+
+	fs = fstest_base_class()
+	fs.init_a_members()
+	fs.assert_childfs_mountpoint()
+	fs.destroy_a_childfs()

@@ -6,9 +6,9 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/lib.py: Library routines, I/O, ...
+	tests/lib/procio.py: Library routines, processes, I/O, ...
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -90,7 +90,7 @@ def run_command(
 		try:
 			outs, errs = proc.communicate(timeout = timeout)
 		except subprocess.TimeoutExpired:
-			timeout_alert = '\n\nLIBTEST: COMMAND TIMED OUT AND WAS KILLED!'
+			timeout_alert = '\n\nTEST_LIB: COMMAND TIMED OUT AND WAS KILLED!'
 			if setsid:
 				kill_pid = __get_pid__(full_cmd) # proc.pid will deliver wrong pid!
 			else:
@@ -176,7 +176,7 @@ def download_file(in_url):
 
 def dump_yaml(filename, data):
 
-	f = open(filename, 'w+')
+	f = open(filename, 'w')
 	dump(data, f, Dumper = Dumper, default_flow_style = False)
 	f.close()
 
@@ -199,6 +199,6 @@ def read_file(filename):
 
 def write_file(filename, data):
 
-	f = open(filename, 'w+')
+	f = open(filename, 'w')
 	f.write(data)
 	f.close()

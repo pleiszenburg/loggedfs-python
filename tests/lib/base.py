@@ -6,9 +6,9 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/pre.py: Stuff happening before test(s)
+	tests/lib/base.py: Base class for test infrastructure
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -30,21 +30,24 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os
+import time
 
 from .const import (
 	TEST_FS_EXT4,
 	TEST_FS_LOGGEDFS,
+	TEST_FSCK_FN,
 	TEST_FSTEST_LOG_FN,
 	TEST_IMAGE_FN,
 	TEST_IMAGE_SIZE_MB,
 	TEST_MOUNT_CHILD_PATH,
 	TEST_MOUNT_PARENT_PATH,
+	TEST_LOG_HEAD,
 	TEST_LOG_PATH,
 	TEST_ROOT_PATH,
 	TEST_LOGGEDFS_CFG_FN,
 	TEST_LOGGEDFS_ERR_FN,
 	TEST_LOGGEDFS_LOG_FN,
-	TEST_LOGGEDFS_OUT_FN
+	TEST_LOGGEDFS_OUT_FN,
 	)
 from .mount import (
 	attach_loop_device,
@@ -54,13 +57,14 @@ from .mount import (
 	mount,
 	mount_loggedfs_python,
 	umount,
-	umount_fuse
+	umount_fuse,
 	)
-from .lib import (
+from .procio import (
+	ck_filesystem,
 	create_zero_file,
 	mk_filesystem,
 	run_command,
-	write_file
+	write_file,
 	)
 
 
@@ -68,7 +72,7 @@ from .lib import (
 # CLASS: (1/3) PRE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class fstest_pre_class():
+class fstest_base_class():
 
 
 	with_sudo = True
@@ -76,38 +80,9 @@ class fstest_pre_class():
 	travis = False
 
 
-	def init(self, fs_type = TEST_FS_LOGGEDFS):
+	def init_a_members(self, fs_type = TEST_FS_LOGGEDFS):
 
 		self.fs_type = fs_type
-		self.set_paths()
-
-		if not self.travis:
-			self.__cleanup_logfiles__() # rm -r log_dir
-			self.__cleanup_mountpoint__(self.mount_child_abs_path) # umount & rmdir
-			self.__cleanup_mountpoint__(self.mount_parent_abs_path) # umount & rmdir
-			self.__cleanup_loop_devices__() # losetup -d /dev/loopX
-			self.__cleanup_image__() # rm file
-
-		if not self.travis:
-			create_zero_file(self.image_abs_path, TEST_IMAGE_SIZE_MB)
-			self.__attach_loop_device__()
-			mk_filesystem(self.loop_device_path, file_system = TEST_FS_EXT4)
-		self.__mk_dir__(self.mount_parent_abs_path)
-		if not self.travis:
-			self.__mount_parent_fs__()
-		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
-		self.__mk_dir__(self.logs_abs_path)
-
-		open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
-		if self.fs_type == TEST_FS_LOGGEDFS:
-			self.__mount_child_fs__()
-
-		open(self.fstest_log_abs_path, 'a').close()
-
-		os.chdir(self.mount_child_abs_path)
-
-
-	def set_paths(self):
 
 		self.prj_abs_path = os.getcwd()
 		self.root_abs_path = os.path.abspath(os.path.join(self.prj_abs_path, TEST_ROOT_PATH))
@@ -127,6 +102,105 @@ class fstest_pre_class():
 			self.travis = os.environ['TRAVIS'] == 'true'
 
 		self.fstest_log_abs_path = os.path.join(self.logs_abs_path, TEST_FSTEST_LOG_FN)
+
+
+	def init_b_cleanup(self):
+
+		if self.travis:
+			return
+
+		self.__cleanup_logfiles__() # rm -r log_dir
+		self.__cleanup_mountpoint__(self.mount_child_abs_path) # umount & rmdir
+		self.__cleanup_mountpoint__(self.mount_parent_abs_path) # umount & rmdir
+		self.__cleanup_loop_devices__() # losetup -d /dev/loopX
+		self.__cleanup_image__() # rm file
+
+
+	def init_c_parentfs(self):
+
+		if not self.travis:
+			create_zero_file(self.image_abs_path, TEST_IMAGE_SIZE_MB)
+			self.__attach_loop_device__()
+			mk_filesystem(self.loop_device_path, file_system = TEST_FS_EXT4)
+		self.__mk_dir__(self.mount_parent_abs_path)
+		if not self.travis:
+			self.__mount_parent_fs__()
+		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
+		self.__mk_dir__(self.logs_abs_path)
+
+
+	def init_d_childfs(self):
+
+		open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
+		if self.fs_type == TEST_FS_LOGGEDFS:
+			self.__mount_child_fs__()
+		open(self.fstest_log_abs_path, 'a').close() # HACK create empty fstest log file
+
+
+	def assert_childfs_mountpoint(self):
+
+		assert is_path_mountpoint(self.mount_child_abs_path)
+
+
+	def assert_parentfs_mountpoint(self):
+
+		if self.travis:
+			return
+
+		assert is_path_mountpoint(self.mount_parent_abs_path)
+
+
+	def destroy_a_childfs(self):
+
+		if not self.fs_type == TEST_FS_LOGGEDFS:
+			return
+
+		if not is_path_mountpoint(self.mount_child_abs_path):
+			return
+
+		umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
+		assert umount_child_status
+		assert not is_path_mountpoint(self.mount_child_abs_path)
+
+		time.sleep(0.1) # HACK ... otherwise parent will be busy
+
+
+	def destroy_b_parentfs(self):
+
+		if self.travis:
+			return
+
+		# TODO mountpoint checks ...
+
+		umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)
+		assert umount_parent_status
+		assert not is_path_mountpoint(self.mount_parent_abs_path)
+
+		loop_device_list = find_loop_devices(self.image_abs_path)
+		assert isinstance(loop_device_list, list)
+		assert len(loop_device_list) == 1
+		loop_device_path = loop_device_list[0]
+
+		ck_status_code, ck_out, ck_err = ck_filesystem(loop_device_path)
+		write_file(
+			os.path.join(self.logs_abs_path, TEST_FSCK_FN),
+			''.join([
+				TEST_LOG_HEAD % 'EXIT STATUS',
+				'%d\n' % ck_status_code,
+				TEST_LOG_HEAD % 'OUT',
+				ck_out,
+				TEST_LOG_HEAD % 'ERR',
+				ck_err
+				])
+			)
+
+		detach_status = detach_loop_device(loop_device_path)
+		assert detach_status
+
+		assert not bool(ck_status_code) # not 0 for just about any type of error! Therefore asserting at the very end.
+
+		os.remove(self.image_abs_path)
+		assert not os.path.exists(self.image_abs_path)
 
 
 	def __attach_loop_device__(self):

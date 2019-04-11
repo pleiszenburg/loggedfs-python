@@ -4,7 +4,7 @@
 #
 #	makefile: GNU makefile for project management
 #
-# 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+# 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 #
 # <LICENSE_BLOCK>
 # The contents of this file are subject to the Apache License
@@ -21,15 +21,29 @@
 
 T = ""
 
+clean:
+	-rm -r build/*
+	-rm -r dist/*
+	-rm -r src/*.egg-info
+	# -rm -r htmlconv/*
+	# -rm .coverage*
+	coverage erase
+	find src/ tests/ -name '*.pyc' -exec rm -f {} +
+	find src/ tests/ -name '*.pyo' -exec rm -f {} +
+	# find src/ tests/ -name '*~' -exec rm -f {} +
+	find src/ tests/ -name '__pycache__' -exec rm -fr {} +
+	# find src/ tests/ -name '*.htm' -exec rm -f {} +
+	# find src/ tests/ -name '*.html' -exec rm -f {} +
+	# find src/ tests/ -name '*.so' -exec rm -f {} +
+
 # docu:
 # 	@(cd docs; make clean; make html)
 
 release:
-	-rm dist/*
-	-rm -r src/*.egg-info
+	make clean
 	python setup.py sdist bdist_wheel
-	gpg --detach-sign -a dist/literatur*.whl
-	gpg --detach-sign -a dist/literatur*.tar.gz
+	gpg --detach-sign -a dist/loggedfs*.whl
+	gpg --detach-sign -a dist/loggedfs*.tar.gz
 
 upload:
 	for filename in $$(ls dist/*.tar.gz dist/*.whl) ; do \
@@ -42,31 +56,47 @@ upload_test:
 	done
 
 install:
-	pip install --process-dependency-links .[dev]
+	pip install .[dev]
 	make install_fstest
 	make install_fsx
 
 install_link:
-	pip install --process-dependency-links -e .[dev]
+	pip install -e .[dev]
 	make install_fstest
 	make install_fsx
 
 install_fstest:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fstest()'
+	python3 -c 'import tests; tests.lib.install_fstest()'
 
 install_fsx:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.install_fsx()'
+	python3 -c 'import tests; tests.lib.install_fsx()'
 
-mount:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_mount()'
+cleanup:
+	python3 -c 'import tests; tests.lib.quick_cli_clean()'
+init:
+	python3 -c 'import tests; tests.lib.quick_cli_init()'
+init_parentfs:
+	python3 -c 'import tests; tests.lib.quick_cli_init_parentfs()'
+init_childfs:
+	python3 -c 'import tests; tests.lib.quick_cli_init_childfs()'
+destroy:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy()'
+destroy_parentfs:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy_parentfs()'
+destroy_childfs:
+	python3 -c 'import tests; tests.lib.quick_cli_destroy_childfs()'
 
 test:
+	make test_posix
+	make test_stress
+
+test_posix:
 	# make docu
 	-rm tests/__pycache__/*.pyc
-	-rm tests/loggedfs_libtest/__pycache__/*.pyc
+	-rm tests/lib/__pycache__/*.pyc
 	# USAGE: make test T="-T chmod/01.t -T chmod/02.t"
 	# REFERENCE TEST WITH EXT4: make test T="-M ext4"
 	pytest $(T)
 
-umount:
-	python3 -c 'import sys; import os; sys.path.append(os.path.join(os.getcwd(), "tests")); import loggedfs_libtest; loggedfs_libtest.quick_cli_umount()'
+test_stress:
+	tests/scripts/fsx

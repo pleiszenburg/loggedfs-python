@@ -26,18 +26,20 @@
 # https://github.com/travis-ci/travis-ci/issues/1100#issuecomment-160169121
 sudo: required
 
-# Go for more 'recent' version of Ubuntu
-dist: trusty
-
 # Repository language
 language: python
 
-# Python version
-python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  # - "3.7-dev"
+# Ubuntu & Python versions
+matrix:
+    include:
+        - dist: trusty
+          python: "3.4"
+        - dist: xenial
+          python: "3.5"
+        - dist: xenial
+          python: "3.6"
+        - dist: xenial
+          python: "3.7"
 
 # Install dependencies
 addons:
@@ -54,6 +56,8 @@ before_install:
   - sudo chown root:$USER /etc/fuse.conf
   - sudo echo "user_allow_other" | sudo tee -a /etc/fuse.conf > /dev/null
   - python --version
+  - pip install -U pip
+  - pip install -U setuptools
   - uname -a
 
 # command to install dependencies and module

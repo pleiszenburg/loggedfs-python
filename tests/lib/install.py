@@ -6,9 +6,9 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/install.py: Install software required for tests
+	tests/lib/install.py: Install software required for tests
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -41,7 +41,7 @@ from .const import (
 	TEST_FSX_SOURCE_URL,
 	TEST_ROOT_PATH
 	)
-from .lib import (
+from .procio import (
 	download_file,
 	read_file,
 	run_command,

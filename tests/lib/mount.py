@@ -6,9 +6,9 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/mount.py: Mount & umount routines
+	tests/lib/mount.py: Mount & umount routines
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -31,7 +31,7 @@ specific language governing rights and limitations under the License.
 
 import os
 
-from .lib import run_command
+from .procio import run_command
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -75,8 +75,9 @@ def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 			os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'loggedfs'),
 			'-l', logfile,
 			'-c', cfgfile,
-			'-p', in_abs_path,
-			'-s'
+			'-p',
+			'-s',
+			in_abs_path,
 			],
 		return_output = True, sudo = sudo, sudo_env = sudo
 		)

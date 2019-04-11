@@ -1,8 +1,10 @@
+#!/bin/bash
+
 # LoggedFS-python
 # Filesystem monitoring with Fuse and Python
 # https://github.com/pleiszenburg/loggedfs-python
 #
-#	tests/test_fsx/makefile: GNU makefile for fsx-linux
+#	tests/scripts/fsx: Development script for running fsx-linux
 #
 # 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 #
@@ -19,19 +21,12 @@
 # </LICENSE_BLOCK>
 
 
-CC      = gcc
-CFLAGS  = -g -O2 -fno-strict-aliasing -pipe -Wall -W -Wold-style-definition -D_FORTIFY_SOURCE=2 -DNO_XFS -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
-LDFLAGS =
+FN=iotest
 
-FSX = fsx-linux
-
-all: $(FSX)
-
-$(FSX): $(FSX).c
-	$(CC) $(FSX).c $(CFLAGS) -o $(FSX) $(LDFLAGS)
-
-install:
-	cp -av $(FSX) $(VIRTUAL_ENV)/bin/
-
-clean:
-	rm -rf $(FSX) $(FSX).o
+make init
+cd tests/test_mount/test_child/
+fsx-linux -d -d -N 10000 $FN -P ../../test_logs
+cd ../../..
+make destroy_childfs
+cp -a tests/test_mount/test_child/$FN tests/test_logs/$FN.fsxactual
+make destroy_parentfs

@@ -6,9 +6,9 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	tests/loggedfs_libtest/__init__.py: Test library module init
+	tests/lib/pre.py: Stuff happening before test(s)
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -29,19 +29,23 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from .climount import (
-	quick_cli_mount,
-	quick_cli_umount
-	)
-from .const import (
-	TEST_ROOT_PATH,
-	TEST_FSTEST_PATH,
-	TEST_FSTEST_TESTS_SUBPATH
-	)
-from .install import (
-	install_fstest,
-	install_fsx
-	)
-from .lib import run_command
-from .param import fstest_parameters
-from .scope import fstest_scope
+import os
+
+from .const import TEST_FS_LOGGEDFS
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CLASS: (1/3) PRE
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class fstest_pre_class:
+
+
+	def init(self, fs_type = TEST_FS_LOGGEDFS):
+
+		self.init_a_members(fs_type)
+		self.init_b_cleanup()
+		self.init_c_parentfs()
+		self.init_d_childfs()
+
+		os.chdir(self.mount_child_abs_path)
