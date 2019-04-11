@@ -42,12 +42,12 @@ upload_test:
 	done
 
 install:
-	pip install --process-dependency-links .[dev]
+	pip install .[dev]
 	make install_fstest
 	make install_fsx
 
 install_link:
-	pip install --process-dependency-links -e .[dev]
+	pip install -e .[dev]
 	make install_fstest
 	make install_fsx
 

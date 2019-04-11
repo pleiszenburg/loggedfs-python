@@ -56,6 +56,8 @@ before_install:
   - sudo chown root:$USER /etc/fuse.conf
   - sudo echo "user_allow_other" | sudo tee -a /etc/fuse.conf > /dev/null
   - python --version
+  - pip install -U pip
+  - pip install -U setuptools
   - uname -a
 
 # command to install dependencies and module
