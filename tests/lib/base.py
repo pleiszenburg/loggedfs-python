@@ -144,6 +144,9 @@ class fstest_base_class():
 
 	def assert_parentfs_mountpoint(self):
 
+		if self.travis:
+			return
+
 		assert is_path_mountpoint(self.mount_parent_abs_path)
 
 
