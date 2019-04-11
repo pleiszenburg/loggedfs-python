@@ -73,10 +73,12 @@ def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 		[
 			'coverage', 'run',
 			os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'loggedfs'),
+			# 'loggedfs',
 			'-l', logfile,
 			'-c', cfgfile,
-			'-p', in_abs_path,
-			'-s'
+			'-p',
+			'-s',
+			in_abs_path,
 			],
 		return_output = True, sudo = sudo, sudo_env = sudo
 		)

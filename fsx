@@ -25,7 +25,7 @@ FN=iotest
 
 make init
 cd tests/test_mount/test_child/
-fsx-linux -d -d -N 100 $FN -P ../../test_logs
+fsx-linux -d -d -N 6 $FN -P ../../test_logs # fails at 6 steps already ...
 cd ../../..
 make destroy_childfs
 cp -a tests/test_mount/test_child/$FN tests/test_logs/$FN.fsxactual

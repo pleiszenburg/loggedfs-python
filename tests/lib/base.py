@@ -137,6 +137,16 @@ class fstest_base_class():
 		open(self.fstest_log_abs_path, 'a').close() # HACK create empty fstest log file
 
 
+	def assert_childfs_mountpoint(self):
+
+		assert is_path_mountpoint(self.mount_child_abs_path)
+
+
+	def assert_parentfs_mountpoint(self):
+
+		assert is_path_mountpoint(self.mount_parent_abs_path)
+
+
 	def destroy_a_childfs(self):
 
 		if not self.fs_type == TEST_FS_LOGGEDFS:

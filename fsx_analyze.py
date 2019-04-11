@@ -36,13 +36,13 @@ def print_line(line_dict):
 	sys.stdout.flush()
 
 
-def parse_iso_datestring(date_str):
+def parse_iso_datestring(date_str, original_loggedfs):
 
 	return (
 		int(datetime.datetime(
 			*(int(v) for v in date_str[:19].replace('-', ' ').replace(':', ' ').split(' '))
 			).timestamp())
-		* 10**9 + int(date_str[20:])
+		* 10**9 + (int(date_str[20:]) * 10**6 if original_loggedfs else int(date_str[20:]))
 		)
 
 
@@ -60,9 +60,24 @@ def hex_to_dec(hex_str):
 	return str(int(hex_str[2:], 16))
 
 
+def split_at(in_str, separator, position):
+
+	split_list = in_str.split(separator)
+	return [
+		separator.join(split_list[:position]),
+		separator.join(split_list[position:])
+		]
+
+
 def parse_fs_line(line):
 
-	payload = line[48:]
+	ts, payload = split_at(line, ' ', 2)
+	if payload.startswith('INFO [default] '): # original loggedfs
+		_, payload = split_at(payload, ' ', 2)
+		_original_loggedfs = True
+	else:
+		_, payload = split_at(payload, ' ', 1)
+		_original_loggedfs = False
 	command, payload = payload.split(' ', 1)
 	if '{SUCCESS}' in payload:
 		param, remaining = payload.split(' {SUCCESS} ', 1)
@@ -70,7 +85,7 @@ def parse_fs_line(line):
 		param, remaining = payload.split(' {FAILURE} ', 1)
 
 	return {
-		't': parse_iso_datestring(line[:29]), # time
+		't': parse_iso_datestring(ts, _original_loggedfs), # time
 		'c': command, # command
 		'p': param, # param
 		's': 'FS' # log source
