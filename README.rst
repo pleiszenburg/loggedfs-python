@@ -21,7 +21,7 @@ LoggedFS-python is a FUSE-based filesystem which can log every operation that ha
 It is a pure Python re-implementation of `LoggedFS`_ by `Rémi Flament`_ maintaining CLI compatibility.
 The project is heavily inspired by `Stavros Korokithakis`_' 2013 blog post entitled
 "`Writing a FUSE filesystem in Python`_" (`source code repository`_).
-The filesystem is fully `POSIX`_ compliant, passing the `pjdfstest test-suite`_.
+The filesystem is fully `POSIX`_ compliant, passing the `pjdfstest test-suite`_, a descendant of FreeBSD's `fstest`_.
 It furthermore passes stress tests with fsx-linux based on the `fsx-flavor`_  released by the `Linux Test Project`_.
 It is intended to be suitable for production systems.
 
@@ -32,6 +32,7 @@ It is intended to be suitable for production systems.
 .. _source code repository: https://github.com/skorokithakis/python-fuse-sample
 .. _POSIX: https://en.wikipedia.org/wiki/POSIX
 .. _pjdfstest test-suite: https://github.com/pjd/pjdfstest
+.. _fstest: https://github.com/zfsonlinux/fstest
 .. _fsx-flavor: http://codemonkey.org.uk/projects/fsx/
 .. _Linux Test Project: https://github.com/linux-test-project/ltp
 
@@ -43,7 +44,7 @@ CAVEATS
 * A `CUSTOM BUG-FIXED VERSION OF FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
   IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
   INACCURATE ON A NANOSECOND TO MICROSECOND SCALE AND UTIME_NOW AS WELL AS
-  UTIME_OMIT WILL NOT BE HONORED. THERE IS A `PENDING PULL REQUEST`_.
+  UTIME_OMIT WILL NOT BE HONORED. THERE WAS A `PULL REQUEST`_ TO FIX THIS.
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
   ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
 
