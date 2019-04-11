@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.0.1 (2018-XX-XX)
+0.0.1 (2019-04-11)
 ------------------
 
-* TBD
+* First official BETA-release of *LoggedFS-python*
