@@ -696,20 +696,6 @@ class loggedfs(Operations):
 
 		if fip is None:
 
-			# try:
-			# 	fh = os.open(
-			# 		self._rel_path(path),
-			# 		flags = os.O_WRONLY | os.O_TRUNC,
-			# 		dir_fd = self.root_path_fd
-			# 		)
-			# except FileNotFoundError:
-			# 	raise FuseOSError(errno.ENOENT)
-			#
-			# ret = os.ftruncate(fh, length)
-			# os.close(fh)
-			#
-			# return ret
-
 			os.truncate(self._rel_path(path), length)
 
 		else:
@@ -755,9 +741,5 @@ class loggedfs(Operations):
 		# buf is a bytestring!
 
 		res = os.pwrite(fip.fh, buf, offset)
-
-		#os.fdatasync(fip.fh)
-		#os.fdopen(fip.fh).flush()
-		#os.fsync(fip.fh)
 
 		return res
