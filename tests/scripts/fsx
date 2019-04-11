@@ -4,7 +4,7 @@
 # Filesystem monitoring with Fuse and Python
 # https://github.com/pleiszenburg/loggedfs-python
 #
-#	fsx: Development script for running fsx-linux
+#	tests/scripts/fsx: Development script for running fsx-linux
 #
 # 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 #

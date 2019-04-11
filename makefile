@@ -85,4 +85,4 @@ test_posix:
 	pytest $(T)
 
 test_stress:
-	./fsx
+	tests/scripts/fsx

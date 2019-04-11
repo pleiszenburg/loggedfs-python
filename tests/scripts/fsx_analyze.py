@@ -7,7 +7,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	fsx_analyze.py: Merge the output of fsx-linux and LoggedFS and display result
+	tests/scripts/fsx_analyze.py: Merge the output of fsx-linux and LoggedFS, then display result
 
 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
