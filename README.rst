@@ -21,8 +21,9 @@ LoggedFS-python is a FUSE-based filesystem which can log every operation that ha
 It is a pure Python re-implementation of `LoggedFS`_ by `Rémi Flament`_ maintaining CLI compatibility.
 The project is heavily inspired by `Stavros Korokithakis`_' 2013 blog post entitled
 "`Writing a FUSE filesystem in Python`_" (`source code repository`_).
-The filesystem is fully `POSIX`_ compliant (passing the `pjdfstest test-suite`_)
-and intended to be suitable for production systems (it is not yet!).
+The filesystem is fully `POSIX`_ compliant, passing the `pjdfstest test-suite`_.
+It furthermore passes stress tests with fsx-linux based on the `fsx-flavor`_  released by the `Linux Test Project`_.
+It is intended to be suitable for production systems.
 
 .. _LoggedFS: https://github.com/rflament/loggedfs
 .. _Rémi Flament: https://github.com/rflament
@@ -31,16 +32,14 @@ and intended to be suitable for production systems (it is not yet!).
 .. _source code repository: https://github.com/skorokithakis/python-fuse-sample
 .. _POSIX: https://en.wikipedia.org/wiki/POSIX
 .. _pjdfstest test-suite: https://github.com/pjd/pjdfstest
+.. _fsx-flavor: http://codemonkey.org.uk/projects/fsx/
+.. _Linux Test Project: https://github.com/linux-test-project/ltp
 
 
 CAVEATS
 =======
 
 * PROJECT STATUS: **BETA**
-* THE FILESYSTEM HAS RECEIVED **SOME STRESS TESTS WITH FSX-LINUX**
-  BASED ON THE `FSX-FLAVOR`_ RELEASED BY THE `LINUX TEST PROJECT`_.
-  **FSX REPORTS WRITE HOLES!**
-  FULL TESTS UND RELATED BUG-FIXES ARE UNDER WAY.
 * A `CUSTOM BUG-FIXED VERSION OF FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
   IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
   INACCURATE ON A NANOSECOND TO MICROSECOND SCALE AND UTIME_NOW AS WELL AS
@@ -48,8 +47,6 @@ CAVEATS
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
   ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
 
-.. _FSX-FLAVOR: http://codemonkey.org.uk/projects/fsx/
-.. _LINUX TEST PROJECT: https://github.com/linux-test-project/ltp
 .. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
 .. _PENDING PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
 
