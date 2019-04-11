@@ -4,7 +4,7 @@
 #
 #	tests/test_fsx/makefile: GNU makefile for fsx-linux
 #
-# 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+# 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 #
 # <LICENSE_BLOCK>
 # The contents of this file are subject to the Apache License

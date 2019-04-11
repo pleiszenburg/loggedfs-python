@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	setup.py: Used for package distribution
 
-	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -43,13 +43,13 @@ import sys
 
 
 # Bump version HERE!
-_version_ = '0.0.0'
+_version_ = '0.0.1'
 
 
 # List all versions of Python which are supported
 confirmed_python_versions = [
 	('Programming Language :: Python :: %s' % x)
-	for x in '3.4 3.5 3.6'.split(' ')
+	for x in '3.4 3.5 3.6 3.7'.split(' ')
 	]
 
 
@@ -98,12 +98,9 @@ setup(
 	license = 'Apache License 2.0',
 	keywords = ['filesystem', 'fuse', 'logging', 'monitoring'],
 	include_package_data = True,
-	dependency_links = [
-		'https://github.com/s-m-e/fusepy/tarball/master#egg=fusepy-2.0.99'
-		],
 	install_requires = [
 		'click',
-		'fusepy==2.0.99',
+		'fusepy @ git+https://github.com/s-m-e/fusepy@master#egg=fusepy-2.0.99',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},
@@ -113,7 +110,7 @@ setup(
 		''',
 	zip_safe = False,
 	classifiers = [
-		'Development Status :: 3 - Alpha',
+		'Development Status :: 4 - Beta',
 		'Environment :: Console',
 		'Intended Audience :: Developers',
 		'Intended Audience :: Information Technology',

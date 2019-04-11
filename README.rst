@@ -6,11 +6,27 @@
 	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
 	:alt: Build Status: development branch
 
+.. |license| image:: https://img.shields.io/pypi/l/loggedfs.svg?style=flat-square
+	:target: https://github.com/pleiszenburg/loggedfs/blob/master/LICENSE
+	:alt: Project License: Apache License v2
+
+.. |status| image:: https://img.shields.io/pypi/status/loggedfs.svg?style=flat-square
+	:target: https://github.com/pleiszenburg/loggedfs-python/milestone/1
+	:alt: Project Development Status
+
+.. |pypi_version| image:: https://img.shields.io/pypi/v/loggedfs.svg?style=flat-square
+	:target: https://pypi.python.org/pypi/loggedfs
+	:alt: Available on PyPi - the Python Package Index
+
+.. |pypi_versions| image:: https://img.shields.io/pypi/pyversions/loggedfs.svg?style=flat-square
+	:target: https://pypi.python.org/pypi/loggedfs
+	:alt: Available on PyPi - the Python Package Index
+
 .. |loggedfs_python_logo| image:: http://www.pleiszenburg.de/loggedfs-python_logo.png
 	:target: https://github.com/pleiszenburg/loggedfs-python
 	:alt: LoggedFS-python repository
 
-|build_master| |build_develop|
+|build_master| |build_develop| |license| |status| |pypi_version| |pypi_versions|
 
 |loggedfs_python_logo|
 
@@ -21,8 +37,9 @@ LoggedFS-python is a FUSE-based filesystem which can log every operation that ha
 It is a pure Python re-implementation of `LoggedFS`_ by `Rémi Flament`_ maintaining CLI compatibility.
 The project is heavily inspired by `Stavros Korokithakis`_' 2013 blog post entitled
 "`Writing a FUSE filesystem in Python`_" (`source code repository`_).
-The filesystem is fully `POSIX`_ compliant (passing the `pjdfstest test-suite`_)
-and intended to be suitable for production systems (it is not yet!).
+The filesystem is fully `POSIX`_ compliant, passing the `pjdfstest test-suite`_, a descendant of FreeBSD's `fstest`_.
+It furthermore passes stress tests with fsx-linux based on the `fsx-flavor`_  released by the `Linux Test Project`_.
+It is intended to be suitable for production systems.
 
 .. _LoggedFS: https://github.com/rflament/loggedfs
 .. _Rémi Flament: https://github.com/rflament
@@ -31,47 +48,49 @@ and intended to be suitable for production systems (it is not yet!).
 .. _source code repository: https://github.com/skorokithakis/python-fuse-sample
 .. _POSIX: https://en.wikipedia.org/wiki/POSIX
 .. _pjdfstest test-suite: https://github.com/pjd/pjdfstest
+.. _fstest: https://github.com/zfsonlinux/fstest
+.. _fsx-flavor: http://codemonkey.org.uk/projects/fsx/
+.. _Linux Test Project: https://github.com/linux-test-project/ltp
 
 
 CAVEATS
 =======
 
 * PROJECT STATUS: **BETA**
-* THE FILESYSTEM HAS RECEIVED **SOME STRESS TESTS WITH FSX-LINUX**
-  BASED ON THE `FSX-FLAVOR`_ RELEASED BY THE `LINUX TEST PROJECT`_.
-  **FSX REPORTS WRITE HOLES!**
-  FULL TESTS UND RELATED BUG-FIXES ARE UNDER WAY.
 * A `CUSTOM BUG-FIXED VERSION OF FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
+  IT IS AUTOMATICALLY INSTALLED FROM GITHUB AS A DEPENDENCY OF THIS PACKAGE.
   IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
   INACCURATE ON A NANOSECOND TO MICROSECOND SCALE AND UTIME_NOW AS WELL AS
-  UTIME_OMIT WILL NOT BE HONORED. THERE IS A `PENDING PULL REQUEST`_.
+  UTIME_OMIT WILL NOT BE HONORED. THERE WAS A `PULL REQUEST`_ TO FIX THIS,
+  WHICH HAS BEEN REJECTED. ALTERNATIVE APPROACHES ARE BEING RESEARCHED.
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
   ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
 
-.. _FSX-FLAVOR: http://codemonkey.org.uk/projects/fsx/
-.. _LINUX TEST PROJECT: https://github.com/linux-test-project/ltp
 .. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
-.. _PENDING PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
+.. _PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
 
 
 Installation
 ============
 
+From the `Python Package Index`_ (PyPI):
+
+.. code:: bash
+
+	pip install loggedfs
+
+From GitHub:
+
 .. code:: bash
 
 	pip install git+https://github.com/pleiszenburg/loggedfs-python.git@master
 
-This project has intentionally not yet been published in the `Python Package Index`_ (PyPI).
-It will be released on PyPI once critical changes have been merged into `fusepy`_,
-a dependency of LoggedFS-python.
-
-**Supports Python 3.{4,5,6}.**
+**Supports Python 3.{4,5,6,7}.**
 
 **Supports Linux.**
-Support for MAC OS X and BSD likely requires minor changes only, but has yet not been added.
+Support for MAC OS X and BSD requires a minor change only, but has yet not been added: Access to the system log is currently being achieved through ``logging.handlers.SysLogHandler(address = '/dev/log')``, a Linux-only solution.
 
 .. _Python Package Index: https://pypi.org/
-.. _fusepy: https://github.com/fusepy/fusepy
 
 
 Simple usage example

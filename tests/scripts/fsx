@@ -6,7 +6,7 @@
 #
 #	tests/scripts/fsx: Development script for running fsx-linux
 #
-# 	Copyright (C) 2017-2018 Sebastian M. Ernst <ernst@pleiszenburg.de>
+# 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 #
 # <LICENSE_BLOCK>
 # The contents of this file are subject to the Apache License
@@ -25,7 +25,7 @@ FN=iotest
 
 make init
 cd tests/test_mount/test_child/
-fsx-linux -d -d -N 1000 $FN -P ../../test_logs
+fsx-linux -d -d -N 10000 $FN -P ../../test_logs
 cd ../../..
 make destroy_childfs
 cp -a tests/test_mount/test_child/$FN tests/test_logs/$FN.fsxactual
