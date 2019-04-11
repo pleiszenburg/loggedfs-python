@@ -6,11 +6,27 @@
 	:target: https://travis-ci.org/pleiszenburg/loggedfs-python
 	:alt: Build Status: development branch
 
+.. |license| image:: https://img.shields.io/pypi/l/loggedfs.svg?style=flat-square
+	:target: https://github.com/pleiszenburg/loggedfs/blob/master/LICENSE
+	:alt: Project License: Apache License v2
+
+.. |status| image:: https://img.shields.io/pypi/status/loggedfs.svg?style=flat-square
+	:target: https://github.com/pleiszenburg/loggedfs-python/milestone/1
+	:alt: Project Development Status
+
+.. |pypi_version| image:: https://img.shields.io/pypi/v/loggedfs.svg?style=flat-square
+	:target: https://pypi.python.org/pypi/loggedfs
+	:alt: Available on PyPi - the Python Package Index
+
+.. |pypi_versions| image:: https://img.shields.io/pypi/pyversions/loggedfs.svg?style=flat-square
+	:target: https://pypi.python.org/pypi/loggedfs
+	:alt: Available on PyPi - the Python Package Index
+
 .. |loggedfs_python_logo| image:: http://www.pleiszenburg.de/loggedfs-python_logo.png
 	:target: https://github.com/pleiszenburg/loggedfs-python
 	:alt: LoggedFS-python repository
 
-|build_master| |build_develop|
+|build_master| |build_develop| |license| |status| |pypi_version| |pypi_versions|
 
 |loggedfs_python_logo|
 
