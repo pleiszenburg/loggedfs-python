@@ -62,7 +62,7 @@ This project has intentionally not yet been published in the `Python Package Ind
 It will be released on PyPI once critical changes have been merged into `fusepy`_,
 a dependency of LoggedFS-python.
 
-**Supports Python 3.{4,5,6}.**
+**Supports Python 3.{4,5,6,7}.**
 
 **Supports Linux.**
 Support for MAC OS X and BSD likely requires minor changes only, but has yet not been added.
