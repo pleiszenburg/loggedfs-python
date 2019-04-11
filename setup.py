@@ -100,7 +100,7 @@ setup(
 	include_package_data = True,
 	install_requires = [
 		'click',
-		'fusepy @ git+https://github.com/s-m-e/fusepy/tarball/master#egg=fusepy-2.0.99',
+		'fusepy @ git+https://github.com/s-m-e/fusepy@master#egg=fusepy-2.0.99',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},
