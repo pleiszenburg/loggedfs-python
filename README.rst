@@ -42,34 +42,39 @@ CAVEATS
 
 * PROJECT STATUS: **BETA**
 * A `CUSTOM BUG-FIXED VERSION OF FUSEPY`_ IS REQUIRED FOR FULL POSIX COMPLIANCE.
+  IT IS AUTOMATICALLY INSTALLED FROM GITHUB AS A DEPENDENCY OF THIS PACKAGE.
   IF THE LATEST OFFICIAL RELEASE OF FUSEPY IS USED INSTEAD, TIMESTAMPS WILL BE
   INACCURATE ON A NANOSECOND TO MICROSECOND SCALE AND UTIME_NOW AS WELL AS
-  UTIME_OMIT WILL NOT BE HONORED. THERE WAS A `PULL REQUEST`_ TO FIX THIS.
+  UTIME_OMIT WILL NOT BE HONORED. THERE WAS A `PULL REQUEST`_ TO FIX THIS,
+  WHICH HAS BEEN REJECTED. ALTERNATIVE APPROACHES ARE BEING RESEARCHED.
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
   ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
 
 .. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
-.. _PENDING PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
+.. _PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
 
 
 Installation
 ============
 
+From the `Python Package Index`_ (PyPI):
+
+.. code:: bash
+
+	pip install loggedfs
+
+From GitHub:
+
 .. code:: bash
 
 	pip install git+https://github.com/pleiszenburg/loggedfs-python.git@master
 
-This project has intentionally not yet been published in the `Python Package Index`_ (PyPI).
-It will be released on PyPI once critical changes have been merged into `fusepy`_,
-a dependency of LoggedFS-python.
-
 **Supports Python 3.{4,5,6,7}.**
 
 **Supports Linux.**
-Support for MAC OS X and BSD likely requires minor changes only, but has yet not been added.
+Support for MAC OS X and BSD requires a minor change only, but has yet not been added: Access to the system log is currently being achieved through ``logging.handlers.SysLogHandler(address = '/dev/log')``, a Linux-only solution.
 
 .. _Python Package Index: https://pypi.org/
-.. _fusepy: https://github.com/fusepy/fusepy
 
 
 Simple usage example
