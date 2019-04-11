@@ -73,9 +73,16 @@ destroy_childfs:
 	python3 -c 'import tests; tests.lib.quick_cli_destroy_childfs()'
 
 test:
+	make test_posix
+	make test_stress
+
+test_posix:
 	# make docu
 	-rm tests/__pycache__/*.pyc
 	-rm tests/lib/__pycache__/*.pyc
 	# USAGE: make test T="-T chmod/01.t -T chmod/02.t"
 	# REFERENCE TEST WITH EXT4: make test T="-M ext4"
 	pytest $(T)
+
+test_stress:
+	tests/scripts/fsx

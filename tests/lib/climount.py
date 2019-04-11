@@ -78,6 +78,7 @@ def quick_cli_destroy_parentfs():
 
 	fs = fstest_base_class()
 	fs.init_a_members()
+	fs.assert_parentfs_mountpoint()
 	fs.destroy_b_parentfs()
 
 
@@ -85,4 +86,5 @@ def quick_cli_destroy_childfs():
 
 	fs = fstest_base_class()
 	fs.init_a_members()
+	fs.assert_childfs_mountpoint()
 	fs.destroy_a_childfs()
