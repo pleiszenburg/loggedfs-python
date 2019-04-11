@@ -696,19 +696,21 @@ class loggedfs(Operations):
 
 		if fip is None:
 
-			try:
-				fh = os.open(
-					self._rel_path(path),
-					flags = os.O_WRONLY | os.O_TRUNC,
-					dir_fd = self.root_path_fd
-					)
-			except FileNotFoundError:
-				raise FuseOSError(errno.ENOENT)
+			# try:
+			# 	fh = os.open(
+			# 		self._rel_path(path),
+			# 		flags = os.O_WRONLY | os.O_TRUNC,
+			# 		dir_fd = self.root_path_fd
+			# 		)
+			# except FileNotFoundError:
+			# 	raise FuseOSError(errno.ENOENT)
+			#
+			# ret = os.ftruncate(fh, length)
+			# os.close(fh)
+			#
+			# return ret
 
-			ret = os.ftruncate(fh, length)
-			os.close(fh)
-
-			return ret
+			os.truncate(self._rel_path(path), length)
 
 		else:
 

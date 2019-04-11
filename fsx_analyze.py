@@ -28,6 +28,10 @@ def print_line(line_dict):
 	sys.stdout.write(c['GREY'] + t[:-9] + '.' + t[-9:] + c['RESET'] + ' ')
 	if line_dict['s'] == 'FS':
 		sys.stdout.write(c['RED'])
+	elif line_dict['s'] == 'IN':
+		sys.stdout.write(c['MAGENTA'])
+	elif line_dict['s'] == '??':
+		sys.stdout.write(c['YELLOW'])
 	else:
 		sys.stdout.write(c['GREEN'])
 	sys.stdout.write(line_dict['c'] + c['RESET'] + ' ')
@@ -88,7 +92,7 @@ def parse_fs_line(line):
 		't': parse_iso_datestring(ts, _original_loggedfs), # time
 		'c': command, # command
 		'p': param, # param
-		's': 'FS' # log source
+		's': 'FS' if ' fsx-linux ' in line else ('IN' if ' pid = 0 uid = 0 ' in line else '??') # log source
 		}
 
 
@@ -123,7 +127,13 @@ def main():
 	log_fs_lines = [
 		parse_fs_line(line) for line in
 		log_fs.replace(os.path.join(os.path.abspath('.'), 'tests/test_mount/test_child'), '').split('\n')
-		if ' fsx-linux ' in line and ' getattr ' not in line
+		if (
+			' fsx-linux ' in line
+			or ' pid = 0 uid = 0 ' in line
+			or ' write ' in line
+			or ' read ' in line
+			or ' truncate ' in line
+			) and ' getattr ' not in line
 		]
 
 	log_fsx_lines = [
