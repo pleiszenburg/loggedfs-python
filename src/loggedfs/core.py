@@ -104,9 +104,9 @@ def loggedfs_factory(directory, **kwargs):
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
-		# sync_read = True,
-		# max_readahead = 0,
-		# direct_io = True,
+		# sync_read = True, # relying on fuse.Operations class defaults?
+		# max_readahead = 0, # relying on fuse.Operations class defaults?
+		# direct_io = True, # relying on fuse.Operations class defaults?
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
