@@ -466,7 +466,32 @@ class loggedfs(Operations):
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CORE CLASS: Filesystem & file methods
+# CORE CLASS: Filesystem & file methods - STUBS
+#  ... addressing https://github.com/fusepy/fusepy/issues/81
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	def create(self, path, mode, fi = None):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+	def flush(self, path, fip):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+	def ioctl(self, path, cmd, arg, fh, flags, data):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+	def lock(self, path, fh, cmd, lock):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CORE CLASS: Filesystem & file methods - IMPLEMENTATION
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -486,12 +511,6 @@ class loggedfs(Operations):
 	def chown(self, path, uid, gid):
 
 		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
-	def create(self, path, mode, fi = None):
-
-		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0}')
@@ -522,32 +541,16 @@ class loggedfs(Operations):
 		return ret_dict
 
 
-	# @__log__(format_pattern = '{0} (fh={1})')
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
-	def flush(self, path, fip):
-
-		# os.fsync(fip.fh)
-		raise FuseOSError(errno.ENOSYS)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
 	@__log__(format_pattern = '{0} (fh={2})', abs_path_fields = [0], fip_fields = [2])
 	def fsync(self, path, datasync, fip):
 
-		# raise FuseOSError(errno.ENOSYS)
-		return 0
+		return 0 # the original loggedfs does that
 
 
 	@__log__(format_pattern = '{0}')
 	def init(self, path):
 
 		os.fchdir(self.root_path_fd)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
-	def ioctl(self, path, cmd, arg, fh, flags, data):
-
-		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
@@ -562,12 +565,6 @@ class loggedfs(Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(target_rel_path, uid, gid)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
-	def lock(self, path, fh, cmd, lock):
-
-		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
@@ -609,13 +606,11 @@ class loggedfs(Operations):
 
 		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
 
-		return 0 # Must return handle or zero # TODO ?
+		return 0
 
 
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = [0], fip_fields = [3])
 	def read(self, path, length, offset, fip):
-
-		# ret is a bytestring!
 
 		ret = os.pread(fip.fh, length, offset)
 
@@ -647,11 +642,9 @@ class loggedfs(Operations):
 			return pathname
 
 
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
 	@__log__(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def release(self, path, fip):
 
-		# raise FuseOSError(errno.ENOSYS)
 		os.close(fip.fh)
 
 
@@ -696,6 +689,8 @@ class loggedfs(Operations):
 
 		if fip is None:
 
+			# HACK TODO unsafe - not relative to file handle but relative to CWD!
+			# original loggedfs does that
 			os.truncate(self._rel_path(path), length)
 
 		else:
@@ -737,8 +732,6 @@ class loggedfs(Operations):
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = [0], length_fields = [1], fip_fields = [3])
 	def write(self, path, buf, offset, fip):
-
-		# buf is a bytestring!
 
 		res = os.pwrite(fip.fh, buf, offset)
 
