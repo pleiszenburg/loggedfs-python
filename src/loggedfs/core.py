@@ -689,9 +689,10 @@ class loggedfs(Operations):
 
 		if fip is None:
 
-			# HACK TODO unsafe - not relative to file handle but relative to CWD!
-			# original loggedfs does that
-			os.truncate(self._rel_path(path), length)
+			fd = os.open(self._rel_path(path), flags = os.O_WRONLY, dir_fd = self.root_path_fd)
+			ret = os.ftruncate(fd, length)
+			os.close(fd)
+			return ret
 
 		else:
 
