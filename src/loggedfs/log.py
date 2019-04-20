@@ -32,8 +32,19 @@ specific language governing rights and limitations under the License.
 import logging
 import logging.handlers
 import os
+import platform
 
 from .timing import time
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CONST
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+SYSLOG_ADDRESS = {
+	'Linux': '/dev/log',
+	'Darwin': '/var/run/syslog'
+	}
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -88,7 +99,10 @@ def get_logger(name, log_enabled, log_file, log_syslog):
 	logger.addHandler(ch)
 
 	if bool(log_syslog):
-		sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
+		try:
+			sl = logging.handlers.SysLogHandler(address = SYSLOG_ADDRESS[platform.system()])
+		except KeyError:
+			raise NotImplementedError('unsupported operating system')
 		sl.setLevel(logging.DEBUG)
 		sl.setFormatter(log_formater_short)
 		logger.addHandler(sl)
