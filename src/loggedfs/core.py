@@ -33,20 +33,11 @@ from copy import deepcopy
 import errno
 from functools import wraps
 import grp
-import logging
-import logging.handlers
 import os
 import pwd
 import re
 import stat
 import sys
-import time
-
-try:
-	from time import time_ns
-except ImportError:
-	from time import time as _time
-	time_ns = lambda: int(_time() * 1e9)
 
 from fuse import (
 	FUSE,
@@ -61,27 +52,8 @@ try:
 except ImportError:
 	fuse_features = {}
 
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# LOGGING: Support nano-second timestamps
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-class _LogRecord_ns_(logging.LogRecord):
-	def __init__(self, *args, **kwargs):
-		self.created_ns = time_ns() # Fetch precise timestamp
-		super().__init__(*args, **kwargs)
-
-class _Formatter_ns_(logging.Formatter):
-	default_nsec_format = '%s,%09d'
-	def formatTime(self, record, datefmt=None):
-		if datefmt is not None: # Do not handle custom formats here ...
-			return super().formatTime(record, datefmt) # ... leave to original implementation
-		ct = self.converter(record.created_ns / 1e9)
-		t = time.strftime(self.default_time_format, ct)
-		s = self.default_nsec_format % (t, record.created_ns - (record.created_ns // 10**9) * 10**9)
-		return s
-
-logging.setLogRecordFactory(_LogRecord_ns_)
+from .log import get_logger
+from .timing import time
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -98,15 +70,15 @@ def loggedfs_factory(directory, **kwargs):
 		directory,
 		raw_fi = True,
 		nothreads = True,
-		foreground = bool(kwargs['fuse_foreground_bool']) if 'fuse_foreground_bool' in kwargs.keys() else False,
-		allow_other = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
-		default_permissions = bool(kwargs['fuse_allowother_bool']) if 'fuse_allowother_bool' in kwargs.keys() else False,
+		foreground = kwargs.get('fuse_foreground_bool', False),
+		allow_other = kwargs.get('fuse_allowother_bool', False),
+		default_permissions = kwargs.get('fuse_allowother_bool', False),
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
-		# sync_read = True,
-		# max_readahead = 0,
-		# direct_io = True,
+		sync_read = False, # relying on fuse.Operations class defaults?
+		# max_readahead = 0, # relying on fuse.Operations class defaults?
+		# direct_io = True, # relying on fuse.Operations class defaults?
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
@@ -350,7 +322,8 @@ class loggedfs(Operations):
 		if log_excludes is None:
 			log_excludes = []
 
-		self._init_logger(log_enabled, log_file, log_syslog, log_printprocessname)
+		self._log_printprocessname = bool(log_printprocessname)
+		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog)
 
 		if bool(fuse_foreground_bool):
 			self.logger.info('LoggedFS-python not running as a daemon')
@@ -381,40 +354,6 @@ class loggedfs(Operations):
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
 		self._compile_filter(log_includes, log_excludes)
-
-
-	def _init_logger(self, log_enabled, log_file, log_syslog, log_printprocessname):
-
-		log_formater = _Formatter_ns_('%(asctime)s (%(name)s) %(message)s')
-		log_formater_short = _Formatter_ns_('%(message)s')
-
-		self._log_printprocessname = bool(log_printprocessname)
-
-		self.logger = logging.getLogger('LoggedFS-python')
-
-		if not bool(log_enabled):
-			self.logger.setLevel(logging.CRITICAL)
-			return
-		self.logger.setLevel(logging.DEBUG)
-
-		ch = logging.StreamHandler()
-		ch.setLevel(logging.DEBUG)
-		ch.setFormatter(log_formater)
-		self.logger.addHandler(ch)
-
-		if bool(log_syslog):
-			sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
-			sl.setLevel(logging.DEBUG)
-			sl.setFormatter(log_formater_short)
-			self.logger.addHandler(sl)
-
-		if log_file is None:
-			return
-
-		fh = logging.FileHandler(os.path.join(log_file)) # TODO
-		fh.setLevel(logging.DEBUG)
-		fh.setFormatter(log_formater)
-		self.logger.addHandler(fh)
 
 
 	def _compile_filter(self, include_list, exclude_list):
@@ -466,7 +405,32 @@ class loggedfs(Operations):
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CORE CLASS: Filesystem & file methods
+# CORE CLASS: Filesystem & file methods - STUBS
+#  ... addressing https://github.com/fusepy/fusepy/issues/81
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	def create(self, path, mode, fi = None):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+	def flush(self, path, fip):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+	def ioctl(self, path, cmd, arg, fh, flags, data):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+	def lock(self, path, fh, cmd, lock):
+
+		raise FuseOSError(errno.ENOSYS)
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CORE CLASS: Filesystem & file methods - IMPLEMENTATION
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	@__log__(format_pattern = '{0}', abs_path_fields = [0])
@@ -486,12 +450,6 @@ class loggedfs(Operations):
 	def chown(self, path, uid, gid):
 
 		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
-	def create(self, path, mode, fi = None):
-
-		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0}')
@@ -522,32 +480,16 @@ class loggedfs(Operations):
 		return ret_dict
 
 
-	# @__log__(format_pattern = '{0} (fh={1})')
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
-	def flush(self, path, fip):
-
-		# os.fsync(fip.fh)
-		raise FuseOSError(errno.ENOSYS)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
 	@__log__(format_pattern = '{0} (fh={2})', abs_path_fields = [0], fip_fields = [2])
 	def fsync(self, path, datasync, fip):
 
-		# raise FuseOSError(errno.ENOSYS)
-		return 0
+		return 0 # the original loggedfs does that
 
 
 	@__log__(format_pattern = '{0}')
 	def init(self, path):
 
 		os.fchdir(self.root_path_fd)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81 ????????
-	def ioctl(self, path, cmd, arg, fh, flags, data):
-
-		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
@@ -562,12 +504,6 @@ class loggedfs(Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.lchown(target_rel_path, uid, gid)
-
-
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
-	def lock(self, path, fh, cmd, lock):
-
-		raise FuseOSError(errno.ENOSYS)
 
 
 	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
@@ -609,13 +545,11 @@ class loggedfs(Operations):
 
 		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
 
-		return 0 # Must return handle or zero # TODO ?
+		return 0
 
 
 	@__log__(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = [0], fip_fields = [3])
 	def read(self, path, length, offset, fip):
-
-		# ret is a bytestring!
 
 		ret = os.pread(fip.fh, length, offset)
 
@@ -647,11 +581,9 @@ class loggedfs(Operations):
 			return pathname
 
 
-	# Ugly HACK, addressing https://github.com/fusepy/fusepy/issues/81
 	@__log__(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def release(self, path, fip):
 
-		# raise FuseOSError(errno.ENOSYS)
 		os.close(fip.fh)
 
 
@@ -696,7 +628,10 @@ class loggedfs(Operations):
 
 		if fip is None:
 
-			os.truncate(self._rel_path(path), length)
+			fd = os.open(self._rel_path(path), flags = os.O_WRONLY, dir_fd = self.root_path_fd)
+			ret = os.ftruncate(fd, length)
+			os.close(fd)
+			return ret
 
 		else:
 
@@ -720,7 +655,7 @@ class loggedfs(Operations):
 				if mtime in [UTIME_OMIT, None]:
 					mtime = st.st_mtime_ns
 			if UTIME_NOW in (atime, mtime):
-				now = time_ns()
+				now = time.time_ns()
 				if atime == UTIME_NOW:
 					atime = now
 				if mtime == UTIME_NOW:
@@ -737,8 +672,6 @@ class loggedfs(Operations):
 
 	@__log__(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = [0], length_fields = [1], fip_fields = [3])
 	def write(self, path, buf, offset, fip):
-
-		# buf is a bytestring!
 
 		res = os.pwrite(fip.fh, buf, offset)
 

@@ -4,7 +4,8 @@ Changes
 0.0.2 (2019-XX-XX)
 ------------------
 
-* (TBD)
+* FIX: Implementation of truncate did rely on the assumption that the current working directory of the file system process would not change. This was risky.
+* Code cleanup
 
 0.0.1 (2019-04-11)
 ------------------
