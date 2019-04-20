@@ -33,20 +33,11 @@ from copy import deepcopy
 import errno
 from functools import wraps
 import grp
-import logging
-import logging.handlers
 import os
 import pwd
 import re
 import stat
 import sys
-import time
-
-try:
-	from time import time_ns
-except ImportError:
-	from time import time as _time
-	time_ns = lambda: int(_time() * 1e9)
 
 from fuse import (
 	FUSE,
@@ -61,27 +52,8 @@ try:
 except ImportError:
 	fuse_features = {}
 
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# LOGGING: Support nano-second timestamps
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-class _LogRecord_ns_(logging.LogRecord):
-	def __init__(self, *args, **kwargs):
-		self.created_ns = time_ns() # Fetch precise timestamp
-		super().__init__(*args, **kwargs)
-
-class _Formatter_ns_(logging.Formatter):
-	default_nsec_format = '%s,%09d'
-	def formatTime(self, record, datefmt=None):
-		if datefmt is not None: # Do not handle custom formats here ...
-			return super().formatTime(record, datefmt) # ... leave to original implementation
-		ct = self.converter(record.created_ns / 1e9)
-		t = time.strftime(self.default_time_format, ct)
-		s = self.default_nsec_format % (t, record.created_ns - (record.created_ns // 10**9) * 10**9)
-		return s
-
-logging.setLogRecordFactory(_LogRecord_ns_)
+from .log import get_logger
+from .timing import time
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -350,7 +322,8 @@ class loggedfs(Operations):
 		if log_excludes is None:
 			log_excludes = []
 
-		self._init_logger(log_enabled, log_file, log_syslog, log_printprocessname)
+		self._log_printprocessname = bool(log_printprocessname)
+		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog)
 
 		if bool(fuse_foreground_bool):
 			self.logger.info('LoggedFS-python not running as a daemon')
@@ -381,40 +354,6 @@ class loggedfs(Operations):
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
 		self._compile_filter(log_includes, log_excludes)
-
-
-	def _init_logger(self, log_enabled, log_file, log_syslog, log_printprocessname):
-
-		log_formater = _Formatter_ns_('%(asctime)s (%(name)s) %(message)s')
-		log_formater_short = _Formatter_ns_('%(message)s')
-
-		self._log_printprocessname = bool(log_printprocessname)
-
-		self.logger = logging.getLogger('LoggedFS-python')
-
-		if not bool(log_enabled):
-			self.logger.setLevel(logging.CRITICAL)
-			return
-		self.logger.setLevel(logging.DEBUG)
-
-		ch = logging.StreamHandler()
-		ch.setLevel(logging.DEBUG)
-		ch.setFormatter(log_formater)
-		self.logger.addHandler(ch)
-
-		if bool(log_syslog):
-			sl = logging.handlers.SysLogHandler(address = '/dev/log') # TODO Linux only
-			sl.setLevel(logging.DEBUG)
-			sl.setFormatter(log_formater_short)
-			self.logger.addHandler(sl)
-
-		if log_file is None:
-			return
-
-		fh = logging.FileHandler(os.path.join(log_file)) # TODO
-		fh.setLevel(logging.DEBUG)
-		fh.setFormatter(log_formater)
-		self.logger.addHandler(fh)
 
 
 	def _compile_filter(self, include_list, exclude_list):
@@ -716,7 +655,7 @@ class loggedfs(Operations):
 				if mtime in [UTIME_OMIT, None]:
 					mtime = st.st_mtime_ns
 			if UTIME_NOW in (atime, mtime):
-				now = time_ns()
+				now = time.time_ns()
 				if atime == UTIME_NOW:
 					atime = now
 				if mtime == UTIME_NOW:
