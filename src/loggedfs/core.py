@@ -29,7 +29,6 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from copy import deepcopy
 import errno
 from functools import wraps
 import grp
@@ -184,8 +183,8 @@ def __log__(
 
 				abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
 
-				func_args_f = list(deepcopy(func_args))
-				func_kwargs_f = deepcopy(func_kwargs)
+				func_args_f = list(func_args)
+				func_kwargs_f = func_kwargs.copy()
 
 				for field_list, format_func in [
 					(abs_path_fields, self._full_path),
