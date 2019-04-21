@@ -29,12 +29,55 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+from collections import OrderedDict
 import re
+
+import xmltodict
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def new_filter():
+
+	return {
+		'@logEnabled': True,
+		'@printProcessName': True,
+		'includes': {},
+		'excludes': {}
+		}
+
+
+def parse_filters(config_xml_str = None):
+
+	config_dict = new_filter()
+
+	if config_xml_str is not None:
+		config_dict.update(xmltodict.parse(config_xml_str)['loggedFS'])
+
+	for f_type in ['includes', 'excludes']:
+		config_dict[f_type] = _parse_filter_list_(config_dict[f_type].get(f_type[:-1], None))
+
+	return config_dict
+
+
+def _parse_filter_item_(in_item):
+	return {
+		'extension': in_item['@extension'],
+		'uid': in_item['@uid'],
+		'action': in_item['@action'],
+		'retname': in_item['@retname']
+		}
+
+
+def _parse_filter_list_(in_list):
+	if in_list is None:
+		return []
+	if not isinstance(in_list, list):
+		return [_parse_filter_item_(in_list)]
+	return [_parse_filter_item_(item) for item in in_list]
+
 
 def compile_filters(include_list, exclude_list):
 
