@@ -47,12 +47,12 @@ def compile_filters(include_list, exclude_list):
 			})
 
 	return tuple(
-		[_proc_filter_item_(item) for item in in_list]
+		[_compile_filter_item_(item) for item in in_list]
 		for in_list in (include_list, exclude_list)
 		)
 
 
-def _proc_filter_item_(in_item):
+def _compile_filter_item_(in_item):
 	return (
 		re.compile(in_item['extension']),
 		int(in_item['uid']) if in_item['uid'].isnumeric() else None,
