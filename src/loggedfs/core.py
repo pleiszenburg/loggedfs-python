@@ -31,7 +31,6 @@ specific language governing rights and limitations under the License.
 
 import errno
 import os
-import re
 import stat
 import sys
 
@@ -48,6 +47,7 @@ try:
 except ImportError:
 	fuse_features = {}
 
+from .filter import compile_filters
 from .log import get_logger
 from .out import event
 from .timing import time
@@ -147,32 +147,7 @@ class loggedfs(Operations):
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
-		self._compile_filter(log_includes, log_excludes)
-
-
-	def _compile_filter(self, include_list, exclude_list):
-
-		def proc_filter_item(in_item):
-			return (
-				re.compile(in_item['extension']),
-				int(in_item['uid']) if in_item['uid'].isnumeric() else None,
-				re.compile(in_item['action']),
-				re.compile(in_item['retname'])
-				)
-
-		if len(include_list) == 0:
-			include_list.append({
-				'extension': '.*',
-				'uid': '*',
-				'action': '.*',
-				'retname': '.*'
-				})
-
-		for in_list, f_field in [
-			(include_list, '_f_incl'),
-			(exclude_list, '_f_excl')
-			]:
-			setattr(self, f_field, [proc_filter_item(item) for item in in_list])
+		self._f_incl, self._f_excl = compile_filters(log_includes, log_excludes)
 
 
 	def _full_path(self, partial_path):

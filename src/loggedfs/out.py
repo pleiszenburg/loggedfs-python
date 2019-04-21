@@ -38,7 +38,6 @@ import sys
 from fuse import (
 	fuse_get_context,
 	FuseOSError,
-
 	)
 
 
