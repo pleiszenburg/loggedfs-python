@@ -128,9 +128,9 @@ class loggedfs(Operations):
 
 		self.logger.info('LoggedFS-python starting at %s' % directory)
 		try:
-			self.root_path = directory
-			os.chdir(directory)
-			self.root_path_fd = os.open('.', os.O_RDONLY)
+			self.root_path = directory # TODO check: permissions, existence
+			os.chdir(directory) # TODO remove this
+			self.root_path_fd = os.open('.', os.O_RDONLY) # TODO open directory
 		except:
 			self.logger.exception('Directory access failed.')
 			sys.exit(1)
