@@ -88,9 +88,9 @@ def __format_args__(args_list, kwargs_dict, items_list, format_func):
 
 	for item in items_list:
 		if isinstance(item, int):
-			args_list[item] = format_func(args_list[item] if item < len(args_list) else -10)
+			args_list[item] = format_func(args_list[item] if item < len(args_list) else -10) # ERROR CODE -10
 		elif isinstance(item, str):
-			kwargs_dict[item] = format_func(kwargs_dict.get(item, -11))
+			kwargs_dict[item] = format_func(kwargs_dict.get(item, -11)) # ERROR CODE -11
 
 
 def __get_abs_path__(args_list, kwargs_dict, path_item_list, abs_func):
@@ -188,8 +188,8 @@ def __log__(
 				func_kwargs_f = deepcopy(func_kwargs)
 
 				for field_list, format_func in [
-					(abs_path_fields, lambda x: self._full_path(x)),
-					(length_fields, lambda x: len(x)),
+					(abs_path_fields, self._full_path),
+					(length_fields, len),
 					(uid_fields, lambda x: '%s(%d)' % (__get_user_name_from_uid__(x), x)),
 					(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x)),
 					(fip_fields, lambda x: '%d' % __get_fh_from_fip__(x))
