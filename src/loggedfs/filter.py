@@ -53,9 +53,44 @@ def compile_filters(include_list, exclude_list):
 
 
 def _compile_filter_item_(in_item):
+
 	return (
 		re.compile(in_item['extension']),
 		int(in_item['uid']) if in_item['uid'].isnumeric() else None,
 		re.compile(in_item['action']),
 		re.compile(in_item['retname'])
 		)
+
+
+def match_filters(
+	abs_path, uid, action, ret_status,
+	incl_filter_list, excl_filter_list
+	):
+
+	if len(incl_filter_list) != 0:
+		included = False
+		for filter_tuple in incl_filter_list:
+			if _match_filter_item_(abs_path, uid, action, ret_status, *filter_tuple):
+				included = True
+				break
+		if not included:
+			return False
+
+	for filter_tuple in excl_filter_list:
+		if _match_filter_item_(abs_path, uid, action, ret_status, *filter_tuple):
+			return False
+
+	return True
+
+
+def _match_filter_item_(
+	abs_path, uid, action, ret_status,
+	f_path, f_uid, f_action, f_status
+	):
+
+	return all((
+		bool(f_path.match(abs_path)),
+		(uid == f_uid) if isinstance(f_uid, int) else True,
+		bool(f_action.match(action)),
+		bool(f_status.match(ret_status))
+		))

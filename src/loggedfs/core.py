@@ -40,7 +40,7 @@ from fuse import (
 	FuseOSError,
 	Operations,
 	UTIME_NOW,
-	UTIME_OMIT
+	UTIME_OMIT,
 	)
 try:
 	from fuse import __features__ as fuse_features

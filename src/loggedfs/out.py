@@ -40,6 +40,8 @@ from fuse import (
 	FuseOSError,
 	)
 
+from .filter import match_filters
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
@@ -143,11 +145,11 @@ def event(
 
 			finally:
 
-				__log_filter__(
-					self.logger.info, log_msg,
-					abs_path, uid, func.__name__, ret_status, ret_str,
+				if match_filters(
+					abs_path, uid, func.__name__, ret_status,
 					self._f_incl, self._f_excl
-					)
+					):
+					self.logger.info(log_msg % (ret_status, ret_str))
 
 		return wrapped
 
@@ -215,33 +217,3 @@ def __get_fh_from_fip__(fip):
 	if not isinstance(fip.fh, int):
 		return -3
 	return fip.fh
-
-
-def __log_filter__(
-	out_func, log_msg,
-	abs_path, uid, action, status, return_message,
-	incl_filter_list, excl_filter_list
-	):
-
-	def match_filter(f_path, f_uid, f_action, f_status):
-		return all([
-			bool(f_path.match(abs_path)),
-			(uid == f_uid) if isinstance(f_uid, int) else True,
-			bool(f_action.match(action)),
-			bool(f_status.match(status))
-			])
-
-	if len(incl_filter_list) != 0:
-		included = False
-		for filter_tuple in incl_filter_list:
-			if match_filter(*filter_tuple):
-				included = True
-				break
-		if not included:
-			return
-
-	for filter_tuple in excl_filter_list:
-		if match_filter(*filter_tuple):
-			return
-
-	out_func(log_msg % (status, return_message))
