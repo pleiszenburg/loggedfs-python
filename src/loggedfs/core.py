@@ -196,11 +196,10 @@ def __log__(
 					]:
 					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
 
-				log_break = '' # '\n\t'
 				log_msg = ' '.join([
-					'%s %s%s%s' % (func.__name__, log_break, format_pattern.format(*func_args_f, **func_kwargs_f), log_break),
-					'{%s}' + log_break,
-					'[ pid = %d %suid = %d ]%s' % (pid, p_cmdname, uid, log_break),
+					'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
+					'{%s}',
+					'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
 					'( %s )'
 					])
 
