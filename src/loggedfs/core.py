@@ -29,13 +29,8 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from copy import deepcopy
 import errno
-from functools import wraps
-import grp
 import os
-import pwd
-import re
 import stat
 import sys
 
@@ -45,14 +40,16 @@ from fuse import (
 	FuseOSError,
 	Operations,
 	UTIME_NOW,
-	UTIME_OMIT
+	UTIME_OMIT,
 	)
 try:
 	from fuse import __features__ as fuse_features
 except ImportError:
 	fuse_features = {}
 
+from .filter import compile_filters
 from .log import get_logger
+from .out import event
 from .timing import time
 
 
@@ -82,209 +79,6 @@ def loggedfs_factory(directory, **kwargs):
 		nonempty = True, # common options taken from LoggedFS
 		use_ino = True # common options taken from LoggedFS
 		)
-
-
-def __format_args__(args_list, kwargs_dict, items_list, format_func):
-
-	for item in items_list:
-		if isinstance(item, int):
-			args_list[item] = format_func(args_list[item] if item < len(args_list) else -10)
-		elif isinstance(item, str):
-			kwargs_dict[item] = format_func(kwargs_dict.get(item, -11))
-
-
-def __get_abs_path__(args_list, kwargs_dict, path_item_list, abs_func):
-
-	if len(path_item_list) == 0:
-		return ''
-	item = path_item_list[0]
-
-	if isinstance(item, int):
-		return abs_func(args_list[item])
-	elif isinstance(item, str):
-		return abs_func(kwargs_dict[item])
-
-
-def __get_process_cmdline__(pid):
-
-	try:
-
-		f = open('/proc/%d/cmdline' % pid, 'r')
-		cmdline = f.read()
-		f.close()
-
-		return cmdline.replace('\x00', ' ').strip()
-
-	except FileNotFoundError:
-
-		return ''
-
-
-def __get_group_name_from_gid__(gid):
-
-	try:
-		return grp.getgrgid(gid).gr_name
-	except KeyError:
-		return '[gid: omitted argument]'
-
-
-def __get_user_name_from_uid__(uid):
-
-	try:
-		return pwd.getpwuid(uid).pw_name
-	except KeyError:
-		return '[uid: omitted argument]'
-
-
-def __get_fh_from_fip__(fip):
-
-	if fip is None:
-		return -1
-	if not hasattr(fip, 'fh'):
-		return -2
-	if not isinstance(fip.fh, int):
-		return -3
-	return fip.fh
-
-
-def __log__(
-	format_pattern = '',
-	abs_path_fields = None, length_fields = None,
-	uid_fields = None, gid_fields = None,
-	fip_fields = None,
-	path_filter_field = 0
-	):
-
-	if abs_path_fields is None:
-		abs_path_fields = []
-	if length_fields is None:
-		length_fields = []
-	if uid_fields is None:
-		uid_fields = []
-	if gid_fields is None:
-		gid_fields = []
-	if fip_fields is None:
-		fip_fields = []
-
-	def wrapper(func):
-
-		@wraps(func)
-		def wrapped(self, *func_args, **func_kwargs):
-
-			try:
-
-				uid, gid, pid = fuse_get_context()
-
-				if self._log_printprocessname:
-					p_cmdname = __get_process_cmdline__(pid).strip()
-					if len(p_cmdname) > 0:
-						p_cmdname = '%s ' % p_cmdname
-				else:
-					p_cmdname = ''
-
-				abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
-
-				func_args_f = list(deepcopy(func_args))
-				func_kwargs_f = deepcopy(func_kwargs)
-
-				for field_list, format_func in [
-					(abs_path_fields, lambda x: self._full_path(x)),
-					(length_fields, lambda x: len(x)),
-					(uid_fields, lambda x: '%s(%d)' % (__get_user_name_from_uid__(x), x)),
-					(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x)),
-					(fip_fields, lambda x: '%d' % __get_fh_from_fip__(x))
-					]:
-					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
-
-				log_break = '' # '\n\t'
-				log_msg = ' '.join([
-					'%s %s%s%s' % (func.__name__, log_break, format_pattern.format(*func_args_f, **func_kwargs_f), log_break),
-					'{%s}' + log_break,
-					'[ pid = %d %suid = %d ]%s' % (pid, p_cmdname, uid, log_break),
-					'( %s )'
-					])
-
-			except:
-
-				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
-				raise
-
-			try:
-
-				ret_value = func(self, *func_args, **func_kwargs)
-				ret_str = 'r = %s' % str(ret_value)
-				ret_status = 'SUCCESS'
-
-			except FuseOSError as e:
-
-				ret_status = 'FAILURE'
-				ret_str = 'FuseOS_e = %s' % errno.errorcode[e.errno]
-				raise e
-
-			except OSError as e:
-
-				ret_status = 'FAILURE'
-				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
-				raise FuseOSError(e.errno)
-
-			except:
-
-				ret_status = 'FAILURE'
-				e = sys.exc_info()[0]
-
-				if hasattr(e, 'errno'): # all subclasses of OSError
-					ret_str = 'e = %s' % errno.errorcode[e.errno]
-					raise FuseOSError(e.errno)
-				else:
-					ret_str = '?'
-					self.logger.exception('Something just went terribly wrong unexpectedly ...')
-					raise e
-
-			else:
-
-				return ret_value
-
-			finally:
-
-				__log_filter__(
-					self.logger.info, log_msg,
-					abs_path, uid, func.__name__, ret_status, ret_str,
-					self._f_incl, self._f_excl
-					)
-
-		return wrapped
-
-	return wrapper
-
-
-def __log_filter__(
-	out_func, log_msg,
-	abs_path, uid, action, status, return_message,
-	incl_filter_list, excl_filter_list
-	):
-
-	def match_filter(f_path, f_uid, f_action, f_status):
-		return all([
-			bool(f_path.match(abs_path)),
-			(uid == f_uid) if isinstance(f_uid, int) else True,
-			bool(f_action.match(action)),
-			bool(f_status.match(status))
-			])
-
-	if len(incl_filter_list) != 0:
-		included = False
-		for filter_tuple in incl_filter_list:
-			if match_filter(*filter_tuple):
-				included = True
-				break
-		if not included:
-			return
-
-	for filter_tuple in excl_filter_list:
-		if match_filter(*filter_tuple):
-			return
-
-	out_func(log_msg % (status, return_message))
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -334,9 +128,9 @@ class loggedfs(Operations):
 
 		self.logger.info('LoggedFS-python starting at %s' % directory)
 		try:
-			self.root_path = directory
-			os.chdir(directory)
-			self.root_path_fd = os.open('.', os.O_RDONLY)
+			self.root_path = directory # TODO check: permissions, existence
+			os.chdir(directory) # TODO remove this
+			self.root_path_fd = os.open('.', os.O_RDONLY) # TODO open directory
 		except:
 			self.logger.exception('Directory access failed.')
 			sys.exit(1)
@@ -353,32 +147,7 @@ class loggedfs(Operations):
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
-		self._compile_filter(log_includes, log_excludes)
-
-
-	def _compile_filter(self, include_list, exclude_list):
-
-		def proc_filter_item(in_item):
-			return (
-				re.compile(in_item['extension']),
-				int(in_item['uid']) if in_item['uid'].isnumeric() else None,
-				re.compile(in_item['action']),
-				re.compile(in_item['retname'])
-				)
-
-		if len(include_list) == 0:
-			include_list.append({
-				'extension': '.*',
-				'uid': '*',
-				'action': '.*',
-				'retname': '.*'
-				})
-
-		for in_list, f_field in [
-			(include_list, '_f_incl'),
-			(exclude_list, '_f_excl')
-			]:
-			setattr(self, f_field, [proc_filter_item(item) for item in in_list])
+		self._f_incl, self._f_excl = compile_filters(log_includes, log_excludes)
 
 
 	def _full_path(self, partial_path):
@@ -433,32 +202,32 @@ class loggedfs(Operations):
 # CORE CLASS: Filesystem & file methods - IMPLEMENTATION
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def access(self, path, mode):
 
 		if not os.access(self._rel_path(path), mode, dir_fd = self.root_path_fd):
 			raise FuseOSError(errno.EACCES)
 
 
-	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0])
+	@event(format_pattern = '{0} to {1}', abs_path_fields = [0])
 	def chmod(self, path, mode):
 
 		os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
 
 
-	@__log__(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
+	@event(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
 	def chown(self, path, uid, gid):
 
 		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@__log__(format_pattern = '{0}')
+	@event(format_pattern = '{0}')
 	def destroy(self, path):
 
 		os.close(self.root_path_fd)
 
 
-	@__log__(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
+	@event(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def getattr(self, path, fip):
 
 		if not fip:
@@ -480,19 +249,19 @@ class loggedfs(Operations):
 		return ret_dict
 
 
-	@__log__(format_pattern = '{0} (fh={2})', abs_path_fields = [0], fip_fields = [2])
+	@event(format_pattern = '{0} (fh={2})', abs_path_fields = [0], fip_fields = [2])
 	def fsync(self, path, datasync, fip):
 
 		return 0 # the original loggedfs does that
 
 
-	@__log__(format_pattern = '{0}')
+	@event(format_pattern = '{0}')
 	def init(self, path):
 
 		os.fchdir(self.root_path_fd)
 
 
-	@__log__(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
+	@event(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
 	def link(self, target_path, source_path):
 
 		target_rel_path = self._rel_path(target_path)
@@ -506,7 +275,7 @@ class loggedfs(Operations):
 		os.lchown(target_rel_path, uid, gid)
 
 
-	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
+	@event(format_pattern = '{0} {1}', abs_path_fields = [0])
 	def mkdir(self, path, mode):
 
 		rel_path = self._rel_path(path)
@@ -518,7 +287,7 @@ class loggedfs(Operations):
 		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
 
 
-	@__log__(format_pattern = '{0} {1}', abs_path_fields = [0])
+	@event(format_pattern = '{0} {1}', abs_path_fields = [0])
 	def mknod(self, path, mode, dev):
 
 		rel_path = self._rel_path(path)
@@ -540,7 +309,7 @@ class loggedfs(Operations):
 		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # HACK should be lchmod, which is only available on BSD
 
 
-	@__log__(format_pattern = '({1}) {0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
+	@event(format_pattern = '({1}) {0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def open(self, path, fip):
 
 		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
@@ -548,7 +317,7 @@ class loggedfs(Operations):
 		return 0
 
 
-	@__log__(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = [0], fip_fields = [3])
+	@event(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = [0], fip_fields = [3])
 	def read(self, path, length, offset, fip):
 
 		ret = os.pread(fip.fh, length, offset)
@@ -556,7 +325,7 @@ class loggedfs(Operations):
 		return ret
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def readdir(self, path, fh):
 
 		rel_path = self._rel_path(path)
@@ -570,7 +339,7 @@ class loggedfs(Operations):
 		return dirents
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def readlink(self, path):
 
 		pathname = os.readlink(self._rel_path(path), dir_fd = self.root_path_fd)
@@ -581,13 +350,13 @@ class loggedfs(Operations):
 			return pathname
 
 
-	@__log__(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
+	@event(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
 	def release(self, path, fip):
 
 		os.close(fip.fh)
 
 
-	@__log__(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
+	@event(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
 	def rename(self, old, new):
 
 		os.rename(
@@ -596,13 +365,13 @@ class loggedfs(Operations):
 			)
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def rmdir(self, path):
 
 		os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def statfs(self, path):
 
 		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
@@ -612,7 +381,7 @@ class loggedfs(Operations):
 		return {key: getattr(stv, key) for key in self.stvfs_fields}
 
 
-	@__log__(format_pattern = 'from {1} to {0}', abs_path_fields = [1])
+	@event(format_pattern = 'from {1} to {0}', abs_path_fields = [1])
 	def symlink(self, target_path, source_path):
 
 		target_rel_path = self._rel_path(target_path)
@@ -623,7 +392,7 @@ class loggedfs(Operations):
 		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@__log__(format_pattern = '{0} to {1} bytes (fh={fip})', abs_path_fields = [0], fip_fields = ['fip'])
+	@event(format_pattern = '{0} to {1} bytes (fh={fip})', abs_path_fields = [0], fip_fields = ['fip'])
 	def truncate(self, path, length, fip = None):
 
 		if fip is None:
@@ -638,13 +407,13 @@ class loggedfs(Operations):
 			return os.ftruncate(fip.fh, length)
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def unlink(self, path):
 
 		os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
-	@__log__(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{0}', abs_path_fields = [0])
 	def utimens(self, path, times = None):
 
 		def _fix_time_(atime, mtime):
@@ -670,7 +439,7 @@ class loggedfs(Operations):
 			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@__log__(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = [0], length_fields = [1], fip_fields = [3])
+	@event(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = [0], length_fields = [1], fip_fields = [3])
 	def write(self, path, buf, offset, fip):
 
 		res = os.pwrite(fip.fh, buf, offset)
