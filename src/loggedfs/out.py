@@ -32,6 +32,7 @@ specific language governing rights and limitations under the License.
 import errno
 from functools import wraps
 import grp
+import inspect
 import pwd
 
 from fuse import (
@@ -69,6 +70,8 @@ def event(
 
 	def wrapper(func):
 
+		func_arg_names = tuple(inspect.signature(func).parameters.keys())
+
 		@wraps(func)
 		def wrapped(self, *func_args, **func_kwargs):
 
@@ -79,6 +82,7 @@ def event(
 				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
 				raise e
 
+			ret_value = None
 			try:
 				ret_value = func(self, *func_args, **func_kwargs)
 				ret_str = 'r = %s' % str(ret_value)
@@ -108,9 +112,9 @@ def event(
 					self._f_incl, self._f_excl
 					):
 					_log_event_(
-						self, uid, gid, pid, func, func_args, func_kwargs, format_pattern,
+						self, uid, gid, pid, func, func_arg_names, func_args, func_kwargs, format_pattern,
 						abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
-						ret_status, ret_str
+						ret_status, ret_str, ret_value
 						)
 
 		return wrapped
@@ -177,9 +181,9 @@ def _get_user_name_from_uid_(uid):
 
 
 def _log_event_(
-	self, uid, gid, pid, func, func_args, func_kwargs, format_pattern,
+	self, uid, gid, pid, func, func_arg_names, func_args, func_kwargs, format_pattern,
 	abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
-	ret_status, ret_str
+	ret_status, ret_str, ret_value
 	):
 
 	if self._log_printprocessname:
@@ -191,7 +195,16 @@ def _log_event_(
 
 	if self._log_json:
 
-		pass
+		log_dict = {
+			'proc_cmd': p_cmdname,
+			'proc_uid': uid,
+			'proc_gid': gid,
+			'proc_pid': pid,
+			'call': func.__name__,
+			'status': ret_status == 'SUCCESS',
+			}
+
+		log_msg = '' # TODO
 
 	else:
 
