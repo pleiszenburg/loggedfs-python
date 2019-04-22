@@ -56,15 +56,15 @@ def event(
 	):
 
 	if abs_path_fields is None:
-		abs_path_fields = [] # TODO tuple enough?
+		abs_path_fields = tuple() # TODO tuple enough?
 	if length_fields is None:
-		length_fields = [] # TODO tuple enough?
+		length_fields = tuple() # TODO tuple enough?
 	if uid_fields is None:
-		uid_fields = [] # TODO tuple enough?
+		uid_fields = tuple() # TODO tuple enough?
 	if gid_fields is None:
-		gid_fields = [] # TODO tuple enough?
+		gid_fields = tuple() # TODO tuple enough?
 	if fip_fields is None:
-		fip_fields = [] # TODO tuple enough?
+		fip_fields = tuple() # TODO tuple enough?
 
 	def wrapper(func):
 
