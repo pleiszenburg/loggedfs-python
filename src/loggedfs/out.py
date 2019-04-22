@@ -180,15 +180,10 @@ def _get_abs_path_(args_list, kwargs_dict, path_item_list, abs_func):
 def _get_process_cmdline_(pid):
 
 	try:
-
-		f = open('/proc/%d/cmdline' % pid, 'r')
-		cmdline = f.read()
-		f.close()
-
+		with open('/proc/%d/cmdline' % pid, 'r') as f: # TODO encoding, bytes?
+			cmdline = f.read()
 		return cmdline.replace('\x00', ' ').strip()
-
 	except FileNotFoundError:
-
 		return ''
 
 
