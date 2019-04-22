@@ -109,8 +109,8 @@ def __process_config__(
 		'log_file': log_file,
 		'log_syslog': not log_syslog_off,
 		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
-		'log_enabled': config_dict['@logEnabled'],
-		'log_printprocessname': config_dict['@printProcessName'],
+		'log_enabled': config_dict['logEnabled'],
+		'log_printprocessname': config_dict['printProcessName'],
 		'fuse_foreground_bool': fuse_foreground_bool,
 		'fuse_allowother_bool': fuse_allowother_bool
 		}

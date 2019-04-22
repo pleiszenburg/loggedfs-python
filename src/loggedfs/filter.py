@@ -42,8 +42,8 @@ import xmltodict
 def new_filter():
 
 	return {
-		'@logEnabled': True,
-		'@printProcessName': True,
+		'logEnabled': True,
+		'printProcessName': True,
 		'includes': {},
 		'excludes': {}
 		}
@@ -51,31 +51,34 @@ def new_filter():
 
 def parse_filters(config_xml_str = None):
 
+	config_xml_dict = xmltodict.parse(config_xml_str)['loggedFS']
+
+	for field in ('@logEnabled', '@printProcessName'):
+		config_xml_dict[field[1:]] = config_xml_dict.pop(field)
+
 	config_dict = new_filter()
 
 	if config_xml_str is not None:
-		config_dict.update(xmltodict.parse(config_xml_str)['loggedFS'])
+		config_dict.update(config_xml_dict)
 
-	for f_type in ['includes', 'excludes']:
+	for f_type in ('includes', 'excludes'):
 		config_dict[f_type] = _parse_filter_list_(config_dict[f_type].get(f_type[:-1], None))
 
 	return config_dict
 
 
 def _parse_filter_item_(in_item):
-	return {
-		'extension': in_item['@extension'],
-		'uid': in_item['@uid'],
-		'action': in_item['@action'],
-		'retname': in_item['@retname']
-		}
+
+	return {field[1:]: in_item[field] for field in ('@extension', '@uid', '@action', '@retname')}
 
 
 def _parse_filter_list_(in_list):
+
 	if in_list is None:
 		return []
 	if not isinstance(in_list, list):
 		return [_parse_filter_item_(in_list)]
+
 	return [_parse_filter_item_(item) for item in in_list]
 
 
