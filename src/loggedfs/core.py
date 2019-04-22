@@ -129,8 +129,7 @@ class loggedfs(Operations):
 		self.logger.info('LoggedFS-python starting at %s' % directory)
 		try:
 			self.root_path = directory # TODO check: permissions, existence
-			os.chdir(directory) # TODO remove this
-			self.root_path_fd = os.open('.', os.O_RDONLY) # TODO open directory
+			self.root_path_fd = os.open(directory, os.O_RDONLY)
 		except:
 			self.logger.exception('Directory access failed.')
 			sys.exit(1)
@@ -258,7 +257,7 @@ class loggedfs(Operations):
 	@event(format_pattern = '{0}')
 	def init(self, path):
 
-		os.fchdir(self.root_path_fd)
+		pass
 
 
 	@event(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
@@ -272,7 +271,7 @@ class loggedfs(Operations):
 			)
 
 		uid, gid, pid = fuse_get_context()
-		os.lchown(target_rel_path, uid, gid)
+		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{0} {1}', abs_path_fields = [0])
@@ -283,8 +282,9 @@ class loggedfs(Operations):
 		os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.lchown(rel_path, uid, gid)
-		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
+
+		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
 
 
 	@event(format_pattern = '{0} {1}', abs_path_fields = [0])
@@ -306,7 +306,7 @@ class loggedfs(Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # HACK should be lchmod, which is only available on BSD
+		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
 
 
 	@event(format_pattern = '({1}) {0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
