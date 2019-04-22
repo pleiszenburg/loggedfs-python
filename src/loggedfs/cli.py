@@ -65,11 +65,16 @@ from .filter import parse_filters
 	type = click.Path(file_okay = True, dir_okay = False, resolve_path = True),
 	help = ('Use the "log-file" to write logs to.')
 	)
+@click.option(
+	'-j', '--json',
+	is_flag = True,
+	help = 'Format output as JSON instead of traditional loggedfs format.'
+	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, directory):
+def cli_entry(f, p, c, s, l, json, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operations that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
@@ -81,7 +86,7 @@ def cli_entry(f, p, c, s, l, directory):
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p)
+		**__process_config__(c, l, s, f, p, json)
 		)
 
 
@@ -90,7 +95,8 @@ def __process_config__(
 	log_file,
 	log_syslog_off,
 	fuse_foreground_bool,
-	fuse_allowother_bool
+	fuse_allowother_bool,
+	log_json
 	):
 
 	if config_fh is not None:
@@ -111,6 +117,7 @@ def __process_config__(
 		'log_file': log_file,
 		'log_syslog': not log_syslog_off,
 		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
+		'log_json': log_json,
 		'fuse_foreground_bool': fuse_foreground_bool,
 		'fuse_allowother_bool': fuse_allowother_bool
 		}

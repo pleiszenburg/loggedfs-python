@@ -107,6 +107,7 @@ class loggedfs(Operations):
 		log_enabled = True,
 		log_printprocessname = True,
 		log_configmsg = None,
+		log_json = False,
 		fuse_foreground_bool = None,
 		fuse_allowother_bool = None
 		):
