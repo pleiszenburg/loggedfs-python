@@ -33,6 +33,7 @@ import errno
 from functools import wraps
 import grp
 import inspect
+import json
 import pwd
 
 from fuse import (
@@ -186,12 +187,9 @@ def _log_event_(
 	ret_status, ret_str, ret_value
 	):
 
-	if self._log_printprocessname:
+	p_cmdname = ''
+	if self._log_printprocessname or self._log_json:
 		p_cmdname = _get_process_cmdline_(pid).strip()
-		if len(p_cmdname) > 0:
-			p_cmdname = '%s ' % p_cmdname
-	else:
-		p_cmdname = ''
 
 	if self._log_json:
 
@@ -204,7 +202,7 @@ def _log_event_(
 			'status': ret_status == 'SUCCESS',
 			}
 
-		log_msg = '' # TODO
+		log_msg = json.dumps(log_dict, sort_keys = True)[1:-1]
 
 	else:
 
@@ -223,7 +221,7 @@ def _log_event_(
 		log_msg = ' '.join([
 			'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
 			'{%s}' % ret_status,
-			'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
+			'[ pid = %d %suid = %d ]' % (pid, ('%s ' % p_cmdname) if len(p_cmdname) > 0 else '', uid),
 			'( %s )' % ret_str
 			])
 

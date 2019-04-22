@@ -85,7 +85,7 @@ logging.setLogRecordFactory(_LogRecord_ns_)
 def get_logger(name, log_enabled, log_file, log_syslog, log_json):
 
 	if log_json:
-		log_formater = _Formatter_ns_('{"time": "%(asctime)s", "logger": "(%(name)s)", %(message)s}')
+		log_formater = _Formatter_ns_('{"time": "%(asctime)s", "logger": "%(name)s", %(message)s}')
 		log_formater_short = _Formatter_ns_('{%(message)s}')
 	else:
 		log_formater = _Formatter_ns_('%(asctime)s (%(name)s) %(message)s')
