@@ -189,6 +189,11 @@ class loggedfs(Operations):
 		raise FuseOSError(errno.ENOSYS)
 
 
+	def fsync(self, path, datasync, fip):
+
+		raise FuseOSError(errno.ENOSYS) # the original loggedfs just returns 0
+
+
 	def ioctl(self, path, cmd, arg, fh, flags, data):
 
 		raise FuseOSError(errno.ENOSYS)
@@ -248,12 +253,6 @@ class loggedfs(Operations):
 				ret_dict.pop(key + '_ns')
 
 		return ret_dict
-
-
-	@event(format_pattern = '{0} (fh={2})', abs_path_fields = (0,), fip_fields = (2,))
-	def fsync(self, path, datasync, fip):
-
-		return 0 # the original loggedfs does that
 
 
 	@event(format_pattern = '{0}')
