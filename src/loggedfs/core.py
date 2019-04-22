@@ -118,6 +118,7 @@ class loggedfs(Operations):
 			log_excludes = []
 
 		self._log_printprocessname = bool(log_printprocessname)
+		self._log_json = bool(log_json)
 		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog)
 
 		if bool(fuse_foreground_bool):
