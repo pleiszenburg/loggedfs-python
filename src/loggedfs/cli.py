@@ -104,13 +104,13 @@ def __process_config__(
 	config_dict = parse_filters(config_xml_str)
 
 	return {
-		'log_includes': config_dict['includes'],
-		'log_excludes': config_dict['excludes'],
+		'log_includes': config_dict['log_includes'],
+		'log_excludes': config_dict['log_excludes'],
+		'log_enabled': config_dict['log_enabled'],
+		'log_printprocessname': config_dict['log_printprocessname'],
 		'log_file': log_file,
 		'log_syslog': not log_syslog_off,
 		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
-		'log_enabled': config_dict['logEnabled'],
-		'log_printprocessname': config_dict['printProcessName'],
 		'fuse_foreground_bool': fuse_foreground_bool,
 		'fuse_allowother_bool': fuse_allowother_bool
 		}

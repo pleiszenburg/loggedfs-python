@@ -42,10 +42,10 @@ import xmltodict
 def new_filter():
 
 	return {
-		'logEnabled': True,
-		'printProcessName': True,
-		'includes': {},
-		'excludes': {}
+		'log_enabled': True,
+		'log_printprocessname': True,
+		'log_includes': {},
+		'log_excludes': {}
 		}
 
 
@@ -53,16 +53,24 @@ def parse_filters(config_xml_str = None):
 
 	config_xml_dict = xmltodict.parse(config_xml_str)['loggedFS']
 
-	for field in ('@logEnabled', '@printProcessName'):
-		config_xml_dict[field[1:]] = config_xml_dict.pop(field)
+	for field_new, field_old in (
+		('log_enabled', '@logEnabled'),
+		('log_printprocessname', '@printProcessName'),
+		('log_includes', 'includes'),
+		('log_excludes', 'excludes')
+		):
+		try:
+			config_xml_dict[field_new] = config_xml_dict.pop(field_old)
+		except KeyError:
+			pass
 
 	config_dict = new_filter()
 
 	if config_xml_str is not None:
 		config_dict.update(config_xml_dict)
 
-	for f_type in ('includes', 'excludes'):
-		config_dict[f_type] = _parse_filter_list_(config_dict[f_type].get(f_type[:-1], None))
+	for f_type in ('log_includes', 'log_excludes'):
+		config_dict[f_type] = _parse_filter_list_(config_dict.pop(f_type).get(f_type[4:-1], None))
 
 	return config_dict
 
