@@ -33,7 +33,6 @@ import errno
 from functools import wraps
 import grp
 import pwd
-import sys
 
 from fuse import (
 	fuse_get_context,
@@ -128,7 +127,7 @@ def event(
 				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
 				raise FuseOSError(e.errno)
 
-			except:
+			except Exception as e:
 
 				ret_status = 'FAILURE'
 				e = sys.exc_info()[0]
