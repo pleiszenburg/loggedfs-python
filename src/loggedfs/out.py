@@ -177,14 +177,15 @@ def _get_abs_path_(args_list, kwargs_dict, path_item_list, abs_func):
 		return abs_func(kwargs_dict[item])
 
 
-def _get_process_cmdline_(pid):
+def _get_fh_from_fip_(fip):
 
-	try:
-		with open('/proc/%d/cmdline' % pid, 'r') as f: # TODO encoding, bytes?
-			cmdline = f.read()
-		return cmdline.replace('\x00', ' ').strip()
-	except FileNotFoundError:
-		return ''
+	if fip is None:
+		return -1
+	if not hasattr(fip, 'fh'):
+		return -2
+	if not isinstance(fip.fh, int):
+		return -3
+	return fip.fh
 
 
 def _get_group_name_from_gid_(gid):
@@ -195,20 +196,19 @@ def _get_group_name_from_gid_(gid):
 		return '[gid: omitted argument]'
 
 
+def _get_process_cmdline_(pid):
+
+	try:
+		with open('/proc/%d/cmdline' % pid, 'r') as f: # TODO encoding, bytes?
+			cmdline = f.read()
+		return cmdline.replace('\x00', ' ').strip()
+	except FileNotFoundError:
+		return ''
+
+
 def _get_user_name_from_uid_(uid):
 
 	try:
 		return pwd.getpwuid(uid).pw_name
 	except KeyError:
 		return '[uid: omitted argument]'
-
-
-def _get_fh_from_fip_(fip):
-
-	if fip is None:
-		return -1
-	if not hasattr(fip, 'fh'):
-		return -2
-	if not isinstance(fip.fh, int):
-		return -3
-	return fip.fh
