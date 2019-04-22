@@ -77,13 +77,13 @@ def event(
 				uid, gid, pid = fuse_get_context()
 
 				if self._log_printprocessname:
-					p_cmdname = __get_process_cmdline__(pid).strip()
+					p_cmdname = _get_process_cmdline_(pid).strip()
 					if len(p_cmdname) > 0:
 						p_cmdname = '%s ' % p_cmdname
 				else:
 					p_cmdname = ''
 
-				abs_path = __get_abs_path__(func_args, func_kwargs, abs_path_fields, self._full_path)
+				abs_path = _get_abs_path_(func_args, func_kwargs, abs_path_fields, self._full_path)
 
 				func_args_f = list(func_args)
 				func_kwargs_f = func_kwargs.copy()
@@ -91,11 +91,11 @@ def event(
 				for field_list, format_func in [
 					(abs_path_fields, self._full_path),
 					(length_fields, len),
-					(uid_fields, lambda x: '%s(%d)' % (__get_user_name_from_uid__(x), x)),
-					(gid_fields, lambda x: '%s(%d)' % (__get_group_name_from_gid__(x), x)),
-					(fip_fields, lambda x: '%d' % __get_fh_from_fip__(x))
+					(uid_fields, lambda x: '%s(%d)' % (_get_user_name_from_uid_(x), x)),
+					(gid_fields, lambda x: '%s(%d)' % (_get_group_name_from_gid_(x), x)),
+					(fip_fields, lambda x: '%d' % _get_fh_from_fip_(x))
 					]:
-					__format_args__(func_args_f, func_kwargs_f, field_list, format_func)
+					_format_args_(func_args_f, func_kwargs_f, field_list, format_func)
 
 				log_msg = ' '.join([
 					'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
@@ -130,7 +130,6 @@ def event(
 			except Exception as e:
 
 				ret_status = 'FAILURE'
-				e = sys.exc_info()[0]
 
 				if hasattr(e, 'errno'): # all subclasses of OSError
 					ret_str = 'e = %s' % errno.errorcode[e.errno]
@@ -157,7 +156,7 @@ def event(
 	return wrapper
 
 
-def __format_args__(args_list, kwargs_dict, items_list, format_func):
+def _format_args_(args_list, kwargs_dict, items_list, format_func):
 
 	for item in items_list:
 		if isinstance(item, int):
@@ -166,7 +165,7 @@ def __format_args__(args_list, kwargs_dict, items_list, format_func):
 			kwargs_dict[item] = format_func(kwargs_dict.get(item, -11)) # ERROR CODE -11
 
 
-def __get_abs_path__(args_list, kwargs_dict, path_item_list, abs_func):
+def _get_abs_path_(args_list, kwargs_dict, path_item_list, abs_func):
 
 	if len(path_item_list) == 0:
 		return ''
@@ -178,7 +177,7 @@ def __get_abs_path__(args_list, kwargs_dict, path_item_list, abs_func):
 		return abs_func(kwargs_dict[item])
 
 
-def __get_process_cmdline__(pid):
+def _get_process_cmdline_(pid):
 
 	try:
 
@@ -193,7 +192,7 @@ def __get_process_cmdline__(pid):
 		return ''
 
 
-def __get_group_name_from_gid__(gid):
+def _get_group_name_from_gid_(gid):
 
 	try:
 		return grp.getgrgid(gid).gr_name
@@ -201,7 +200,7 @@ def __get_group_name_from_gid__(gid):
 		return '[gid: omitted argument]'
 
 
-def __get_user_name_from_uid__(uid):
+def _get_user_name_from_uid_(uid):
 
 	try:
 		return pwd.getpwuid(uid).pw_name
@@ -209,7 +208,7 @@ def __get_user_name_from_uid__(uid):
 		return '[uid: omitted argument]'
 
 
-def __get_fh_from_fip__(fip):
+def _get_fh_from_fip_(fip):
 
 	if fip is None:
 		return -1
