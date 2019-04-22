@@ -189,23 +189,29 @@ def _log_event_(
 	else:
 		p_cmdname = ''
 
-	func_args_f = list(func_args)
-	func_kwargs_f = func_kwargs.copy()
+	if self._log_json:
 
-	for field_list, format_func in [
-		(abs_path_fields, self._full_path),
-		(length_fields, len),
-		(uid_fields, lambda x: '%s(%d)' % (_get_user_name_from_uid_(x), x)),
-		(gid_fields, lambda x: '%s(%d)' % (_get_group_name_from_gid_(x), x)),
-		(fip_fields, lambda x: '%d' % _get_fh_from_fip_(x))
-		]:
-		_format_args_(func_args_f, func_kwargs_f, field_list, format_func)
+		pass
 
-	log_msg = ' '.join([
-		'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-		'{%s}' % ret_status,
-		'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
-		'( %s )' % ret_str
-		])
+	else:
+
+		func_args_f = list(func_args)
+		func_kwargs_f = func_kwargs.copy()
+
+		for field_list, format_func in [
+			(abs_path_fields, self._full_path),
+			(length_fields, len),
+			(uid_fields, lambda x: '%s(%d)' % (_get_user_name_from_uid_(x), x)),
+			(gid_fields, lambda x: '%s(%d)' % (_get_group_name_from_gid_(x), x)),
+			(fip_fields, lambda x: '%d' % _get_fh_from_fip_(x))
+			]:
+			_format_args_(func_args_f, func_kwargs_f, field_list, format_func)
+
+		log_msg = ' '.join([
+			'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
+			'{%s}' % ret_status,
+			'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
+			'( %s )' % ret_str
+			])
 
 	self.logger.info(log_msg)

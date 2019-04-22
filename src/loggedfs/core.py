@@ -48,7 +48,7 @@ except ImportError:
 	fuse_features = {}
 
 from .filter import compile_filters
-from .log import get_logger
+from .log import get_logger, log_msg
 from .out import event
 from .timing import time
 
@@ -119,16 +119,16 @@ class loggedfs(Operations):
 
 		self._log_printprocessname = bool(log_printprocessname)
 		self._log_json = bool(log_json)
-		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog)
+		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
 		if bool(fuse_foreground_bool):
-			self.logger.info('LoggedFS-python not running as a daemon')
+			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
 		if bool(fuse_allowother_bool):
-			self.logger.info('LoggedFS-python running as a public filesystem')
+			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
 		if bool(log_file):
-			self.logger.info('LoggedFS-python log file: %s' % log_file)
+			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
 
-		self.logger.info('LoggedFS-python starting at %s' % directory)
+		self.logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
 		try:
 			self.root_path = directory # TODO check: permissions, existence
 			self.root_path_fd = os.open(directory, os.O_RDONLY)
@@ -136,7 +136,7 @@ class loggedfs(Operations):
 			self.logger.exception('Directory access failed.')
 			sys.exit(1)
 
-		self.logger.info(log_configmsg)
+		self.logger.info(log_msg(self._log_json, log_configmsg))
 
 		for flag_name in self.requested_features.keys():
 			setattr(
