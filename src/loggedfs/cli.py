@@ -62,7 +62,6 @@ from .filter import parse_filters
 	)
 @click.option(
 	'-l',
-	# type = click.File(mode = 'a'),
 	type = click.Path(file_okay = True, dir_okay = False, resolve_path = True),
 	help = ('Use the "log-file" to write logs to.')
 	)
