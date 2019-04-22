@@ -73,64 +73,26 @@ def event(
 		def wrapped(self, *func_args, **func_kwargs):
 
 			try:
-
 				uid, gid, pid = fuse_get_context()
-
-				if self._log_printprocessname:
-					p_cmdname = _get_process_cmdline_(pid).strip()
-					if len(p_cmdname) > 0:
-						p_cmdname = '%s ' % p_cmdname
-				else:
-					p_cmdname = ''
-
 				abs_path = _get_abs_path_(func_args, func_kwargs, abs_path_fields, self._full_path)
-
-				func_args_f = list(func_args)
-				func_kwargs_f = func_kwargs.copy()
-
-				for field_list, format_func in [
-					(abs_path_fields, self._full_path),
-					(length_fields, len),
-					(uid_fields, lambda x: '%s(%d)' % (_get_user_name_from_uid_(x), x)),
-					(gid_fields, lambda x: '%s(%d)' % (_get_group_name_from_gid_(x), x)),
-					(fip_fields, lambda x: '%d' % _get_fh_from_fip_(x))
-					]:
-					_format_args_(func_args_f, func_kwargs_f, field_list, format_func)
-
-				log_msg = ' '.join([
-					'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-					'{%s}',
-					'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
-					'( %s )'
-					])
-
-			except:
-
+			except Exception as e:
 				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
-				raise
+				raise e
 
 			try:
-
 				ret_value = func(self, *func_args, **func_kwargs)
 				ret_str = 'r = %s' % str(ret_value)
 				ret_status = 'SUCCESS'
-
 			except FuseOSError as e:
-
 				ret_status = 'FAILURE'
 				ret_str = 'FuseOS_e = %s' % errno.errorcode[e.errno]
 				raise e
-
 			except OSError as e:
-
 				ret_status = 'FAILURE'
 				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
 				raise FuseOSError(e.errno)
-
 			except Exception as e:
-
 				ret_status = 'FAILURE'
-
 				if hasattr(e, 'errno'): # all subclasses of OSError
 					ret_str = 'e = %s' % errno.errorcode[e.errno]
 					raise FuseOSError(e.errno)
@@ -138,18 +100,18 @@ def event(
 					ret_str = '?'
 					self.logger.exception('Something just went terribly wrong unexpectedly ...')
 					raise e
-
 			else:
-
 				return ret_value
-
 			finally:
-
 				if match_filters(
 					abs_path, uid, func.__name__, ret_status,
 					self._f_incl, self._f_excl
 					):
-					self.logger.info(log_msg % (ret_status, ret_str))
+					_log_event_(
+						self, uid, gid, pid, func, func_args, func_kwargs, format_pattern,
+						abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
+						ret_status, ret_str
+						)
 
 		return wrapped
 
@@ -212,3 +174,38 @@ def _get_user_name_from_uid_(uid):
 		return pwd.getpwuid(uid).pw_name
 	except KeyError:
 		return '[uid: omitted argument]'
+
+
+def _log_event_(
+	self, uid, gid, pid, func, func_args, func_kwargs, format_pattern,
+	abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
+	ret_status, ret_str
+	):
+
+	if self._log_printprocessname:
+		p_cmdname = _get_process_cmdline_(pid).strip()
+		if len(p_cmdname) > 0:
+			p_cmdname = '%s ' % p_cmdname
+	else:
+		p_cmdname = ''
+
+	func_args_f = list(func_args)
+	func_kwargs_f = func_kwargs.copy()
+
+	for field_list, format_func in [
+		(abs_path_fields, self._full_path),
+		(length_fields, len),
+		(uid_fields, lambda x: '%s(%d)' % (_get_user_name_from_uid_(x), x)),
+		(gid_fields, lambda x: '%s(%d)' % (_get_group_name_from_gid_(x), x)),
+		(fip_fields, lambda x: '%d' % _get_fh_from_fip_(x))
+		]:
+		_format_args_(func_args_f, func_kwargs_f, field_list, format_func)
+
+	log_msg = ' '.join([
+		'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
+		'{%s}',
+		'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
+		'( %s )'
+		])
+
+	self.logger.info(log_msg % (ret_status, ret_str))
