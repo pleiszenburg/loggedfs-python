@@ -49,22 +49,24 @@ from .filter import match_filters
 
 def event(
 	format_pattern = '',
-	abs_path_fields = None, length_fields = None,
-	uid_fields = None, gid_fields = None,
+	abs_path_fields = None,
+	length_fields = None,
+	uid_fields = None,
+	gid_fields = None,
 	fip_fields = None,
 	path_filter_field = 0
 	):
 
 	if abs_path_fields is None:
-		abs_path_fields = tuple() # TODO tuple enough?
+		abs_path_fields = tuple()
 	if length_fields is None:
-		length_fields = tuple() # TODO tuple enough?
+		length_fields = tuple()
 	if uid_fields is None:
-		uid_fields = tuple() # TODO tuple enough?
+		uid_fields = tuple() # only relevant for chown (target uid)
 	if gid_fields is None:
-		gid_fields = tuple() # TODO tuple enough?
+		gid_fields = tuple() # only relevant for chown (target gid)
 	if fip_fields is None:
-		fip_fields = tuple() # TODO tuple enough?
+		fip_fields = tuple()
 
 	def wrapper(func):
 
