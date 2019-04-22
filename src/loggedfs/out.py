@@ -203,9 +203,9 @@ def _log_event_(
 
 	log_msg = ' '.join([
 		'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
-		'{%s}',
+		'{%s}' % ret_status,
 		'[ pid = %d %suid = %d ]' % (pid, p_cmdname, uid),
-		'( %s )'
+		'( %s )' % ret_str
 		])
 
-	self.logger.info(log_msg % (ret_status, ret_str))
+	self.logger.info(log_msg)
