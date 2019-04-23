@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.0.2 (2019-XX-XX)
+0.0.2 (2019-04-23)
 ------------------
 
 * FEATURE: New flag ``-j`` for JSON-formatted log output
