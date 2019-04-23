@@ -77,7 +77,7 @@ def mount_loggedfs_python(in_abs_path, logfile, cfgfile, sudo = False):
 			'-c', cfgfile,
 			'-p',
 			'-s',
-			'-j', # optional: JSON
+			# '-j', # optional: JSON
 			in_abs_path,
 			],
 		return_output = True, sudo = sudo, sudo_env = sudo

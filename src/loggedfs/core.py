@@ -208,32 +208,32 @@ class loggedfs(Operations):
 # CORE CLASS: Filesystem & file methods - IMPLEMENTATION
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def access(self, path, mode):
 
 		if not os.access(self._rel_path(path), mode, dir_fd = self.root_path_fd):
 			raise FuseOSError(errno.EACCES)
 
 
-	@event(format_pattern = '{0} to {1}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path} to {param_mode}')
 	def chmod(self, path, mode):
 
 		os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
 
 
-	@event(format_pattern = '{0} to {1}:{2}', abs_path_fields = (0,), uid_fields = (1,), gid_fields = (2,))
+	@event(format_pattern = '{param_path} to {param_uid_name}({param_uid}):{param_gid_name}({param_gid})')
 	def chown(self, path, uid, gid):
 
 		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{0}')
+	@event(format_pattern = '{param_path}')
 	def destroy(self, path):
 
 		os.close(self.root_path_fd)
 
 
-	@event(format_pattern = '{0} (fh={1})', abs_path_fields = (0,), fip_fields = (1,))
+	@event(format_pattern = '{param_path} (fh={param_fip})')
 	def getattr(self, path, fip):
 
 		if not fip:
@@ -255,13 +255,13 @@ class loggedfs(Operations):
 		return ret_dict
 
 
-	@event(format_pattern = '{0}')
+	@event(format_pattern = '{param_path}')
 	def init(self, path):
 
 		pass
 
 
-	@event(format_pattern = '{1} to {0}', abs_path_fields = (0, 1))
+	@event(format_pattern = '{param_source_path} to {param_target_path}')
 	def link(self, target_path, source_path):
 
 		target_rel_path = self._rel_path(target_path)
@@ -275,7 +275,7 @@ class loggedfs(Operations):
 		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{0} {1}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path} {param_mode}')
 	def mkdir(self, path, mode):
 
 		rel_path = self._rel_path(path)
@@ -288,7 +288,7 @@ class loggedfs(Operations):
 		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
 
 
-	@event(format_pattern = '{0} {1}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path} {param_mode}')
 	def mknod(self, path, mode, dev):
 
 		rel_path = self._rel_path(path)
@@ -310,7 +310,7 @@ class loggedfs(Operations):
 		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
 
 
-	@event(format_pattern = '({1}) {0} (fh={1})', abs_path_fields = (0,), fip_fields = (1,))
+	@event(format_pattern = '({param_fip}) {param_path} (fh={param_fip})')
 	def open(self, path, fip):
 
 		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
@@ -318,7 +318,7 @@ class loggedfs(Operations):
 		return 0
 
 
-	@event(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = (0,), fip_fields = (3,))
+	@event(format_pattern = '{param_length} bytes from {param_path} at offset {param_offset} (fh={param_fip})')
 	def read(self, path, length, offset, fip):
 
 		ret = os.pread(fip.fh, length, offset)
@@ -326,7 +326,7 @@ class loggedfs(Operations):
 		return ret
 
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def readdir(self, path, fh):
 
 		rel_path = self._rel_path(path)
@@ -340,7 +340,7 @@ class loggedfs(Operations):
 		return dirents
 
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def readlink(self, path):
 
 		pathname = os.readlink(self._rel_path(path), dir_fd = self.root_path_fd)
@@ -351,28 +351,28 @@ class loggedfs(Operations):
 			return pathname
 
 
-	@event(format_pattern = '{0} (fh={1})', abs_path_fields = (0,), fip_fields = (1,))
+	@event(format_pattern = '{param_path} (fh={param_fip})')
 	def release(self, path, fip):
 
 		os.close(fip.fh)
 
 
-	@event(format_pattern = '{0} to {1}', abs_path_fields = (0, 1))
-	def rename(self, old, new):
+	@event(format_pattern = '{param_old_path} to {param_new_path}')
+	def rename(self, old_path, new_path):
 
 		os.rename(
-			self._rel_path(old), self._rel_path(new),
+			self._rel_path(old_path), self._rel_path(new_path),
 			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
 			)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def rmdir(self, path):
 
 		os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def statfs(self, path):
 
 		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
@@ -382,10 +382,10 @@ class loggedfs(Operations):
 		return {key: getattr(stv, key) for key in self.stvfs_fields}
 
 
-	@event(format_pattern = 'from {1} to {0}', abs_path_fields = (1,))
-	def symlink(self, target_path, source_path):
+	@event(format_pattern = 'from {param_source_path} to {param_target_path_}')
+	def symlink(self, target_path_, source_path):
 
-		target_rel_path = self._rel_path(target_path)
+		target_rel_path = self._rel_path(target_path_)
 
 		os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
 
@@ -393,7 +393,7 @@ class loggedfs(Operations):
 		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{0} to {1} bytes (fh={fip})', abs_path_fields = (0,), fip_fields = ('fip',))
+	@event(format_pattern = '{param_path} to {param_length} bytes (fh={param_fip})')
 	def truncate(self, path, length, fip = None):
 
 		if fip is None:
@@ -408,13 +408,13 @@ class loggedfs(Operations):
 			return os.ftruncate(fip.fh, length)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def unlink(self, path):
 
 		os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = (0,))
+	@event(format_pattern = '{param_path}')
 	def utimens(self, path, times = None):
 
 		def _fix_time_(atime, mtime):
@@ -440,7 +440,7 @@ class loggedfs(Operations):
 			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = (0,), length_fields = (1,), fip_fields = (3,))
+	@event(format_pattern = '{param_buf_len} bytes to {param_path} at offset {param_offset} (fh={param_fip})')
 	def write(self, path, buf, offset, fip):
 
 		res = os.pwrite(fip.fh, buf, offset)
