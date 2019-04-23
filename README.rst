@@ -112,9 +112,7 @@ To stop recording, just unmount as usual:
 Configuration
 =============
 
-LoggedFS-python can use an XML configuration file if you want it to log
-operations only for certain files, for certain users, or for certain operations.
-The format is fully compatible with LoggedFS' original format.
+LoggedFS-python can use an XML configuration file if you want it to log operations only for certain files, for certain users, or for certain operations. LoggedFS-python is fully compatible with configuration files in LoggedFS' original format. Yet it can also handle additional fields (e.g. the ``command`` field).
 
 Here is a sample configuration file :
 
@@ -124,12 +122,12 @@ Here is a sample configuration file :
 
 	<loggedFS logEnabled="true" printProcessName="true">
 		<includes>
-			<include extension=".*" uid="*" action=".*" retname=".*"/>
+			<include extension=".*" uid="*" action=".*" retname=".*" command=".*"/>
 		</includes>
 		<excludes>
-			<exclude extension=".*\.bak$" uid="*" action=".*" retname="SUCCESS"/>
-			<exclude extension=".*" uid="1000" action=".*" retname="FAILURE"/>
-			<exclude extension=".*" uid="*" action="getattr" retname=".*"/>
+			<exclude extension=".*\.bak$" uid="*" action=".*" retname="SUCCESS" command=".*"/>
+			<exclude extension=".*" uid="1000" action=".*" retname="FAILURE" command=".*"/>
+			<exclude extension=".*" uid="*" action="getattr" retname=".*" command=".*"/>
 		</excludes>
 	</loggedFS>
 
