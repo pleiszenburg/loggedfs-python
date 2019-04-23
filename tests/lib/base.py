@@ -30,6 +30,7 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import os
+import shutil
 import time
 
 from .const import (
@@ -125,13 +126,13 @@ class fstest_base_class():
 		self.__mk_dir__(self.mount_parent_abs_path)
 		if not self.travis:
 			self.__mount_parent_fs__()
-		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
 		self.__mk_dir__(self.logs_abs_path)
 
 
 	def init_d_childfs(self):
 
 		open(self.loggedfs_log_abs_path, 'a').close() # HACK create empty loggedfs log file
+		self.__mk_dir__(self.mount_child_abs_path, in_fs_root = True)
 		if self.fs_type == TEST_FS_LOGGEDFS:
 			self.__mount_child_fs__()
 		open(self.fstest_log_abs_path, 'a').close() # HACK create empty fstest log file
@@ -155,26 +156,27 @@ class fstest_base_class():
 		if not self.fs_type == TEST_FS_LOGGEDFS:
 			return
 
-		if not is_path_mountpoint(self.mount_child_abs_path):
-			return
+		if is_path_mountpoint(self.mount_child_abs_path):
+			umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
+			assert umount_child_status
+			assert not is_path_mountpoint(self.mount_child_abs_path)
 
-		umount_child_status = umount_fuse(self.mount_child_abs_path, sudo = self.with_sudo)
-		assert umount_child_status
-		assert not is_path_mountpoint(self.mount_child_abs_path)
+		self.__rm_tree__(self.mount_child_abs_path, in_fs_root = True)
 
 		time.sleep(0.1) # HACK ... otherwise parent will be busy
 
 
 	def destroy_b_parentfs(self):
 
+		if not self.travis:
+			umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)
+			assert umount_parent_status
+			assert not is_path_mountpoint(self.mount_parent_abs_path)
+
+		self.__rm_tree__(self.mount_parent_abs_path)
+
 		if self.travis:
 			return
-
-		# TODO mountpoint checks ...
-
-		umount_parent_status = umount(self.mount_parent_abs_path, sudo = True)
-		assert umount_parent_status
-		assert not is_path_mountpoint(self.mount_parent_abs_path)
 
 		loop_device_list = find_loop_devices(self.image_abs_path)
 		assert isinstance(loop_device_list, list)
@@ -295,3 +297,14 @@ class fstest_base_class():
 		mount_status = mount(self.mount_parent_abs_path, self.loop_device_path)
 		assert mount_status
 		assert is_path_mountpoint(self.mount_parent_abs_path)
+
+
+	def __rm_tree__(self, in_path, in_fs_root = False):
+
+		if not in_fs_root:
+			shutil.rmtree(in_path)
+		else:
+			rmdir_status = run_command(['rm', '-r', in_path], sudo = True)
+			assert rmdir_status
+
+		assert not os.path.exists(in_path)
