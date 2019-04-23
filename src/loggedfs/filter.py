@@ -49,6 +49,16 @@ def new_filter():
 		}
 
 
+def new_filter_item():
+
+	return {
+		'extension': '.*',
+		'uid': '*',
+		'action': '.*',
+		'retname': '.*'
+		}
+
+
 def parse_filters(config_xml_str = None):
 
 	config_xml_dict = xmltodict.parse(config_xml_str)['loggedFS']
@@ -77,7 +87,11 @@ def parse_filters(config_xml_str = None):
 
 def _parse_filter_item_(in_item):
 
-	return {field[1:]: in_item[field] for field in ('@extension', '@uid', '@action', '@retname')}
+	ret = new_filter_item()
+	tmp = {k[1:]: v for k, v in in_item.items()}
+	ret.update({k: tmp[k] for k in tmp.keys() & ret.keys()})
+
+	return ret
 
 
 def _parse_filter_list_(in_list):
@@ -93,12 +107,7 @@ def _parse_filter_list_(in_list):
 def compile_filters(include_list, exclude_list):
 
 	if len(include_list) == 0:
-		include_list.append({
-			'extension': '.*',
-			'uid': '*',
-			'action': '.*',
-			'retname': '.*'
-			})
+		include_list.append(new_filter_item())
 
 	return tuple(
 		[_compile_filter_item_(item) for item in in_list]
