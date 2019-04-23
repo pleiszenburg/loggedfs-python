@@ -126,7 +126,7 @@ class fstest_base_class():
 		self.__mk_dir__(self.mount_parent_abs_path)
 		if not self.travis:
 			self.__mount_parent_fs__()
-		self.__mk_dir__(self.logs_abs_path)
+		self.__mk_dir__(self.logs_abs_path, allow_preexisting = True)
 
 
 	def init_d_childfs(self):
@@ -260,7 +260,11 @@ class fstest_base_class():
 		assert find_loop_devices(self.image_abs_path) == []
 
 
-	def __mk_dir__(self, in_path, in_fs_root = False):
+	def __mk_dir__(self, in_path, in_fs_root = False, allow_preexisting = False):
+
+		if allow_preexisting:
+			if os.path.isdir(in_path):
+				return
 
 		if not in_fs_root:
 			os.mkdir(in_path)
