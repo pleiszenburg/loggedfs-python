@@ -90,7 +90,7 @@ def event(
 				uid, gid, pid = fuse_get_context()
 				abs_path = _get_abs_path_(func_args, func_kwargs, abs_path_fields, self._full_path)
 			except Exception as e:
-				self.logger.exception(log_msg(self._log_json, 'Something just went terribly wrong unexpectedly ON INIT ...'))
+				self.logger.exception(log_msg(self._log_json, 'UNEXPECTED in context stage (1)'))
 				raise e
 
 			ret_value = None
@@ -113,7 +113,7 @@ def event(
 					raise FuseOSError(e.errno)
 				else:
 					ret_str = '?'
-					self.logger.exception(log_msg(self._log_json, 'Something just went terribly wrong unexpectedly ...'))
+					self.logger.exception(log_msg(self._log_json, 'UNEXPECTED in operation stage (2)'))
 					raise e
 			else:
 				return ret_value
@@ -122,11 +122,15 @@ def event(
 					abs_path, uid, func.__name__, ret_status,
 					self._f_incl, self._f_excl
 					):
-					_log_event_(
-						self, uid, gid, pid, func, func_arg_names, func_arg_defaults, func_args, func_kwargs, format_pattern,
-						abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
-						ret_status, ret_str, ret_value
-						)
+					try:
+						_log_event_(
+							self, uid, gid, pid, func, func_arg_names, func_arg_defaults, func_args, func_kwargs, format_pattern,
+							abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
+							ret_status, ret_str, ret_value
+							)
+					except Exception as e:
+						self.logger.exception(log_msg(self._log_json, 'UNEXPECTED in log stage (3)'))
+						raise e
 
 		return wrapped
 
@@ -135,7 +139,7 @@ def event(
 
 def _encode_bytes_(in_bytes):
 
-	return base64.b64encode(zlib.compress(in_bytes, level = 1)).decode('utf-8')
+	return base64.b64encode(zlib.compress(in_bytes, 1)).decode('utf-8') # compress level 1 (weak)
 
 
 def _format_args_(args_list, kwargs_dict, items_list, format_func):
