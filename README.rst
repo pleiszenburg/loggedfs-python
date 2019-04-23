@@ -64,7 +64,7 @@ CAVEATS
   UTIME_OMIT WILL NOT BE HONORED. THERE WAS A `PULL REQUEST`_ TO FIX THIS,
   WHICH HAS BEEN REJECTED. ALTERNATIVE APPROACHES ARE BEING RESEARCHED.
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
-  ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
+  ANYONE INTERESTED IN CONFIRMING MAC OS X AND/OR ADDING BSD SUPPORT?
 
 .. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
 .. _PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
@@ -88,7 +88,7 @@ From GitHub:
 **Supports Python 3.{4,5,6,7}.**
 
 **Supports Linux.**
-Support for MAC OS X and BSD requires a minor change only, but has yet not been added: Access to the system log is currently being achieved through ``logging.handlers.SysLogHandler(address = '/dev/log')``, a Linux-only solution.
+Support for MAC OS X is implemented but has yet not been tested.
 
 .. _Python Package Index: https://pypi.org/
 
