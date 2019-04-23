@@ -29,12 +29,14 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import base64
 import errno
 from functools import wraps
 import grp
 import inspect
 import json
 import pwd
+import zlib
 
 from fuse import (
 	fuse_get_context,
@@ -42,6 +44,7 @@ from fuse import (
 	)
 
 from .filter import match_filters
+from .log import log_msg
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -71,7 +74,14 @@ def event(
 
 	def wrapper(func):
 
-		func_arg_names = tuple(inspect.signature(func).parameters.keys())
+		_func_param = inspect.signature(func).parameters
+		func_arg_names = tuple(_func_param.keys())[1:]
+		func_arg_defaults = {
+			k: _func_param[k].default
+			for k in func_arg_names
+			if _func_param[k].default != inspect._empty
+			}
+		del _func_param
 
 		@wraps(func)
 		def wrapped(self, *func_args, **func_kwargs):
@@ -80,7 +90,7 @@ def event(
 				uid, gid, pid = fuse_get_context()
 				abs_path = _get_abs_path_(func_args, func_kwargs, abs_path_fields, self._full_path)
 			except Exception as e:
-				self.logger.exception('Something just went terribly wrong unexpectedly ON INIT ...')
+				self.logger.exception(log_msg(self._log_json, 'Something just went terribly wrong unexpectedly ON INIT ...'))
 				raise e
 
 			ret_value = None
@@ -103,7 +113,7 @@ def event(
 					raise FuseOSError(e.errno)
 				else:
 					ret_str = '?'
-					self.logger.exception('Something just went terribly wrong unexpectedly ...')
+					self.logger.exception(log_msg(self._log_json, 'Something just went terribly wrong unexpectedly ...'))
 					raise e
 			else:
 				return ret_value
@@ -113,7 +123,7 @@ def event(
 					self._f_incl, self._f_excl
 					):
 					_log_event_(
-						self, uid, gid, pid, func, func_arg_names, func_args, func_kwargs, format_pattern,
+						self, uid, gid, pid, func, func_arg_names, func_arg_defaults, func_args, func_kwargs, format_pattern,
 						abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
 						ret_status, ret_str, ret_value
 						)
@@ -121,6 +131,11 @@ def event(
 		return wrapped
 
 	return wrapper
+
+
+def _encode_bytes_(in_bytes):
+
+	return base64.b64encode(zlib.compress(in_bytes, level = 1)).decode('utf-8')
 
 
 def _format_args_(args_list, kwargs_dict, items_list, format_func):
@@ -182,7 +197,7 @@ def _get_user_name_from_uid_(uid):
 
 
 def _log_event_(
-	self, uid, gid, pid, func, func_arg_names, func_args, func_kwargs, format_pattern,
+	self, uid, gid, pid, func, func_arg_names, func_arg_defaults, func_args, func_kwargs, format_pattern,
 	abs_path_fields, length_fields, uid_fields, gid_fields, fip_fields,
 	ret_status, ret_str, ret_value
 	):
@@ -198,11 +213,52 @@ def _log_event_(
 			'proc_uid': uid,
 			'proc_gid': gid,
 			'proc_pid': pid,
-			'call': func.__name__,
+			'action': func.__name__,
 			'status': ret_status == 'SUCCESS',
 			}
 
-		log_msg = json.dumps(log_dict, sort_keys = True)[1:-1]
+		arg_dict = {
+			arg_name: arg
+			for arg_name, arg in zip(func_arg_names, func_args)
+			}
+		arg_dict.update({
+			arg_name: func_kwargs.get(arg_name, func_arg_defaults[arg_name])
+			for arg_name in func_arg_names[len(func_args):]
+			})
+
+		try:
+			arg_dict['uid_name'] = _get_user_name_from_uid_(arg_dict['uid'])
+		except KeyError:
+			pass
+		try:
+			arg_dict['gid_name'] = _get_group_name_from_gid_(arg_dict['gid'])
+		except KeyError:
+			pass
+		try:
+			arg_dict['fip'] = _get_fh_from_fip_(arg_dict['fip'])
+		except KeyError:
+			pass
+		for k in arg_dict.keys():
+			if k.endswith('path'):
+				arg_dict[k] = self._full_path(arg_dict[k])
+		try:
+			arg_dict['buf_len'] = len(arg_dict['buf'])
+			arg_dict['buf'] = _encode_bytes_(arg_dict['buf'])
+		except KeyError:
+			pass
+
+		log_dict.update({'param_%s' % k: v for k, v in arg_dict.items()})
+
+		if log_dict['status']: # SUCCESS
+			if isinstance(ret_value, int) or isinstance(ret_value, dict):
+				log_dict['return'] = ret_value
+			elif isinstance(ret_value, bytes):
+				log_dict['return'] = _encode_bytes_(ret_value)
+				log_dict['return_len'] = len(ret_value)
+		else: # FAILURE
+			log_dict['return'] = ret_str
+
+		log_out = json.dumps(log_dict, sort_keys = True)[1:-1]
 
 	else:
 
@@ -218,11 +274,11 @@ def _log_event_(
 			]:
 			_format_args_(func_args_f, func_kwargs_f, field_list, format_func)
 
-		log_msg = ' '.join([
+		log_out = ' '.join([
 			'%s %s' % (func.__name__, format_pattern.format(*func_args_f, **func_kwargs_f)),
 			'{%s}' % ret_status,
 			'[ pid = %d %suid = %d ]' % (pid, ('%s ' % p_cmdname) if len(p_cmdname) > 0 else '', uid),
 			'( %s )' % ret_str
 			])
 
-	self.logger.info(log_msg)
+	self.logger.info(log_out)
