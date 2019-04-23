@@ -64,7 +64,7 @@ CAVEATS
   UTIME_OMIT WILL NOT BE HONORED. THERE WAS A `PULL REQUEST`_ TO FIX THIS,
   WHICH HAS BEEN REJECTED. ALTERNATIVE APPROACHES ARE BEING RESEARCHED.
 * THE FILESYSTEM IS CURRENTLY **ONLY** BEING DEVELOPED FOR AND TESTED ON **LINUX**.
-  ANYONE INTERESTED IN ADDING MAC OS X AND/OR BSD SUPPORT?
+  ANYONE INTERESTED IN CONFIRMING MAC OS X AND/OR ADDING BSD SUPPORT?
 
 .. _CUSTOM BUG-FIXED VERSION OF FUSEPY: https://github.com/s-m-e/fusepy
 .. _PULL REQUEST: https://github.com/fusepy/fusepy/pull/79
@@ -88,7 +88,7 @@ From GitHub:
 **Supports Python 3.{4,5,6,7}.**
 
 **Supports Linux.**
-Support for MAC OS X and BSD requires a minor change only, but has yet not been added: Access to the system log is currently being achieved through ``logging.handlers.SysLogHandler(address = '/dev/log')``, a Linux-only solution.
+Support for MAC OS X is implemented but has yet not been tested.
 
 .. _Python Package Index: https://pypi.org/
 
@@ -112,9 +112,7 @@ To stop recording, just unmount as usual:
 Configuration
 =============
 
-LoggedFS-python can use an XML configuration file if you want it to log
-operations only for certain files, for certain users, or for certain operations.
-The format is fully compatible with LoggedFS' original format.
+LoggedFS-python can use an XML configuration file if you want it to log operations only for certain files, for certain users, or for certain operations. LoggedFS-python is fully compatible with configuration files in LoggedFS' original format. Yet it can also handle additional fields (e.g. the ``command`` field).
 
 Here is a sample configuration file :
 
@@ -124,12 +122,12 @@ Here is a sample configuration file :
 
 	<loggedFS logEnabled="true" printProcessName="true">
 		<includes>
-			<include extension=".*" uid="*" action=".*" retname=".*"/>
+			<include extension=".*" uid="*" action=".*" retname=".*" command=".*"/>
 		</includes>
 		<excludes>
-			<exclude extension=".*\.bak$" uid="*" action=".*" retname="SUCCESS"/>
-			<exclude extension=".*" uid="1000" action=".*" retname="FAILURE"/>
-			<exclude extension=".*" uid="*" action="getattr" retname=".*"/>
+			<exclude extension=".*\.bak$" uid="*" action=".*" retname="SUCCESS" command=".*"/>
+			<exclude extension=".*" uid="1000" action=".*" retname="FAILURE" command=".*"/>
+			<exclude extension=".*" uid="*" action="getattr" retname=".*" command=".*"/>
 		</excludes>
 	</loggedFS>
 

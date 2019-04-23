@@ -5,6 +5,7 @@
 		<include extension=".*" uid="*" action=".*" retname=".*"/>
 	</includes>
 	<excludes>
+		<exclude command=".*gvfs.*"/>
 		<exclude extension=".*.proverc" uid="*" action=".*" retname=".*"/>
 		<exclude extension=".*.prove" uid="*" action=".*" retname=".*"/>
 		<exclude extension=".*autorun.inf" uid="*" action=".*" retname=".*"/>

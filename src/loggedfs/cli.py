@@ -29,12 +29,10 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from collections import OrderedDict
+import click
 
 from .core import loggedfs_factory
-
-import click
-import xmltodict
+from .filter import parse_filters
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -64,15 +62,19 @@ import xmltodict
 	)
 @click.option(
 	'-l',
-	# type = click.File(mode = 'a'),
 	type = click.Path(file_okay = True, dir_okay = False, resolve_path = True),
 	help = ('Use the "log-file" to write logs to.')
+	)
+@click.option(
+	'-j', '--json',
+	is_flag = True,
+	help = 'Format output as JSON instead of traditional loggedfs format.'
 	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, directory):
+def cli_entry(f, p, c, s, l, json, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operations that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
@@ -84,7 +86,7 @@ def cli_entry(f, p, c, s, l, directory):
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p)
+		**__process_config__(c, l, s, f, p, json)
 		)
 
 
@@ -93,48 +95,29 @@ def __process_config__(
 	log_file,
 	log_syslog_off,
 	fuse_foreground_bool,
-	fuse_allowother_bool
+	fuse_allowother_bool,
+	log_json
 	):
 
-	def proc_filter_item(in_item):
-		return {
-			'extension': in_item['@extension'],
-			'uid': in_item['@uid'],
-			'action': in_item['@action'],
-			'retname': in_item['@retname']
-			}
-
-	def proc_filter_list(in_list):
-		if in_list is None:
-			return []
-		if not isinstance(in_list, list):
-			return [proc_filter_item(in_list)]
-		return [proc_filter_item(item) for item in in_list]
-
-	config_dict = OrderedDict({
-		'@logEnabled': True,
-		'@printProcessName': True,
-		'includes': {},
-		'excludes': {}
-		})
-
-	config_file = None
 	if config_fh is not None:
-		config_file = config_fh.name
-		config_dict.update(xmltodict.parse(config_fh.read())['loggedFS'])
+		config_xml_str = config_fh.read()
 		config_fh.close()
+		config_file = config_fh.name
+	else:
+		config_file = '[None]'
+		config_xml_str = None
 
-	for f_type in ['includes', 'excludes']:
-		config_dict[f_type] = proc_filter_list(config_dict[f_type].get(f_type[:-1], None))
+	config_dict = parse_filters(config_xml_str)
 
 	return {
-		'log_includes': config_dict['includes'],
-		'log_excludes': config_dict['excludes'],
+		'log_includes': config_dict['log_includes'],
+		'log_excludes': config_dict['log_excludes'],
+		'log_enabled': config_dict['log_enabled'],
+		'log_printprocessname': config_dict['log_printprocessname'],
 		'log_file': log_file,
 		'log_syslog': not log_syslog_off,
 		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
-		'log_enabled': config_dict['@logEnabled'],
-		'log_printprocessname': config_dict['@printProcessName'],
+		'log_json': log_json,
 		'fuse_foreground_bool': fuse_foreground_bool,
 		'fuse_allowother_bool': fuse_allowother_bool
 		}

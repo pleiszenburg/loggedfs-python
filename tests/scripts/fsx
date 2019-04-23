@@ -23,10 +23,14 @@
 
 FN=iotest
 
-make init
+make init || exit 1
 cd tests/test_mount/test_child/
-fsx-linux -d -d -N 10000 $FN -P ../../test_logs
+# change "-d" to "-d -d" for more verbosity
+fsx-linux -d -N 1000 $FN -P ../../test_logs || exit 1
 cd ../../..
-make destroy_childfs
+make destroy_childfs || exit 1
 cp -a tests/test_mount/test_child/$FN tests/test_logs/$FN.fsxactual
-make destroy_parentfs
+make destroy_parentfs || exit 1
+if grep -q "Traceback (most recent call last)" "tests/test_logs/loggedfs.log"; then
+    exit 1
+fi
