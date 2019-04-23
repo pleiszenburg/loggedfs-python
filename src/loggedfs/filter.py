@@ -42,52 +42,73 @@ import xmltodict
 def new_filter():
 
 	return {
-		'@logEnabled': True,
-		'@printProcessName': True,
-		'includes': {},
-		'excludes': {}
+		'log_enabled': True,
+		'log_printprocessname': True,
+		'log_includes': {},
+		'log_excludes': {}
+		}
+
+
+def new_filter_item():
+
+	return {
+		'extension': '.*',
+		'uid': '*',
+		'action': '.*',
+		'retname': '.*',
+		'command': '.*'
 		}
 
 
 def parse_filters(config_xml_str = None):
 
+	config_xml_dict = xmltodict.parse(config_xml_str)['loggedFS']
+
+	for field_new, field_old in (
+		('log_enabled', '@logEnabled'),
+		('log_printprocessname', '@printProcessName'),
+		('log_includes', 'includes'),
+		('log_excludes', 'excludes')
+		):
+		try:
+			config_xml_dict[field_new] = config_xml_dict.pop(field_old)
+		except KeyError:
+			pass
+
 	config_dict = new_filter()
 
 	if config_xml_str is not None:
-		config_dict.update(xmltodict.parse(config_xml_str)['loggedFS'])
+		config_dict.update(config_xml_dict)
 
-	for f_type in ['includes', 'excludes']:
-		config_dict[f_type] = _parse_filter_list_(config_dict[f_type].get(f_type[:-1], None))
+	for f_type in ('log_includes', 'log_excludes'):
+		config_dict[f_type] = _parse_filter_list_(config_dict.pop(f_type).get(f_type[4:-1], None))
 
 	return config_dict
 
 
 def _parse_filter_item_(in_item):
-	return {
-		'extension': in_item['@extension'],
-		'uid': in_item['@uid'],
-		'action': in_item['@action'],
-		'retname': in_item['@retname']
-		}
+
+	ret = new_filter_item()
+	tmp = {k[1:]: v for k, v in in_item.items()}
+	ret.update({k: tmp[k] for k in tmp.keys() & ret.keys()})
+
+	return ret
 
 
 def _parse_filter_list_(in_list):
+
 	if in_list is None:
 		return []
 	if not isinstance(in_list, list):
 		return [_parse_filter_item_(in_list)]
+
 	return [_parse_filter_item_(item) for item in in_list]
 
 
 def compile_filters(include_list, exclude_list):
 
 	if len(include_list) == 0:
-		include_list.append({
-			'extension': '.*',
-			'uid': '*',
-			'action': '.*',
-			'retname': '.*'
-			})
+		include_list.append(new_filter_item())
 
 	return tuple(
 		[_compile_filter_item_(item) for item in in_list]
@@ -101,39 +122,41 @@ def _compile_filter_item_(in_item):
 		re.compile(in_item['extension']),
 		int(in_item['uid']) if in_item['uid'].isnumeric() else None,
 		re.compile(in_item['action']),
-		re.compile(in_item['retname'])
+		re.compile(in_item['retname']),
+		re.compile(in_item['command'])
 		)
 
 
 def match_filters(
-	abs_path, uid, action, ret_status,
+	abs_path, uid, action, ret_status, command,
 	incl_filter_list, excl_filter_list
 	):
 
 	if len(incl_filter_list) != 0:
 		included = False
 		for filter_tuple in incl_filter_list:
-			if _match_filter_item_(abs_path, uid, action, ret_status, *filter_tuple):
+			if _match_filter_item_(abs_path, uid, action, ret_status, command, *filter_tuple):
 				included = True
 				break
 		if not included:
 			return False
 
 	for filter_tuple in excl_filter_list:
-		if _match_filter_item_(abs_path, uid, action, ret_status, *filter_tuple):
+		if _match_filter_item_(abs_path, uid, action, ret_status, command, *filter_tuple):
 			return False
 
 	return True
 
 
 def _match_filter_item_(
-	abs_path, uid, action, ret_status,
-	f_path, f_uid, f_action, f_status
+	abs_path, uid, action, ret_status, command,
+	f_path, f_uid, f_action, f_status, f_command
 	):
 
 	return all((
 		bool(f_path.match(abs_path)),
 		(uid == f_uid) if isinstance(f_uid, int) else True,
 		bool(f_action.match(action)),
-		bool(f_status.match(ret_status))
+		bool(f_status.match(ret_status)),
+		bool(f_command.match(command))
 		))

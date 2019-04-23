@@ -85,6 +85,9 @@ destroy_parentfs:
 	python3 -c 'import tests; tests.lib.quick_cli_destroy_parentfs()'
 destroy_childfs:
 	python3 -c 'import tests; tests.lib.quick_cli_destroy_childfs()'
+destroy_force:
+	-sudo fusermount -u tests/test_mount/test_child
+	-sudo umount tests/test_mount
 
 test:
 	make test_posix

@@ -48,7 +48,7 @@ except ImportError:
 	fuse_features = {}
 
 from .filter import compile_filters
-from .log import get_logger
+from .log import get_logger, log_msg
 from .out import event
 from .timing import time
 
@@ -107,6 +107,7 @@ class loggedfs(Operations):
 		log_enabled = True,
 		log_printprocessname = True,
 		log_configmsg = None,
+		log_json = False,
 		fuse_foreground_bool = None,
 		fuse_allowother_bool = None
 		):
@@ -117,25 +118,25 @@ class loggedfs(Operations):
 			log_excludes = []
 
 		self._log_printprocessname = bool(log_printprocessname)
-		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog)
+		self._log_json = bool(log_json)
+		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
 		if bool(fuse_foreground_bool):
-			self.logger.info('LoggedFS-python not running as a daemon')
+			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
 		if bool(fuse_allowother_bool):
-			self.logger.info('LoggedFS-python running as a public filesystem')
+			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
 		if bool(log_file):
-			self.logger.info('LoggedFS-python log file: %s' % log_file)
+			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
 
-		self.logger.info('LoggedFS-python starting at %s' % directory)
+		self.logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
 		try:
 			self.root_path = directory # TODO check: permissions, existence
-			os.chdir(directory) # TODO remove this
-			self.root_path_fd = os.open('.', os.O_RDONLY) # TODO open directory
+			self.root_path_fd = os.open(directory, os.O_RDONLY)
 		except:
 			self.logger.exception('Directory access failed.')
 			sys.exit(1)
 
-		self.logger.info(log_configmsg)
+		self.logger.info(log_msg(self._log_json, log_configmsg))
 
 		for flag_name in self.requested_features.keys():
 			setattr(
@@ -188,6 +189,11 @@ class loggedfs(Operations):
 		raise FuseOSError(errno.ENOSYS)
 
 
+	def fsync(self, path, datasync, fip):
+
+		raise FuseOSError(errno.ENOSYS) # the original loggedfs just returns 0
+
+
 	def ioctl(self, path, cmd, arg, fh, flags, data):
 
 		raise FuseOSError(errno.ENOSYS)
@@ -202,32 +208,32 @@ class loggedfs(Operations):
 # CORE CLASS: Filesystem & file methods - IMPLEMENTATION
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def access(self, path, mode):
 
 		if not os.access(self._rel_path(path), mode, dir_fd = self.root_path_fd):
 			raise FuseOSError(errno.EACCES)
 
 
-	@event(format_pattern = '{0} to {1}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path} to {param_mode}')
 	def chmod(self, path, mode):
 
 		os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
 
 
-	@event(format_pattern = '{0} to {1}:{2}', abs_path_fields = [0], uid_fields = [1], gid_fields = [2])
+	@event(format_pattern = '{param_path} to {param_uid_name}({param_uid}):{param_gid_name}({param_gid})')
 	def chown(self, path, uid, gid):
 
 		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{0}')
+	@event(format_pattern = '{param_path}')
 	def destroy(self, path):
 
 		os.close(self.root_path_fd)
 
 
-	@event(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
+	@event(format_pattern = '{param_path} (fh={param_fip})')
 	def getattr(self, path, fip):
 
 		if not fip:
@@ -249,19 +255,13 @@ class loggedfs(Operations):
 		return ret_dict
 
 
-	@event(format_pattern = '{0} (fh={2})', abs_path_fields = [0], fip_fields = [2])
-	def fsync(self, path, datasync, fip):
-
-		return 0 # the original loggedfs does that
-
-
-	@event(format_pattern = '{0}')
+	@event(format_pattern = '{param_path}')
 	def init(self, path):
 
-		os.fchdir(self.root_path_fd)
+		pass
 
 
-	@event(format_pattern = '{1} to {0}', abs_path_fields = [0, 1])
+	@event(format_pattern = '{param_source_path} to {param_target_path}')
 	def link(self, target_path, source_path):
 
 		target_rel_path = self._rel_path(target_path)
@@ -272,10 +272,10 @@ class loggedfs(Operations):
 			)
 
 		uid, gid, pid = fuse_get_context()
-		os.lchown(target_rel_path, uid, gid)
+		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{0} {1}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path} {param_mode}')
 	def mkdir(self, path, mode):
 
 		rel_path = self._rel_path(path)
@@ -283,11 +283,12 @@ class loggedfs(Operations):
 		os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.lchown(rel_path, uid, gid)
-		os.chmod(rel_path, mode) # HACK should be lchmod, which is only available on BSD
+
+		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
 
 
-	@event(format_pattern = '{0} {1}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path} {param_mode}')
 	def mknod(self, path, mode, dev):
 
 		rel_path = self._rel_path(path)
@@ -306,10 +307,10 @@ class loggedfs(Operations):
 
 		uid, gid, pid = fuse_get_context()
 		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # HACK should be lchmod, which is only available on BSD
+		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
 
 
-	@event(format_pattern = '({1}) {0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
+	@event(format_pattern = '({param_fip}) {param_path} (fh={param_fip})')
 	def open(self, path, fip):
 
 		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
@@ -317,7 +318,7 @@ class loggedfs(Operations):
 		return 0
 
 
-	@event(format_pattern = '{1} bytes from {0} at offset {2} (fh={3})', abs_path_fields = [0], fip_fields = [3])
+	@event(format_pattern = '{param_length} bytes from {param_path} at offset {param_offset} (fh={param_fip})')
 	def read(self, path, length, offset, fip):
 
 		ret = os.pread(fip.fh, length, offset)
@@ -325,7 +326,7 @@ class loggedfs(Operations):
 		return ret
 
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def readdir(self, path, fh):
 
 		rel_path = self._rel_path(path)
@@ -339,7 +340,7 @@ class loggedfs(Operations):
 		return dirents
 
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def readlink(self, path):
 
 		pathname = os.readlink(self._rel_path(path), dir_fd = self.root_path_fd)
@@ -350,28 +351,28 @@ class loggedfs(Operations):
 			return pathname
 
 
-	@event(format_pattern = '{0} (fh={1})', abs_path_fields = [0], fip_fields = [1])
+	@event(format_pattern = '{param_path} (fh={param_fip})')
 	def release(self, path, fip):
 
 		os.close(fip.fh)
 
 
-	@event(format_pattern = '{0} to {1}', abs_path_fields = [0, 1])
-	def rename(self, old, new):
+	@event(format_pattern = '{param_old_path} to {param_new_path}')
+	def rename(self, old_path, new_path):
 
 		os.rename(
-			self._rel_path(old), self._rel_path(new),
+			self._rel_path(old_path), self._rel_path(new_path),
 			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
 			)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def rmdir(self, path):
 
 		os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def statfs(self, path):
 
 		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
@@ -381,10 +382,10 @@ class loggedfs(Operations):
 		return {key: getattr(stv, key) for key in self.stvfs_fields}
 
 
-	@event(format_pattern = 'from {1} to {0}', abs_path_fields = [1])
-	def symlink(self, target_path, source_path):
+	@event(format_pattern = 'from {param_source_path} to {param_target_path_}')
+	def symlink(self, target_path_, source_path):
 
-		target_rel_path = self._rel_path(target_path)
+		target_rel_path = self._rel_path(target_path_)
 
 		os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
 
@@ -392,7 +393,7 @@ class loggedfs(Operations):
 		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{0} to {1} bytes (fh={fip})', abs_path_fields = [0], fip_fields = ['fip'])
+	@event(format_pattern = '{param_path} to {param_length} bytes (fh={param_fip})')
 	def truncate(self, path, length, fip = None):
 
 		if fip is None:
@@ -407,13 +408,13 @@ class loggedfs(Operations):
 			return os.ftruncate(fip.fh, length)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def unlink(self, path):
 
 		os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
 
 
-	@event(format_pattern = '{0}', abs_path_fields = [0])
+	@event(format_pattern = '{param_path}')
 	def utimens(self, path, times = None):
 
 		def _fix_time_(atime, mtime):
@@ -439,7 +440,7 @@ class loggedfs(Operations):
 			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
 
 
-	@event(format_pattern = '{1} bytes to {0} at offset {2} (fh={3})', abs_path_fields = [0], length_fields = [1], fip_fields = [3])
+	@event(format_pattern = '{param_buf_len} bytes to {param_path} at offset {param_offset} (fh={param_fip})')
 	def write(self, path, buf, offset, fip):
 
 		res = os.pwrite(fip.fh, buf, offset)
