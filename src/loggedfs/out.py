@@ -217,7 +217,7 @@ def _log_event_(
 		log_dict['return'] = ret_str
 
 	if not match_filters(
-		log_dict['param_%s' % func_arg_abspath], uid, func.__name__, ret_status,
+		log_dict['param_%s' % func_arg_abspath], uid, func.__name__, ret_status, p_cmdname,
 		self._f_incl, self._f_excl
 		):
 		return
