@@ -30,7 +30,7 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from .cli import cli_entry
-from .core import (
+from .fs import (
 	loggedfs,
 	loggedfs_factory
 	)

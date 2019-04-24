@@ -31,7 +31,7 @@ specific language governing rights and limitations under the License.
 
 import click
 
-from .core import loggedfs_factory
+from .fs import loggedfs_factory
 from .filter import parse_filters
 
 
