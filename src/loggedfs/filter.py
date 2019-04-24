@@ -36,6 +36,81 @@ import xmltodict
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# EVENT FILTER CLASS
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class event_filter_class:
+
+
+	VALID_XML_BLOCKS = ('@logEnabled', '@printProcessName', 'includes', 'excludes')
+	VALID_CFG_KEYS = ('log_enabled', 'log_printprocessname', 'log_includes', 'log_excludes')
+
+
+	def __init__(self):
+
+		_include_list = []
+		_exclude_list = []
+
+
+	@staticmethod
+	def from_xmlstring(xml_str):
+		"""Parse XML configuration string and return instance of event_filter_class.
+		Compatibility layer for original LoggedFS XML configuration file format.
+		"""
+
+		if not isinstance(xml_str, str):
+			raise TypeError('xml_str must have type str')
+		if len(xml_str) == 0:
+			raise ValueError('xml_str must not be empty')
+		try:
+			xml_dict = xmltodict.parse(xml_str)
+		except:
+			raise ValueError('xml_str does not contain valid XML')
+		try:
+			xml_dict = xml_dict['loggedFS']
+		except KeyError:
+			raise ValueError('XML tree does not have loggedFS top-level tag')
+		if len(xml_dict.keys() - set(event_filter_class.VALID_XML_BLOCKS)) > 0:
+			raise ValueError('unexpected tags and/or parameters in XML tree')
+
+		for field_new, field_old in zip(
+			event_filter_class.VALID_CFG_KEYS, event_filter_class.VALID_XML_BLOCKS
+			):
+			try:
+				xml_dict[field_new] = xml_dict.pop(field_old)
+			except KeyError:
+				pass
+
+
+	def match(self, *args):
+
+		pass
+
+
+	@staticmethod
+	def _new_filter():
+
+		return {
+			'log_enabled': True,
+			'log_printprocessname': True,
+			'log_includes': {},
+			'log_excludes': {}
+			}
+
+
+	@staticmethod
+	def _new_filter_item():
+
+		return {
+			'extension': '.*',
+			'uid': '*',
+			'action': '.*',
+			'retname': '.*',
+			'command': '.*'
+			}
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
