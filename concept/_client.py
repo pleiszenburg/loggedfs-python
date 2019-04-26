@@ -7,6 +7,7 @@ import threading
 import time
 
 PREFIX = b'\xBA\xDE\xAF\xFE'
+EOT = -1
 
 class receiver_class:
 
@@ -35,7 +36,7 @@ def _out_decoder(_s, _q):
     while True:
         prefix = _s.read(prefix_len)
         if len(prefix) == 0: # end of pipe
-            print('stdout exit')
+            _q.put(EOT)
             break
         data_len_encoded = _s.read(8)
         data_len = struct.unpack('Q', data_len_encoded)[0] # Q: uint64
@@ -46,7 +47,7 @@ def _err_decoder(_s, _q):
     while True:
         msg = _s.readline()
         if len(msg) == 0:
-            print('stderr exit')
+            _q.put(EOT)
             break
         _q.put(msg.decode('utf-8'))
 
@@ -72,9 +73,18 @@ class manager_class:
 def main():
     manager = manager_class(
         ['python3', '_server.py'],
-        lambda x: print('OUT: ', x),
-        lambda x: print('ERR: ', x[:-1])
+        demo_consumer_out,
+        demo_consumer_err
         )
+
+def demo_consumer_out(msg):
+    print('OUT: ', msg)
+
+def demo_consumer_err(msg):
+    if isinstance(msg, str):
+        print('ERR: ', msg[:-1])
+    else:
+        print('ERR: ', msg)
 
 if __name__ == '__main__':
     main()
