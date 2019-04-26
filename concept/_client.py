@@ -36,7 +36,7 @@ def _out_decoder(_s, _q):
     while True:
         prefix = _s.read(prefix_len)
         if len(prefix) == 0: # end of pipe
-            _q.put(EOT)
+            _q.put(EOT * 10)
             break
         data_len_encoded = _s.read(8)
         data_len = struct.unpack('Q', data_len_encoded)[0] # Q: uint64
@@ -47,7 +47,7 @@ def _err_decoder(_s, _q):
     while True:
         msg = _s.readline()
         if len(msg) == 0:
-            _q.put(EOT)
+            _q.put(EOT * 100)
             break
         _q.put(msg.decode('utf-8'))
 
