@@ -114,7 +114,6 @@ class filter_pipeline_class:
 
 
 	VALID_XML_BLOCKS = ('@logEnabled', '@printProcessName', 'includes', 'excludes')
-	# VALID_CFG_KEYS = ('log_enabled', 'log_printprocessname', 'log_includes', 'log_excludes')
 
 
 	def __init__(self, include_list = None, exclude_list = None):
