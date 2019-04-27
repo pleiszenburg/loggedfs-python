@@ -34,14 +34,66 @@ import re
 
 import xmltodict
 
+
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # FILTER ITEM CLASS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 class filter_item_class:
 
-	def __init__(self):
+
+	def __init__(self, **fields):
+
 		pass
+
+
+	@staticmethod
+	def _from_xmldict(xml_dict):
+
+		if not ininstance(xml_dict, OrderedDict) and not ininstance(xml_dict, dict):
+			raise TypeError('can not construct filter item from non-dict type')
+
+		if any((not isinstance(item, str) for item in xml_dict.keys())):
+			raise TypeError('non-string key in dict')
+		if any((not isinstance(item, str) for item in xml_dict.values())):
+			raise TypeError('non-string value in dict')
+
+		fields_dict = {}
+
+		try:
+			if xml_dict['retname'] == 'SUCCESS':
+				fields_dict['status'] = True
+			elif xml_dict['retname'] == 'FAILURE':
+				fields_dict['status'] = False
+			elif xml_dict['retname'] != '.*':
+				raise ValueError('unexpected value for "retname"')
+		except KeyError:
+			pass
+
+		try:
+			fields_dict['_abspath'] = xml_dict['extension']
+		except KeyError:
+			pass
+
+		try:
+			if xml_dict['uid'].isdecimal():
+				fields_dict['proc_uid'] = int(xml_dict['uid'])
+			elif xml_dict['uid'] != '*':
+				raise ValueError('unexpected value for "uid"')
+		except KeyError:
+			pass
+
+		try:
+			fields_dict['action'] = xml_dict['action']
+		except KeyError:
+			pass
+
+		try:
+			fields_dict['command'] = xml_dict['command']
+		except KeyError:
+			pass
+
+		return filter_item_class(**fields_dict)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -52,13 +104,27 @@ class filter_pipeline_class:
 
 
 	VALID_XML_BLOCKS = ('@logEnabled', '@printProcessName', 'includes', 'excludes')
-	VALID_CFG_KEYS = ('log_enabled', 'log_printprocessname', 'log_includes', 'log_excludes')
+	# VALID_CFG_KEYS = ('log_enabled', 'log_printprocessname', 'log_includes', 'log_excludes')
 
 
-	def __init__(self):
+	def __init__(self, include_list = None, exclude_list = None):
 
-		_include_list = []
-		_exclude_list = []
+		if include_list is None:
+			include_list = []
+		if exclude_list is None:
+			exclude_list = []
+
+		if not isinstance(include_list, list):
+			raise TypeError('include_list must have type list')
+		if not isinstance(exclude_list, list):
+			raise TypeError('exclude_list must have type list')
+		if any((not isinstance(item, filter_item_class) for item in include_list)):
+			raise TypeError('include_list must only contain type filter_item_class')
+		if any((not isinstance(item, filter_item_class) for item in exclude_list)):
+			raise TypeError('exclude_list must only contain type filter_item_class')
+
+		self._include_list = include_list
+		self._exclude_list = exclude_list
 
 
 	@staticmethod
@@ -82,41 +148,31 @@ class filter_pipeline_class:
 		if len(xml_dict.keys() - set(filter_pipeline_class.VALID_XML_BLOCKS)) > 0:
 			raise ValueError('unexpected tags and/or parameters in XML tree')
 
-		for field_new, field_old in zip(
-			filter_pipeline_class.VALID_CFG_KEYS, filter_pipeline_class.VALID_XML_BLOCKS
-			):
-			try:
-				xml_dict[field_new] = xml_dict.pop(field_old)
-			except KeyError:
-				pass
+		log_enabled = xml_dict.pop('@logEnabled', 'true').lower() == 'true'
+		log_printprocessname = xml_dict.pop('@printProcessName', 'true').lower() == 'true'
+
+		group_list = []
+		for f_type in ('includes', 'excludes'):
+			group = xml_dict.pop(f_type, None)
+			if group is None:
+				group_list.append([])
+				continue
+			if not ininstance(group, OrderedDict) and not ininstance(group, dict):
+				raise TypeError('malformed XML tree for %s' % f_type)
+			group = group.get(f_type[:-1], None)
+			if group is None:
+				group_list.append([])
+				continue
+			if not ininstance(group, list):
+				raise TypeError('malformed XML tree for %s' % f_type[:-1])
+			group_list.append([filter_item_class._from_xmldict(item) for item in group])
+
+		return log_enabled, log_printprocessname, filter_pipeline_class(*group_list)
 
 
 	def match(self, *args):
 
 		pass
-
-
-	@staticmethod
-	def _new_filter():
-
-		return {
-			'log_enabled': True,
-			'log_printprocessname': True,
-			'log_includes': {},
-			'log_excludes': {}
-			}
-
-
-	@staticmethod
-	def _new_filter_item():
-
-		return {
-			'extension': '.*',
-			'uid': '*',
-			'action': '.*',
-			'retname': '.*',
-			'command': '.*'
-			}
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
