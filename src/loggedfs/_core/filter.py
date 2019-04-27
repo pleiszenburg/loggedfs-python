@@ -34,12 +34,21 @@ import re
 
 import xmltodict
 
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# FILTER ITEM CLASS
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+class filter_item_class:
+
+	def __init__(self):
+		pass
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# EVENT FILTER CLASS
+# FILTER PIPELINE CLASS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class event_filter_class:
+class filter_pipeline_class:
 
 
 	VALID_XML_BLOCKS = ('@logEnabled', '@printProcessName', 'includes', 'excludes')
@@ -54,7 +63,7 @@ class event_filter_class:
 
 	@staticmethod
 	def from_xmlstring(xml_str):
-		"""Parse XML configuration string and return instance of event_filter_class.
+		"""Parse XML configuration string and return instance of filter_pipeline_class.
 		Compatibility layer for original LoggedFS XML configuration file format.
 		"""
 
@@ -70,11 +79,11 @@ class event_filter_class:
 			xml_dict = xml_dict['loggedFS']
 		except KeyError:
 			raise ValueError('XML tree does not have loggedFS top-level tag')
-		if len(xml_dict.keys() - set(event_filter_class.VALID_XML_BLOCKS)) > 0:
+		if len(xml_dict.keys() - set(filter_pipeline_class.VALID_XML_BLOCKS)) > 0:
 			raise ValueError('unexpected tags and/or parameters in XML tree')
 
 		for field_new, field_old in zip(
-			event_filter_class.VALID_CFG_KEYS, event_filter_class.VALID_XML_BLOCKS
+			filter_pipeline_class.VALID_CFG_KEYS, filter_pipeline_class.VALID_XML_BLOCKS
 			):
 			try:
 				xml_dict[field_new] = xml_dict.pop(field_old)
