@@ -29,8 +29,8 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from .cli import cli_entry
-from .fs import (
+from ._core.cli import cli_entry
+from ._core.fs import (
 	loggedfs,
 	loggedfs_factory
 	)
