@@ -174,9 +174,19 @@ class filter_pipeline_class:
 		return log_enabled, log_printprocessname, filter_pipeline_class(*group_list)
 
 
-	def match(self, *args):
+	def match(self, event_dict):
 
-		pass
+		if not isinstance(event_dict, dict):
+			raise TypeError('event_dict must be of type dict')
+
+		if len(self._include_list) > 0:
+			if not any((item.match(event_dict) for item in self._include_list))
+				return False
+
+		if any((item.match(event_dict) for item in self._exclude_list))
+			return False
+
+		return True # or False
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
