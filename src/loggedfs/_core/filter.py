@@ -49,6 +49,12 @@ class filter_field_class:
 			raise TypeError('name must either be callable or a string')
 
 
+	@property
+	def name_is_func(self):
+
+		return self._name_is_func
+
+
 	def match(self, name, value):
 
 		return True # or False
@@ -79,11 +85,10 @@ class filter_item_class:
 		self._fields_list = fields_list
 
 
-	def match(self, fields_list):
+	def match(self, event_dict):
 
-		if len(fields_list) == 0:
-			raise ValueError('at least one field is required for matching an event')
-
+		if not isinstance(event_dict, dict):
+			raise TypeError('event_dict must be of type dict')
 
 
 
@@ -111,9 +116,10 @@ class filter_item_class:
 			pass
 
 		try:
-			fields_list.append(filter_field_class(
-				lambda x: x.endswith('path'), re.compile(xml_dict['extension']).match
-				))
+			if xml_dict['extension'] != '.*':
+				fields_list.append(filter_field_class(
+					lambda x: x.endswith('path'), re.compile(xml_dict['extension']).match
+					))
 		except KeyError:
 			pass
 
@@ -128,16 +134,18 @@ class filter_item_class:
 			pass
 
 		try:
-			fields_list.append(filter_field_class(
-				'action', re.compile(xml_dict['action']).match
-				))
+			if xml_dict['action'] != '.*':
+				fields_list.append(filter_field_class(
+					'action', re.compile(xml_dict['action']).match
+					))
 		except KeyError:
 			pass
 
 		try:
-			fields_list.append(filter_field_class(
-				'command', re.compile(xml_dict['command']).match
-				))
+			if xml_dict['command'] != '.*':
+				fields_list.append(filter_field_class(
+					'command', re.compile(xml_dict['command']).match
+					))
 		except KeyError:
 			pass
 
@@ -180,10 +188,10 @@ class filter_pipeline_class:
 			raise TypeError('event_dict must be of type dict')
 
 		if len(self._include_list) > 0:
-			if not any((item.match(**event_dict) for item in self._include_list))
+			if not any((item.match(event_dict) for item in self._include_list)):
 				return False
 
-		if any((item.match(**event_dict) for item in self._exclude_list)):
+		if any((item.match(event_dict) for item in self._exclude_list)):
 			return False
 
 		return True
