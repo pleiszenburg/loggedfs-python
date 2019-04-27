@@ -69,9 +69,14 @@ class filter_item_class:
 
 	def __init__(self, fields_list):
 
+		if not isinstance(fields_list, list):
+			raise TypeError('fields_list must be of type list')
 		if len(fields_list) == 0:
 			raise ValueError('at least one field is required for setting up a filter')
+		if any((not isinstance(item, filter_field_class) for item in fields_list)):
+			raise TypeError('fields_list must only contain type filter_field_class')
 
+		self._fields_list = fields_list
 
 
 	def match(self, fields_list):
