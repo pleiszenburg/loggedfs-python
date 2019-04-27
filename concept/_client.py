@@ -9,7 +9,7 @@ import time
 PREFIX = b'\xBA\xDE\xAF\xFE'
 EOT = -1
 
-class receiver_class:
+class _receiver_class:
 
     def __init__(self, in_stream, decoder_func, processing_func):
         self._s = in_stream
@@ -49,14 +49,14 @@ def _err_decoder(_s, _q):
             break
         _q.put(msg.decode('utf-8'))
 
-class manager_class:
+class _receiver_manager_class:
 
     def __init__(self, cmd_list, out_func, err_func, exit_func):
         self._exit_func = exit_func
         self._proc = Popen(cmd_list, stdout = PIPE, stderr = PIPE)
         self._proc_alive = True
-        self._out_r = receiver_class(self._proc.stdout, _out_decoder, out_func)
-        self._err_r = receiver_class(self._proc.stderr, _err_decoder, err_func)
+        self._out_r = _receiver_class(self._proc.stdout, _out_decoder, out_func)
+        self._err_r = _receiver_class(self._proc.stderr, _err_decoder, err_func)
         self._receive()
 
     def _receive(self):
@@ -68,7 +68,7 @@ class manager_class:
         self._exit_func()
 
 def main():
-    manager = manager_class(
+    manager = _receiver_manager_class(
         ['python3', '_server.py'],
         demo_consumer_out,
         demo_consumer_err,
