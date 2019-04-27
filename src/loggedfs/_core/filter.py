@@ -42,12 +42,14 @@ import xmltodict
 class filter_field_class:
 
 
-	def __init__(self):
+	def __init__(self, name, value_func):
 
-		pass
+		self._name_is_func = hasattr(name, '__call__')
+		if not self._name_is_func and not isinstance(name, str):
+			raise TypeError('name must either be callable or a string')
 
 
-	def match(self, value):
+	def match(self, name, value):
 
 		return True # or False
 
@@ -65,23 +67,16 @@ class filter_field_class:
 class filter_item_class:
 
 
-	def __init__(self, **fields):
+	def __init__(self, fields_list):
 
-		if len(fields) == 0:
+		if len(fields_list) == 0:
 			raise ValueError('at least one field is required for setting up a filter')
 
-		self._fields = fields
-		self._fields_special = {
-			name[1:]: self._fields.pop(name)
-			for name in tuple(self._fields.keys())
-			if name.startswith('_')
-			}
 
 
+	def match(self, fields_list):
 
-	def match(self, **fields):
-
-		if len(fields) == 0:
+		if len(fields_list) == 0:
 			raise ValueError('at least one field is required for matching an event')
 
 
@@ -98,42 +93,50 @@ class filter_item_class:
 		if any((not isinstance(item, str) for item in xml_dict.values())):
 			raise TypeError('non-string value in dict')
 
-		fields_dict = {}
+		fields_list = []
 
 		try:
 			if xml_dict['retname'] == 'SUCCESS':
-				fields_dict['status'] = True
+				fields_list.append(filter_field_class('status', lambda x: x == True))
 			elif xml_dict['retname'] == 'FAILURE':
-				fields_dict['status'] = False
+				fields_list.append(filter_field_class('status', lambda x: x == False))
 			elif xml_dict['retname'] != '.*':
 				raise ValueError('unexpected value for "retname"')
 		except KeyError:
 			pass
 
 		try:
-			fields_dict['_abspath'] = xml_dict['extension']
+			fields_list.append(filter_field_class(
+				lambda x: x.endswith('path'), re.compile(xml_dict['extension']).match
+				))
 		except KeyError:
 			pass
 
 		try:
 			if xml_dict['uid'].isdecimal():
-				fields_dict['proc_uid'] = int(xml_dict['uid'])
+				fields_list.append(filter_field_class(
+					'proc_uid', lambda x: x == int(xml_dict['uid'])
+					))
 			elif xml_dict['uid'] != '*':
 				raise ValueError('unexpected value for "uid"')
 		except KeyError:
 			pass
 
 		try:
-			fields_dict['action'] = xml_dict['action']
+			fields_list.append(filter_field_class(
+				'action', re.compile(xml_dict['action']).match
+				))
 		except KeyError:
 			pass
 
 		try:
-			fields_dict['command'] = xml_dict['command']
+			fields_list.append(filter_field_class(
+				'command', re.compile(xml_dict['command']).match
+				))
 		except KeyError:
 			pass
 
-		return filter_item_class(**fields_dict)
+		return filter_item_class(fields_list)
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
