@@ -45,6 +45,7 @@ class filter_field_class:
 	def __init__(self, name, value):
 
 		self._name_is_func = hasattr(name, '__call__')
+
 		if not self._name_is_func and not isinstance(name, str):
 			raise TypeError('name must either be callable or a string')
 		if not hasattr(value, '__call__'):
@@ -72,12 +73,6 @@ class filter_field_class:
 		return self._value
 
 
-	@staticmethod
-	def _from_xmldict(data):
-
-		return filter_field_class()
-
-
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # FILTER ITEM CLASS
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -96,6 +91,7 @@ class filter_item_class:
 
 		self._fields_list = fields_list
 		self._field_names = {field.name for field in self._fields_list if not field.name_is_func}
+		self._field_nofuncs = {field for field in self._fields_list if not field.name_is_func}
 		self._field_funcs = {field for field in self._fields_list if field.name_is_func}
 
 
@@ -107,7 +103,7 @@ class filter_item_class:
 		if len(self._field_names - event_dict.keys()) > 0:
 			return False
 
-		if any((not field.value(event_dict[field.name]) for field in self._fields_list)):
+		if any((not field.value(event_dict[field.name]) for field in self._field_nofuncs)):
 			return False
 
 		for field in self._field_funcs:
@@ -129,7 +125,6 @@ class filter_item_class:
 
 		if not ininstance(xml_dict, OrderedDict) and not ininstance(xml_dict, dict):
 			raise TypeError('can not construct filter item from non-dict type')
-
 		if any((not isinstance(item, str) for item in xml_dict.keys())):
 			raise TypeError('non-string key in dict')
 		if any((not isinstance(item, str) for item in xml_dict.values())):
