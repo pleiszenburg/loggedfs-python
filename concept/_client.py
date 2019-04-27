@@ -53,7 +53,8 @@ def _err_decoder(_s, _q):
 
 class manager_class:
 
-    def __init__(self, cmd_list, out_func, err_func):
+    def __init__(self, cmd_list, out_func, err_func, exit_func):
+        self._exit_func = exit_func
         self._proc = subprocess.Popen(
             cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
             )
@@ -68,13 +69,14 @@ class manager_class:
             self._out_r.flush()
             self._err_r.flush()
             self._proc_alive = self._proc.poll() is None
-        print('proc died')
+        self._exit_func()
 
 def main():
     manager = manager_class(
         ['python3', '_server.py'],
         demo_consumer_out,
-        demo_consumer_err
+        demo_consumer_err,
+        demo_exit
         )
 
 def demo_consumer_out(msg):
@@ -85,6 +87,9 @@ def demo_consumer_err(msg):
         print('ERR: ', msg[:-1])
     else:
         print('ERR: ', msg)
+
+def demo_exit():
+    print('Proc died!')
 
 if __name__ == '__main__':
     main()
