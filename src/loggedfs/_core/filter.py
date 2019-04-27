@@ -186,7 +186,7 @@ class filter_pipeline_class:
 		if any((item.match(event_dict) for item in self._exclude_list))
 			return False
 
-		return True # or False
+		return True
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
