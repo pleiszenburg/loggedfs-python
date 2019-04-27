@@ -47,6 +47,16 @@ class filter_item_class:
 		pass
 
 
+	def match_all(self):
+
+		pass
+
+
+	def match_any(self):
+
+		pass
+
+
 	@staticmethod
 	def _from_xmldict(xml_dict):
 
