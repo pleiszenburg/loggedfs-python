@@ -95,6 +95,8 @@ class filter_item_class:
 			raise TypeError('fields_list must only contain type filter_field_class')
 
 		self._fields_list = fields_list
+		self._field_names = {field.name for field in self._fields_list if not field.name_is_func}
+		# self._field_funcs = {field.name for field in self._fields_list if field.name_is_func}
 
 
 	def match(self, event_dict):
@@ -102,6 +104,15 @@ class filter_item_class:
 		if not isinstance(event_dict, dict):
 			raise TypeError('event_dict must be of type dict')
 
+		if len(self._field_names - event_dict.keys()) > 0:
+			return False
+
+		if any((not field.value(event_dict[field.name]) for field in self._fields_list)):
+			return False
+
+		
+
+		return True
 
 
 	@staticmethod
