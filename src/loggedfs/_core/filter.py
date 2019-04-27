@@ -44,12 +44,24 @@ class filter_item_class:
 
 	def __init__(self, **fields):
 
-		pass
+		if len(fields) == 0:
+			raise ValueError('at least one field is required for setting up a filter')
+
+		self._fields = fields
+		self._fields_special = {
+			name[1:]: self._fields.pop(name)
+			for name in tuple(self._fields.keys())
+			if name.startswith('_')
+			}
+
 
 
 	def match(self, **fields):
 
-		pass
+		if len(fields) == 0:
+			raise ValueError('at least one field is required for matching an event')
+
+
 
 
 	@staticmethod
@@ -137,10 +149,10 @@ class filter_pipeline_class:
 			raise TypeError('event_dict must be of type dict')
 
 		if len(self._include_list) > 0:
-			if not any((item.match(event_dict) for item in self._include_list))
+			if not any((item.match(**event_dict) for item in self._include_list))
 				return False
 
-		if any((item.match(event_dict) for item in self._exclude_list))
+		if any((item.match(**event_dict) for item in self._exclude_list)):
 			return False
 
 		return True
