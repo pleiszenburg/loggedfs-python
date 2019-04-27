@@ -131,6 +131,21 @@ class filter_pipeline_class:
 		self._exclude_list = exclude_list
 
 
+	def match(self, event_dict):
+
+		if not isinstance(event_dict, dict):
+			raise TypeError('event_dict must be of type dict')
+
+		if len(self._include_list) > 0:
+			if not any((item.match(event_dict) for item in self._include_list))
+				return False
+
+		if any((item.match(event_dict) for item in self._exclude_list))
+			return False
+
+		return True
+
+
 	@staticmethod
 	def from_xmlstring(xml_str):
 		"""Parse XML configuration string and return instance of filter_pipeline_class.
@@ -172,21 +187,6 @@ class filter_pipeline_class:
 			group_list.append([filter_item_class._from_xmldict(item) for item in group])
 
 		return log_enabled, log_printprocessname, filter_pipeline_class(*group_list)
-
-
-	def match(self, event_dict):
-
-		if not isinstance(event_dict, dict):
-			raise TypeError('event_dict must be of type dict')
-
-		if len(self._include_list) > 0:
-			if not any((item.match(event_dict) for item in self._include_list))
-				return False
-
-		if any((item.match(event_dict) for item in self._exclude_list))
-			return False
-
-		return True
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
