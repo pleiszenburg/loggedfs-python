@@ -96,7 +96,7 @@ class filter_item_class:
 
 		self._fields_list = fields_list
 		self._field_names = {field.name for field in self._fields_list if not field.name_is_func}
-		# self._field_funcs = {field.name for field in self._fields_list if field.name_is_func}
+		self._field_funcs = {field for field in self._fields_list if field.name_is_func}
 
 
 	def match(self, event_dict):
@@ -110,7 +110,16 @@ class filter_item_class:
 		if any((not field.value(event_dict[field.name]) for field in self._fields_list)):
 			return False
 
-		
+		for field in self._field_funcs:
+			key_match = None
+			for key in event_dict.keys():
+				if field.name(key):
+					key_match = key
+					break
+			if key_match is None:
+				return False
+			if not field.value(event_dict[key_match]):
+				return False
 
 		return True
 
