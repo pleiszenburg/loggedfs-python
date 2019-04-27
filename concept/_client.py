@@ -2,7 +2,7 @@
 import pickle
 import queue
 import struct
-import subprocess
+from subprocess import Popen, PIPE
 import threading
 import time
 
@@ -15,9 +15,7 @@ class receiver_class:
         self._s = in_stream
         self._f = processing_func
         self._q = queue.Queue()
-        self._t = threading.Thread(
-            target = decoder_func, args = (self._s, self._q)
-            )
+        self._t = threading.Thread(target = decoder_func, args = (self._s, self._q))
         self._t.daemon = True
         self._t.start()
 
@@ -55,9 +53,7 @@ class manager_class:
 
     def __init__(self, cmd_list, out_func, err_func, exit_func):
         self._exit_func = exit_func
-        self._proc = subprocess.Popen(
-            cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE
-            )
+        self._proc = Popen(cmd_list, stdout = PIPE, stderr = PIPE)
         self._proc_alive = True
         self._out_r = receiver_class(self._proc.stdout, _out_decoder, out_func)
         self._err_r = receiver_class(self._proc.stderr, _err_decoder, err_func)
