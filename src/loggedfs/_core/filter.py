@@ -42,11 +42,16 @@ import xmltodict
 class filter_field_class:
 
 
-	def __init__(self, name, value_func):
+	def __init__(self, name, value):
 
 		self._name_is_func = hasattr(name, '__call__')
 		if not self._name_is_func and not isinstance(name, str):
 			raise TypeError('name must either be callable or a string')
+		if not hasattr(value, '__call__'):
+			raise TypeError('value must either be callable')
+
+		self._name = name
+		self._value = value
 
 
 	@property
@@ -55,9 +60,16 @@ class filter_field_class:
 		return self._name_is_func
 
 
-	def match(self, name, value):
+	@property
+	def name(self):
 
-		return True # or False
+		return self._name
+
+
+	@property
+	def value(self):
+
+		return self._value
 
 
 	@staticmethod
