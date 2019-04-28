@@ -4,7 +4,7 @@ Changes
 0.0.3 (2019-XX-XX)
 ------------------
 
-* FEATURE: In "traditional" logging mode (not JSON), read and write buffers are also logged compressed and BASE64 encoded.
+* FEATURE: In "traditional" logging mode (not JSON), read and write buffers are also logged zlib-compressed and BASE64 encoded.
 * FIX: LoggedFS-python would have crashed if no XML configuration file had been specified.
 
 0.0.2 (2019-04-23)
