@@ -51,7 +51,9 @@ from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
 	FUSE_FOREGROUND_DEFAULT,
 	LOG_ENABLED_DEFAULT,
-	LOG_PRINTPROCESSNAME_DEFAULT
+	LOG_JSON_DEFAULT,
+	LOG_PRINTPROCESSNAME_DEFAULT,
+	LOG_SYSLOG_DEFAULT
 	)
 from .filter import filter_pipeline_class
 from .log import get_logger, log_msg
@@ -117,10 +119,10 @@ class loggedfs(Operations):
 		directory,
 		log_filter = None,
 		log_file = None,
-		log_syslog = False,
+		log_syslog = LOG_SYSLOG_DEFAULT,
 		log_enabled = LOG_ENABLED_DEFAULT,
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
-		log_json = False,
+		log_json = LOG_JSON_DEFAULT,
 		fuse_foreground_bool = FUSE_FOREGROUND_DEFAULT,
 		fuse_allowother_bool = FUSE_ALLOWOTHER_DEFAULT,
 		**kwargs
