@@ -120,10 +120,10 @@ class loggedfs(Operations):
 		log_syslog = False,
 		log_enabled = LOG_ENABLED_DEFAULT,
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
-		log_configmsg = None,
 		log_json = False,
 		fuse_foreground_bool = FUSE_FOREGROUND_DEFAULT,
-		fuse_allowother_bool = FUSE_ALLOWOTHER_DEFAULT
+		fuse_allowother_bool = FUSE_ALLOWOTHER_DEFAULT,
+		**kwargs
 		):
 
 		if log_filter is None:
@@ -157,7 +157,11 @@ class loggedfs(Operations):
 			self.logger.exception('Directory access failed.')
 			sys.exit(1)
 
-		self.logger.info(log_msg(self._log_json, log_configmsg))
+		log_configfile = kwargs.pop('_log_configfile', None)
+		if log_configfile is not None:
+			self.logger.info(log_msg(self._log_json,
+				'LoggedFS-python using configuration file %s' % log_configfile
+				))
 
 		for flag_name in self.requested_features.keys():
 			setattr(
@@ -168,6 +172,9 @@ class loggedfs(Operations):
 
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
+
+		if len(kwargs) > 0:
+			raise ValueError('unknown keyword argument(s)')
 
 
 	def _full_path(self, partial_path):

@@ -117,7 +117,7 @@ def __process_config__(
 		log_enabled = LOG_ENABLED_DEFAULT
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT
 		filter_obj = filter_pipeline_class()
-		config_file = '[None]'
+		config_file = None
 
 	return {
 		'log_filter': filter_obj,
@@ -125,7 +125,7 @@ def __process_config__(
 		'log_printprocessname': log_printprocessname,
 		'log_file': log_file,
 		'log_syslog': not log_syslog_off,
-		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
+		'_log_configfile' : config_file,
 		'log_json': log_json,
 		'fuse_foreground_bool': fuse_foreground_bool,
 		'fuse_allowother_bool': fuse_allowother_bool
