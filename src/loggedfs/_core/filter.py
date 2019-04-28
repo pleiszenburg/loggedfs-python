@@ -34,6 +34,8 @@ import re
 
 import xmltodict
 
+from .defaults import LOG_ENABLED_DEFAULT, LOG_PRINTPROCESSNAME_DEFAULT
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # FILTER FIELD CLASS
@@ -285,8 +287,16 @@ class filter_pipeline_class:
 		if len(xml_dict.keys() - set(filter_pipeline_class.VALID_XML_BLOCKS)) > 0:
 			raise ValueError('unexpected tags and/or parameters in XML tree')
 
-		log_enabled = xml_dict.pop('@logEnabled', 'true').lower() == 'true'
-		log_printprocessname = xml_dict.pop('@printProcessName', 'true').lower() == 'true'
+		log_enabled = xml_dict.pop('@logEnabled', None)
+		if log_enabled is None:
+			log_enabled = LOG_ENABLED_DEFAULT
+		else:
+			log_enabled = log_enabled.lower() == 'true'
+		log_printprocessname = xml_dict.pop('@printProcessName', None)
+		if log_printprocessname is None:
+			log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT
+		else:
+			log_printprocessname = log_printprocessname.lower() == 'true'
 
 		group_list = []
 		for f_type in ('includes', 'excludes'):

@@ -31,8 +31,9 @@ specific language governing rights and limitations under the License.
 
 import click
 
+from .defaults import LOG_ENABLED_DEFAULT, LOG_PRINTPROCESSNAME_DEFAULT
 from .fs import loggedfs_factory
-from .filter import parse_filters
+from .filter import filter_pipeline_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -100,20 +101,22 @@ def __process_config__(
 	):
 
 	if config_fh is not None:
-		config_xml_str = config_fh.read()
+		config_data = config_fh.read()
 		config_fh.close()
+		(
+			log_enabled, log_printprocessname, filter_obj
+			) = filter_pipeline_class.from_xmlstring(config_data)
 		config_file = config_fh.name
 	else:
+		log_enabled = LOG_ENABLED_DEFAULT
+		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT
+		filter_obj = filter_pipeline_class()
 		config_file = '[None]'
-		config_xml_str = None
-
-	config_dict = parse_filters(config_xml_str)
 
 	return {
-		'log_includes': config_dict['log_includes'],
-		'log_excludes': config_dict['log_excludes'],
-		'log_enabled': config_dict['log_enabled'],
-		'log_printprocessname': config_dict['log_printprocessname'],
+		'log_filter': filter_obj,
+		'log_enabled': log_enabled,
+		'log_printprocessname': log_printprocessname,
 		'log_file': log_file,
 		'log_syslog': not log_syslog_off,
 		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
