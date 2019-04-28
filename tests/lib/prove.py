@@ -106,7 +106,8 @@ class fstest_prove_class:
 
 		self.__clear_loggedfs_log__()
 
-		assert pass_condition and 'Traceback (most recent call last)' not in grp_log
+		assert pass_condition
+		assert 'Traceback (most recent call last)' not in grp_log
 
 
 	def __clear_loggedfs_log__(self):
