@@ -71,10 +71,10 @@ def loggedfs_factory(directory, **kwargs):
 		raise TypeError('"directory" must be of type string')
 	if not os.path.isdir(directory):
 		raise ValueError('"directory" must be a path to an existing directory')
-	if not isinstance(kwargs.get('fuse_foreground_bool', FUSE_FOREGROUND_DEFAULT), bool):
-		raise TypeError('"fuse_foreground_bool" must be of type bool')
-	if not isinstance(kwargs.get('fuse_allowother_bool', FUSE_ALLOWOTHER_DEFAULT), bool):
-		raise TypeError('"fuse_allowother_bool" must be of type bool')
+	if not isinstance(kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT), bool):
+		raise TypeError('"fuse_foreground" must be of type bool')
+	if not isinstance(kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT), bool):
+		raise TypeError('"fuse_allowother" must be of type bool')
 
 	return FUSE(
 		loggedfs(
@@ -84,9 +84,9 @@ def loggedfs_factory(directory, **kwargs):
 		directory,
 		raw_fi = True,
 		nothreads = True,
-		foreground = kwargs.get('fuse_foreground_bool', FUSE_FOREGROUND_DEFAULT),
-		allow_other = kwargs.get('fuse_allowother_bool', FUSE_ALLOWOTHER_DEFAULT),
-		default_permissions = kwargs.get('fuse_allowother_bool', FUSE_ALLOWOTHER_DEFAULT),
+		foreground = kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT),
+		allow_other = kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT),
+		default_permissions = kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT),
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
@@ -127,8 +127,8 @@ class loggedfs(Operations):
 		log_enabled = LOG_ENABLED_DEFAULT,
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
 		log_json = LOG_JSON_DEFAULT,
-		fuse_foreground_bool = FUSE_FOREGROUND_DEFAULT,
-		fuse_allowother_bool = FUSE_ALLOWOTHER_DEFAULT,
+		fuse_foreground = FUSE_FOREGROUND_DEFAULT,
+		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
 		**kwargs
 		):
 
@@ -153,9 +153,9 @@ class loggedfs(Operations):
 
 		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
-		if fuse_foreground_bool:
+		if fuse_foreground:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
-		if fuse_allowother_bool:
+		if fuse_allowother:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
 		if log_file is not None:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))

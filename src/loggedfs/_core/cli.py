@@ -101,8 +101,8 @@ def __process_config__(
 	config_fh,
 	log_file,
 	log_syslog_off,
-	fuse_foreground_bool,
-	fuse_allowother_bool,
+	fuse_foreground,
+	fuse_allowother,
 	log_json
 	):
 
@@ -127,6 +127,6 @@ def __process_config__(
 		'log_syslog': not log_syslog_off,
 		'_log_configfile' : config_file,
 		'log_json': log_json,
-		'fuse_foreground_bool': fuse_foreground_bool,
-		'fuse_allowother_bool': fuse_allowother_bool
+		'fuse_foreground': fuse_foreground,
+		'fuse_allowother': fuse_allowother
 		}
