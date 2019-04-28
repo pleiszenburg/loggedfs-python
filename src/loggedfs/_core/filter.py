@@ -133,50 +133,53 @@ class filter_item_class:
 		fields_list = []
 
 		try:
-			if xml_dict['retname'] == 'SUCCESS':
+			if xml_dict['@retname'] == 'SUCCESS':
 				fields_list.append(filter_field_class('status', lambda x: x == True))
-			elif xml_dict['retname'] == 'FAILURE':
+			elif xml_dict['@retname'] == 'FAILURE':
 				fields_list.append(filter_field_class('status', lambda x: x == False))
-			elif xml_dict['retname'] != '.*':
+			elif xml_dict['@retname'] != '.*':
 				raise ValueError('unexpected value for "retname"')
 		except KeyError:
 			pass
 
 		try:
-			if xml_dict['extension'] != '.*':
+			if xml_dict['@extension'] != '.*':
 				fields_list.append(filter_field_class(
-					lambda x: x.endswith('path'), re.compile(xml_dict['extension']).match
+					lambda x: x.endswith('path'), re.compile(xml_dict['@extension']).match
 					))
 		except KeyError:
 			pass
 
 		try:
-			if xml_dict['uid'].isdecimal():
+			if xml_dict['@uid'].isdecimal():
 				fields_list.append(filter_field_class(
-					'proc_uid', lambda x: x == int(xml_dict['uid'])
+					'proc_uid', lambda x: x == int(xml_dict['@uid'])
 					))
-			elif xml_dict['uid'] != '*':
+			elif xml_dict['@uid'] != '*':
 				raise ValueError('unexpected value for "uid"')
 		except KeyError:
 			pass
 
 		try:
-			if xml_dict['action'] != '.*':
+			if xml_dict['@action'] != '.*':
 				fields_list.append(filter_field_class(
-					'action', re.compile(xml_dict['action']).match
+					'action', re.compile(xml_dict['@action']).match
 					))
 		except KeyError:
 			pass
 
 		try:
-			if xml_dict['command'] != '.*':
+			if xml_dict['@command'] != '.*':
 				fields_list.append(filter_field_class(
-					'command', re.compile(xml_dict['command']).match
+					'command', re.compile(xml_dict['@command']).match
 					))
 		except KeyError:
 			pass
 
-		return filter_item_class(fields_list)
+		if len(fields_list) > 0:
+			return filter_item_class(fields_list)
+		else:
+			return None
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -265,9 +268,15 @@ class filter_pipeline_class:
 				)):
 				raise TypeError('malformed XML tree for %s' % f_type[:-1])
 			if isinstance(group, list):
-				group_list.append([filter_item_class._from_xmldict(item) for item in group])
+				tmp = [filter_item_class._from_xmldict(item) for item in group]
+				tmp = [item for item in tmp if item is not None]
+				group_list.append(tmp)
 			else:
-				group_list.append([filter_item_class._from_xmldict(group)])
+				tmp = filter_item_class._from_xmldict(group)
+				if tmp is not None:
+					group_list.append([tmp])
+				else:
+					group_list.append([])
 
 		return log_enabled, log_printprocessname, filter_pipeline_class(*group_list)
 
