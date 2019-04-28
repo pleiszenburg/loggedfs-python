@@ -153,7 +153,7 @@ class loggedfs(Operations):
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
 		if fuse_allowother_bool:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
-		if bool(log_file):
+		if log_file is not None:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
 
 		self.logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
