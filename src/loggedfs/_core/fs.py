@@ -181,6 +181,7 @@ class loggedfs(Operations):
 			self._logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
 
 		self._logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
+
 		try:
 			self.root_path = directory # TODO check: permissions, existence
 			self.root_path_fd = os.open(directory, os.O_RDONLY)
