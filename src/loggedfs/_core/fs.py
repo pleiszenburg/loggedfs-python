@@ -47,6 +47,12 @@ try:
 except ImportError:
 	fuse_features = {}
 
+from .defaults import (
+	FUSE_ALLOWOTHER_DEFAULT,
+	FUSE_FOREGROUND_DEFAULT,
+	LOG_ENABLED_DEFAULT,
+	LOG_PRINTPROCESSNAME_DEFAULT
+	)
 from .filter import filter_pipeline_class
 from .log import get_logger, log_msg
 from .out import event
@@ -59,6 +65,15 @@ from .timing import time
 
 def loggedfs_factory(directory, **kwargs):
 
+	if not isinstance(directory, str):
+		raise TypeError('"directory" must be of type string')
+	if not os.path.isdir(directory):
+		raise ValueError('"directory" must be a path to an existing directory')
+	if not isinstance(kwargs.get('fuse_foreground_bool', FUSE_FOREGROUND_DEFAULT), bool):
+		raise TypeError('"fuse_foreground_bool" must be of type bool')
+	if not isinstance(kwargs.get('fuse_allowother_bool', FUSE_ALLOWOTHER_DEFAULT), bool):
+		raise TypeError('"fuse_allowother_bool" must be of type bool')
+
 	return FUSE(
 		loggedfs(
 			directory,
@@ -67,9 +82,9 @@ def loggedfs_factory(directory, **kwargs):
 		directory,
 		raw_fi = True,
 		nothreads = True,
-		foreground = kwargs.get('fuse_foreground_bool', False),
-		allow_other = kwargs.get('fuse_allowother_bool', False),
-		default_permissions = kwargs.get('fuse_allowother_bool', False),
+		foreground = kwargs.get('fuse_foreground_bool', FUSE_FOREGROUND_DEFAULT),
+		allow_other = kwargs.get('fuse_allowother_bool', FUSE_ALLOWOTHER_DEFAULT),
+		default_permissions = kwargs.get('fuse_allowother_bool', FUSE_ALLOWOTHER_DEFAULT),
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
@@ -103,21 +118,31 @@ class loggedfs(Operations):
 		log_filter = None,
 		log_file = None,
 		log_syslog = False,
-		log_enabled = True,
-		log_printprocessname = True,
+		log_enabled = LOG_ENABLED_DEFAULT,
+		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
 		log_configmsg = None,
 		log_json = False,
-		fuse_foreground_bool = None,
-		fuse_allowother_bool = None
+		fuse_foreground_bool = FUSE_FOREGROUND_DEFAULT,
+		fuse_allowother_bool = FUSE_ALLOWOTHER_DEFAULT
 		):
 
-		self._log_printprocessname = bool(log_printprocessname)
+		if log_filter is None:
+			log_filter = filter_pipeline_class()
+
+		if not isinstance(directory, str):
+			raise TypeError('"directory" must be of type string')
+		if not os.path.isdir(directory):
+			raise ValueError('"directory" must be a path to an existing directory')
+		if not isinstance(log_filter, filter_pipeline_class):
+			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
+
+		self._log_printprocessname = log_printprocessname
 		self._log_json = bool(log_json)
 		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
-		if bool(fuse_foreground_bool):
+		if fuse_foreground_bool:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
-		if bool(fuse_allowother_bool):
+		if fuse_allowother_bool:
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
 		if bool(log_file):
 			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
@@ -142,10 +167,7 @@ class loggedfs(Operations):
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
-		if log_filter is None:
-			self._filter = filter_pipeline_class()
-		else:
-			self._filter = log_filter
+		self._filter = log_filter
 
 
 	def _full_path(self, partial_path):
