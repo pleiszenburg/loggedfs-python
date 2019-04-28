@@ -55,6 +55,14 @@ class filter_field_class:
 		self._value = value
 
 
+	def __repr__(self):
+
+		return '<filter_field name="%s" value="%s"/>' % (
+			name if not self._name_is_func else '{callable:' + getattr(self._name, '__name__', 'NONAME') + '}',
+			'{callable:' + getattr(self._value, '__name__', 'NONAME') + '}'
+			)
+
+
 	@property
 	def name_is_func(self):
 
@@ -93,6 +101,15 @@ class filter_item_class:
 		self._field_names = {field.name for field in self._fields_list if not field.name_is_func}
 		self._field_nofuncs = {field for field in self._fields_list if not field.name_is_func}
 		self._field_funcs = {field for field in self._fields_list if field.name_is_func}
+
+
+	def __repr__(self):
+
+		return (
+			'<filter_item>\n\t' +
+			'\n\t'.join((repr(field) for field in self._fields_list))
+			+ '\n</filter_item>'
+			)
 
 
 	def match(self, event_dict):
@@ -210,6 +227,26 @@ class filter_pipeline_class:
 
 		self._include_list = include_list
 		self._exclude_list = exclude_list
+
+
+	def __repr__(self):
+
+		return (
+			'<filter_pipeline>\n'
+			+ '\t<include>\n'
+			+ '\n'.join( (
+				'\n'.join(('\t\t' + line for line in repr(item).split('\n') ))
+				for item in self._include_list)
+				) + ('\n' if len(self._include_list) > 0 else '')
+			+ '\t</include>\n'
+			+ '\t<exclude>\n'
+			+ '\n'.join( (
+				'\n'.join(('\t\t' + line for line in repr(item).split('\n') ))
+				for item in self._exclude_list)
+				) + ('\n' if len(self._exclude_list) > 0 else '')
+			+ '\t</exclude>\n'
+			+ '<filter_pipeline>'
+			)
 
 
 	def match(self, event_dict):
