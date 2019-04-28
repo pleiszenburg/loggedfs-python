@@ -78,7 +78,7 @@ def loggedfs_factory(directory, **kwargs):
 		raise TypeError('"fuse_allowother" must be of type bool')
 
 	return FUSE(
-		loggedfs(
+		_loggedfs(
 			directory,
 			**kwargs
 			),
@@ -103,7 +103,7 @@ def loggedfs_factory(directory, **kwargs):
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class loggedfs(Operations):
+class _loggedfs(Operations):
 
 
 	flag_utime_omit_ok = 1
