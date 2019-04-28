@@ -72,6 +72,11 @@ from .filter import filter_pipeline_class
 	help = 'Format output as JSON instead of traditional loggedfs format.'
 	)
 @click.option(
+	'-b', '--buffers',
+	is_flag = True,
+	help = 'Include read/write-buffers (compressed, BASE64) in log.'
+	)
+@click.option(
 	'--lib',
 	is_flag = True,
 	help = 'Run in library mode. DO NOT USE THIS FROM THE COMMAND LINE!',
@@ -81,7 +86,7 @@ from .filter import filter_pipeline_class
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, json, lib, directory):
+def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operations that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
@@ -93,7 +98,7 @@ def cli_entry(f, p, c, s, l, json, lib, directory):
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p, json)
+		**__process_config__(c, l, s, f, p, json, buffers)
 		)
 
 
@@ -103,7 +108,8 @@ def __process_config__(
 	log_syslog_off,
 	fuse_foreground,
 	fuse_allowother,
-	log_json
+	log_json,
+	log_buffers
 	):
 
 	if config_fh is not None:
@@ -127,6 +133,7 @@ def __process_config__(
 		'log_syslog': not log_syslog_off,
 		'_log_configfile' : config_file,
 		'log_json': log_json,
+		'log_buffers': log_buffers,
 		'fuse_foreground': fuse_foreground,
 		'fuse_allowother': fuse_allowother
 		}

@@ -50,6 +50,7 @@ except ImportError:
 from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
 	FUSE_FOREGROUND_DEFAULT,
+	LOG_BUFFERS_DEFAULT,
 	LOG_ENABLED_DEFAULT,
 	LOG_JSON_DEFAULT,
 	LOG_PRINTPROCESSNAME_DEFAULT,
@@ -128,6 +129,7 @@ class loggedfs(Operations):
 		log_enabled = LOG_ENABLED_DEFAULT,
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
 		log_json = LOG_JSON_DEFAULT,
+		log_buffers = LOG_BUFFERS_DEFAULT,
 		fuse_foreground = FUSE_FOREGROUND_DEFAULT,
 		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
 		**kwargs
@@ -156,6 +158,8 @@ class loggedfs(Operations):
 			raise TypeError('"log_printprocessname" must be of type bool')
 		if not isinstance(log_json, bool):
 			raise TypeError('"log_json" must be of type bool')
+		if not isinstance(log_buffers, bool):
+			raise TypeError('"log_buffers" must be of type bool')
 
 		if not isinstance(fuse_foreground, bool):
 			raise TypeError('"fuse_foreground" must be of type bool')
@@ -163,7 +167,8 @@ class loggedfs(Operations):
 			raise TypeError('"fuse_allowother" must be of type bool')
 
 		self._log_printprocessname = log_printprocessname
-		self._log_json = bool(log_json)
+		self._log_json = log_json
+		self._log_buffers = log_buffers
 		self._log_filter = log_filter
 
 		self._logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)

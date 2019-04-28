@@ -215,7 +215,7 @@ def _log_event_(
 			arg_dict[k] = self._full_path(arg_dict[k])
 	try:
 		arg_dict['buf_len'] = len(arg_dict['buf'])
-		arg_dict['buf'] = _encode_bytes_(arg_dict['buf'])
+		arg_dict['buf'] = _encode_bytes_(arg_dict['buf']) if self._log_buffers else ''
 	except KeyError:
 		pass
 
@@ -231,8 +231,8 @@ def _log_event_(
 			)):
 			log_dict['return'] = ret_value
 		elif isinstance(ret_value, bytes):
-			log_dict['return'] = _encode_bytes_(ret_value)
 			log_dict['return_len'] = len(ret_value)
+			log_dict['return'] = _encode_bytes_(ret_value) if self._log_buffers else ''
 
 	else: # FAILURE
 		log_dict.update({
