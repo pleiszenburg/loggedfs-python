@@ -164,28 +164,28 @@ class loggedfs(Operations):
 
 		self._log_printprocessname = log_printprocessname
 		self._log_json = bool(log_json)
-		self._filter = log_filter
+		self._log_filter = log_filter
 
-		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
+		self._logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
 		if fuse_foreground:
-			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
+			self._logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
 		if fuse_allowother:
-			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
+			self._logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
 		if log_file is not None:
-			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
+			self._logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
 
-		self.logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
+		self._logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
 		try:
 			self.root_path = directory # TODO check: permissions, existence
 			self.root_path_fd = os.open(directory, os.O_RDONLY)
 		except:
-			self.logger.exception('Directory access failed.')
+			self._logger.exception('Directory access failed.')
 			sys.exit(1)
 
 		log_configfile = kwargs.pop('_log_configfile', None)
 		if log_configfile is not None:
-			self.logger.info(log_msg(self._log_json,
+			self._logger.info(log_msg(self._log_json,
 				'LoggedFS-python using configuration file %s' % log_configfile
 				))
 

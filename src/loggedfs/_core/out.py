@@ -102,7 +102,7 @@ def event(format_pattern = ''):
 					ret_value = (getattr(type(e), ATTR_NAME, NAME_UNKNOWN), e.errno)
 					raise FuseOSError(e.errno)
 				else:
-					self.logger.exception(log_msg(self._log_json, ERROR_STAGE1))
+					self._logger.exception(log_msg(self._log_json, ERROR_STAGE1))
 					raise e
 			else:
 				return ret_value
@@ -115,7 +115,7 @@ def event(format_pattern = ''):
 						ret_status, ret_value
 						)
 				except Exception as e:
-					self.logger.exception(log_msg(self._log_json, ERROR_STAGE2))
+					self._logger.exception(log_msg(self._log_json, ERROR_STAGE2))
 					raise e
 
 		return wrapped
@@ -242,11 +242,11 @@ def _log_event_(
 			'return_errorcode': errno.errorcode[ret_value[1]]
 			})
 
-	if not self._filter.match(log_dict):
+	if not self._log_filter.match(log_dict):
 		return
 
 	if self._log_json:
-		self.logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
+		self._logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
 		return
 
 	log_out = ' '.join([
@@ -258,4 +258,4 @@ def _log_event_(
 		'( %s = %d )' % ret_value
 		])
 
-	self.logger.info(log_out)
+	self._logger.info(log_out)
