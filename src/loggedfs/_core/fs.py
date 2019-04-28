@@ -71,6 +71,7 @@ def loggedfs_factory(directory, **kwargs):
 		raise TypeError('"directory" must be of type string')
 	if not os.path.isdir(directory):
 		raise ValueError('"directory" must be a path to an existing directory')
+
 	if not isinstance(kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT), bool):
 		raise TypeError('"fuse_foreground" must be of type bool')
 	if not isinstance(kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT), bool):
@@ -139,6 +140,7 @@ class loggedfs(Operations):
 			raise TypeError('"directory" must be of type string')
 		if not os.path.isdir(directory):
 			raise ValueError('"directory" must be a path to an existing directory')
+
 		if not isinstance(log_filter, filter_pipeline_class):
 			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
 		if log_file is not None:
@@ -146,6 +148,19 @@ class loggedfs(Operations):
 				raise ValueError('path to logfile directory does not exist')
 			if os.path.exists(log_file) and not os.path.isfile(log_file):
 				raise ValueError('logfile exists and is not a file')
+		if not isinstance(log_syslog, bool):
+			raise TypeError('"log_syslog" must be of type bool')
+		if not isinstance(log_enabled, bool):
+			raise TypeError('"log_enabled" must be of type bool')
+		if not isinstance(log_printprocessname, bool):
+			raise TypeError('"log_printprocessname" must be of type bool')
+		if not isinstance(log_json, bool):
+			raise TypeError('"log_json" must be of type bool')
+
+		if not isinstance(fuse_foreground, bool):
+			raise TypeError('"fuse_foreground" must be of type bool')
+		if not isinstance(fuse_foreground, bool):
+			raise TypeError('"fuse_allowother" must be of type bool')
 
 		self._log_printprocessname = log_printprocessname
 		self._log_json = bool(log_json)
