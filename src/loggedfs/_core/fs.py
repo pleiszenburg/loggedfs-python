@@ -138,6 +138,8 @@ class loggedfs(Operations):
 
 		self._log_printprocessname = log_printprocessname
 		self._log_json = bool(log_json)
+		self._filter = log_filter
+
 		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
 		if fuse_foreground_bool:
@@ -166,8 +168,6 @@ class loggedfs(Operations):
 
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
-
-		self._filter = log_filter
 
 
 	def _full_path(self, partial_path):
