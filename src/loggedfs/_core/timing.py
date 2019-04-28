@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/__init__.py: Module init
+	src/loggedfs/_core/timing.py: Time related
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -29,8 +29,12 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from ._core.cli import cli_entry
-from ._core.fs import (
-	loggedfs,
-	loggedfs_factory
-	)
+import time
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# FIX time_ns
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+if not hasattr(time, 'time_ns'):
+	time.time_ns = lambda: int(time.time() * 1e9)

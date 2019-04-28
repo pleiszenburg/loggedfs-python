@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/__init__.py: Module init
+	src/loggedfs/_core/defaults.py: Default configurations
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -26,11 +26,8 @@ specific language governing rights and limitations under the License.
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# IMPORT
+# CONST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from ._core.cli import cli_entry
-from ._core.fs import (
-	loggedfs,
-	loggedfs_factory
-	)
+LOG_ENABLED_DEFAULT = True
+LOG_PRINTPROCESSNAME_DEFAULT = True

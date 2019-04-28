@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/core.py: Module core
+	src/loggedfs/_core/fs.py: File system core
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -47,7 +47,7 @@ try:
 except ImportError:
 	fuse_features = {}
 
-from .filter import compile_filters
+from .filter import filter_pipeline_class
 from .log import get_logger, log_msg
 from .out import event
 from .timing import time
@@ -100,8 +100,7 @@ class loggedfs(Operations):
 
 	def __init__(self,
 		directory,
-		log_includes = None,
-		log_excludes = None,
+		log_filter = None,
 		log_file = None,
 		log_syslog = False,
 		log_enabled = True,
@@ -111,11 +110,6 @@ class loggedfs(Operations):
 		fuse_foreground_bool = None,
 		fuse_allowother_bool = None
 		):
-
-		if log_includes is None:
-			log_includes = []
-		if log_excludes is None:
-			log_excludes = []
 
 		self._log_printprocessname = bool(log_printprocessname)
 		self._log_json = bool(log_json)
@@ -148,7 +142,10 @@ class loggedfs(Operations):
 		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
 		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
-		self._f_incl, self._f_excl = compile_filters(log_includes, log_excludes)
+		if log_filter is None:
+			self._filter = filter_pipeline_class()
+		else:
+			self._filter = log_filter
 
 
 	def _full_path(self, partial_path):
