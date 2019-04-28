@@ -142,6 +142,8 @@ class loggedfs(Operations):
 			raise TypeError('"directory" must be of type string')
 		if not os.path.isdir(directory):
 			raise ValueError('"directory" must be a path to an existing directory')
+		if not os.access(directory, os.W_OK | os.R_OK):
+			raise ValueError('not sufficient permissions on "directory"')
 
 		if not isinstance(log_filter, filter_pipeline_class):
 			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
