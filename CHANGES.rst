@@ -7,6 +7,8 @@ Changes
 * FEATURE: New programmable filter pipeline
 * FEATURE: In "traditional" logging mode (not JSON), read and write buffers are also logged zlib-compressed and BASE64 encoded.
 * FIX: LoggedFS-python would have crashed if no XML configuration file had been specified.
+* FIX: Directory listing (``ls``) was broken.
+* FIX: Testing infrastructure did not catch all exceptions in tests.
 
 0.0.2 (2019-04-23)
 ------------------
