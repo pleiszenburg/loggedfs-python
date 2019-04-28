@@ -226,12 +226,14 @@ def _log_event_(
 			ret_value is None,
 			isinstance(ret_value, int),
 			isinstance(ret_value, str),
-			isinstance(ret_value, dict)
+			isinstance(ret_value, dict),
+			isinstance(ret_value, list)
 			)):
 			log_dict['return'] = ret_value
 		elif isinstance(ret_value, bytes):
 			log_dict['return'] = _encode_bytes_(ret_value)
 			log_dict['return_len'] = len(ret_value)
+
 	else: # FAILURE
 		log_dict.update({
 			'return': None,
