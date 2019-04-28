@@ -122,15 +122,15 @@ class _loggedfs(Operations):
 
 	def __init__(self,
 		directory,
-		log_filter = None,
-		log_file = None,
-		log_syslog = LOG_SYSLOG_DEFAULT,
-		log_enabled = LOG_ENABLED_DEFAULT,
-		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
-		log_json = LOG_JSON_DEFAULT,
-		log_buffers = LOG_BUFFERS_DEFAULT,
 		fuse_foreground = FUSE_FOREGROUND_DEFAULT,
 		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
+		log_buffers = LOG_BUFFERS_DEFAULT,
+		log_enabled = LOG_ENABLED_DEFAULT,
+		log_file = None,
+		log_filter = None,
+		log_json = LOG_JSON_DEFAULT,
+		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
+		log_syslog = LOG_SYSLOG_DEFAULT,
 		**kwargs
 		):
 

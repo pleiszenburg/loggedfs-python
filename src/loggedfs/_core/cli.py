@@ -125,14 +125,14 @@ def __process_config__(
 		config_file = None
 
 	return {
-		'log_filter': filter_obj,
-		'log_enabled': log_enabled,
-		'log_printprocessname': log_printprocessname,
-		'log_file': log_file,
-		'log_syslog': not log_syslog_off,
-		'_log_configfile' : config_file,
-		'log_json': log_json,
-		'log_buffers': log_buffers,
 		'fuse_foreground': fuse_foreground,
-		'fuse_allowother': fuse_allowother
+		'fuse_allowother': fuse_allowother,
+		'log_buffers': log_buffers,
+		'_log_configfile' : config_file,
+		'log_enabled': log_enabled,
+		'log_file': log_file,
+		'log_filter': filter_obj,
+		'log_json': log_json,
+		'log_printprocessname': log_printprocessname,
+		'log_syslog': not log_syslog_off
 		}
