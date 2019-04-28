@@ -67,17 +67,22 @@ class fstest_prove_class:
 		status, out, err = self.__run_fstest__(test_path)
 		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)
 
-		pass_condition = len_failed == 0 and len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) and len_expected != 0
-		pass_condition_err = err.strip() == ''
+		grp_dir, grp_nr = self.__get_group_id_from_path__(test_path)
+		grp_code = read_file(test_path)
+		grp_log = read_file(self.loggedfs_log_abs_path)
+
+		pass_condition = all([
+			len_failed == 0,
+			len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo),
+			len_expected != 0,
+			'Traceback (most recent call last)' not in grp_log
+			])
+		# pass_condition_err = err.strip() == ''
 
 		if pass_condition: # and pass_condition_err:
 			self.__clear_loggedfs_log__()
 			assert True # Test is good, nothing more to do
 			return # Get out of here ...
-
-		grp_dir, grp_nr = self.__get_group_id_from_path__(test_path)
-		grp_code = read_file(test_path)
-		grp_log = read_file(self.loggedfs_log_abs_path)
 
 		report = []
 
@@ -99,15 +104,17 @@ class fstest_prove_class:
 		report.append(TEST_LOG_HEAD % 'LOGGEDFS LOG')
 		report.append(grp_log)
 
-		write_file(os.path.join(
-			self.logs_abs_path,
-			'test_%s_%02d_err.log' % (grp_dir, grp_nr)
-			), '\n'.join(report))
+		report_fn = 'test_%s_%02d_err.log' % (grp_dir, grp_nr)
+		report_str = '\n'.join(report)
+
+		write_file(os.path.join(self.logs_abs_path, report_fn), report_str)
+
+		print('=== %s ===' % report_fn)
+		print(report_str)
 
 		self.__clear_loggedfs_log__()
 
 		assert pass_condition
-		assert 'Traceback (most recent call last)' not in grp_log
 
 
 	def __clear_loggedfs_log__(self):
