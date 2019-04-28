@@ -188,7 +188,7 @@ class filter_item_class:
 		try:
 			if xml_dict['@command'] != '.*':
 				fields_list.append(filter_field_class(
-					'command', re.compile(xml_dict['@command']).match
+					'proc_cmd', re.compile(xml_dict['@command']).match
 					))
 		except KeyError:
 			pass
