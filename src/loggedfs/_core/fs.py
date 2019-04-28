@@ -32,7 +32,6 @@ specific language governing rights and limitations under the License.
 import errno
 import os
 import stat
-import sys
 
 from fuse import (
 	FUSE,
@@ -168,6 +167,7 @@ class loggedfs(Operations):
 		if not isinstance(fuse_foreground, bool):
 			raise TypeError('"fuse_allowother" must be of type bool')
 
+		self._root_path = directory
 		self._log_printprocessname = log_printprocessname
 		self._log_json = log_json
 		self._log_buffers = log_buffers
@@ -185,11 +185,10 @@ class loggedfs(Operations):
 		self._logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
 
 		try:
-			self.root_path = directory # TODO check: permissions, existence
-			self.root_path_fd = os.open(directory, os.O_RDONLY)
-		except:
+			self._root_path_fd = os.open(directory, os.O_RDONLY)
+		except Exception as e:
 			self._logger.exception('Directory access failed.')
-			sys.exit(1)
+			raise e
 
 		log_configfile = kwargs.pop('_log_configfile', None)
 		if log_configfile is not None:
@@ -212,7 +211,7 @@ class loggedfs(Operations):
 
 		if partial_path.startswith('/'):
 			partial_path = partial_path[1:]
-		path = os.path.join(self.root_path, partial_path)
+		path = os.path.join(self._root_path, partial_path)
 		return path
 
 
@@ -268,26 +267,26 @@ class loggedfs(Operations):
 	@event(format_pattern = '{param_path}')
 	def access(self, path, mode):
 
-		if not os.access(self._rel_path(path), mode, dir_fd = self.root_path_fd):
+		if not os.access(self._rel_path(path), mode, dir_fd = self._root_path_fd):
 			raise FuseOSError(errno.EACCES)
 
 
 	@event(format_pattern = '{param_path} to {param_mode}')
 	def chmod(self, path, mode):
 
-		os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
+		os.chmod(self._rel_path(path), mode, dir_fd = self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path} to {param_uid_name}({param_uid}):{param_gid_name}({param_gid})')
 	def chown(self, path, uid, gid):
 
-		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(self._rel_path(path), uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_path}')
 	def destroy(self, path):
 
-		os.close(self.root_path_fd)
+		os.close(self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path} (fh={param_fip})')
@@ -295,7 +294,7 @@ class loggedfs(Operations):
 
 		if not fip:
 			try:
-				st = os.lstat(self._rel_path(path), dir_fd = self.root_path_fd)
+				st = os.lstat(self._rel_path(path), dir_fd = self._root_path_fd)
 			except FileNotFoundError:
 				raise FuseOSError(errno.ENOENT)
 		else:
@@ -325,11 +324,11 @@ class loggedfs(Operations):
 
 		os.link(
 			self._rel_path(source_path), target_rel_path,
-			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
+			src_dir_fd = self._root_path_fd, dst_dir_fd = self._root_path_fd
 			)
 
 		uid, gid, pid = fuse_get_context()
-		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(target_rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_path} {param_mode}')
@@ -337,12 +336,12 @@ class loggedfs(Operations):
 
 		rel_path = self._rel_path(path)
 
-		os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
+		os.mkdir(rel_path, mode, dir_fd = self._root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
 
-		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
+		os.chown(rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self._root_path_fd) # follow_symlinks = False
 
 
 	@event(format_pattern = '{param_path} {param_mode}')
@@ -353,24 +352,24 @@ class loggedfs(Operations):
 		if stat.S_ISREG(mode):
 			res = os.open(
 				rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode,
-				dir_fd = self.root_path_fd
+				dir_fd = self._root_path_fd
 				) # TODO broken, applies umask to mode no matter what ...
 			if res >= 0:
 				os.close(res)
 		elif stat.S_ISFIFO(mode):
-			os.mkfifo(rel_path, mode, dir_fd = self.root_path_fd)
+			os.mkfifo(rel_path, mode, dir_fd = self._root_path_fd)
 		else:
-			os.mknod(rel_path, mode, dev, dir_fd = self.root_path_fd)
+			os.mknod(rel_path, mode, dev, dir_fd = self._root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
+		os.chown(rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self._root_path_fd) # follow_symlinks = False
 
 
 	@event(format_pattern = '({param_fip}) {param_path} (fh={param_fip})')
 	def open(self, path, fip):
 
-		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
+		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self._root_path_fd)
 
 		return 0
 
@@ -389,8 +388,8 @@ class loggedfs(Operations):
 		rel_path = self._rel_path(path)
 
 		dirents = ['.', '..']
-		if stat.S_ISDIR(os.lstat(rel_path, dir_fd = self.root_path_fd).st_mode):
-			dir_fd = os.open(rel_path, os.O_RDONLY, dir_fd = self.root_path_fd)
+		if stat.S_ISDIR(os.lstat(rel_path, dir_fd = self._root_path_fd).st_mode):
+			dir_fd = os.open(rel_path, os.O_RDONLY, dir_fd = self._root_path_fd)
 			dirents.extend(os.listdir(dir_fd))
 			os.close(dir_fd)
 
@@ -400,10 +399,10 @@ class loggedfs(Operations):
 	@event(format_pattern = '{param_path}')
 	def readlink(self, path):
 
-		pathname = os.readlink(self._rel_path(path), dir_fd = self.root_path_fd)
+		pathname = os.readlink(self._rel_path(path), dir_fd = self._root_path_fd)
 
 		if pathname.startswith('/'): # TODO check this ... actually required?
-			return os.path.relpath(pathname, self.root_path)
+			return os.path.relpath(pathname, self._root_path)
 		else:
 			return pathname
 
@@ -419,20 +418,20 @@ class loggedfs(Operations):
 
 		os.rename(
 			self._rel_path(old_path), self._rel_path(new_path),
-			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
+			src_dir_fd = self._root_path_fd, dst_dir_fd = self._root_path_fd
 			)
 
 
 	@event(format_pattern = '{param_path}')
 	def rmdir(self, path):
 
-		os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
+		os.rmdir(self._rel_path(path), dir_fd = self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path}')
 	def statfs(self, path):
 
-		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
+		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self._root_path_fd)
 		stv = os.statvfs(fd)
 		os.close(fd)
 
@@ -444,10 +443,10 @@ class loggedfs(Operations):
 
 		target_rel_path = self._rel_path(target_path_)
 
-		os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
+		os.symlink(source_path, target_rel_path, dir_fd = self._root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(target_rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_path} to {param_length} bytes (fh={param_fip})')
@@ -455,7 +454,7 @@ class loggedfs(Operations):
 
 		if fip is None:
 
-			fd = os.open(self._rel_path(path), flags = os.O_WRONLY, dir_fd = self.root_path_fd)
+			fd = os.open(self._rel_path(path), flags = os.O_WRONLY, dir_fd = self._root_path_fd)
 			ret = os.ftruncate(fd, length)
 			os.close(fd)
 			return ret
@@ -468,7 +467,7 @@ class loggedfs(Operations):
 	@event(format_pattern = '{param_path}')
 	def unlink(self, path):
 
-		os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
+		os.unlink(self._rel_path(path), dir_fd = self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path}')
@@ -476,7 +475,7 @@ class loggedfs(Operations):
 
 		def _fix_time_(atime, mtime):
 			if any(val in (atime, mtime) for val in [UTIME_OMIT, None]):
-				st = os.lstat(relpath, dir_fd = self.root_path_fd)
+				st = os.lstat(relpath, dir_fd = self._root_path_fd)
 				if atime in [UTIME_OMIT, None]:
 					atime = st.st_atime_ns
 				if mtime in [UTIME_OMIT, None]:
@@ -492,9 +491,9 @@ class loggedfs(Operations):
 		relpath = self._rel_path(path)
 
 		if self.flag_nanosecond_int:
-			os.utime(relpath, ns = _fix_time_(*times), dir_fd = self.root_path_fd, follow_symlinks = False)
+			os.utime(relpath, ns = _fix_time_(*times), dir_fd = self._root_path_fd, follow_symlinks = False)
 		else:
-			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
+			os.utime(relpath, times = times, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_buf_len} bytes to {param_path} at offset {param_offset} (fh={param_fip})')
