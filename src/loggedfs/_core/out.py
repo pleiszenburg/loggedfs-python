@@ -43,7 +43,6 @@ from fuse import (
 	FuseOSError,
 	)
 
-from .filter import match_filters
 from .log import log_msg
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -241,10 +240,7 @@ def _log_event_(
 			'return_errorcode': errno.errorcode[ret_value[1]]
 			})
 
-	if not match_filters(
-		log_dict['param_%s' % func_arg_abspath], uid, func.__name__, STATUS_DICT[ret_status], p_cmdname,
-		self._f_incl, self._f_excl
-		):
+	if not self._filter.match(log_dict):
 		return
 
 	if self._log_json:
