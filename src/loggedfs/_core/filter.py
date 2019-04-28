@@ -123,7 +123,7 @@ class filter_item_class:
 	@staticmethod
 	def _from_xmldict(xml_dict):
 
-		if not ininstance(xml_dict, OrderedDict) and not ininstance(xml_dict, dict):
+		if not isinstance(xml_dict, OrderedDict) and not isinstance(xml_dict, dict):
 			raise TypeError('can not construct filter item from non-dict type')
 		if any((not isinstance(item, str) for item in xml_dict.keys())):
 			raise TypeError('non-string key in dict')
@@ -254,15 +254,20 @@ class filter_pipeline_class:
 			if group is None:
 				group_list.append([])
 				continue
-			if not ininstance(group, OrderedDict) and not ininstance(group, dict):
+			if not isinstance(group, OrderedDict) and not isinstance(group, dict):
 				raise TypeError('malformed XML tree for %s' % f_type)
 			group = group.get(f_type[:-1], None)
 			if group is None:
 				group_list.append([])
 				continue
-			if not ininstance(group, list):
+			if not any((
+				isinstance(group, list), isinstance(group, OrderedDict), isinstance(group, dict)
+				)):
 				raise TypeError('malformed XML tree for %s' % f_type[:-1])
-			group_list.append([filter_item_class._from_xmldict(item) for item in group])
+			if isinstance(group, list):
+				group_list.append([filter_item_class._from_xmldict(item) for item in group])
+			else:
+				group_list.append([filter_item_class._from_xmldict(group)])
 
 		return log_enabled, log_printprocessname, filter_pipeline_class(*group_list)
 
