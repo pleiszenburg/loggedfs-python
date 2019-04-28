@@ -115,6 +115,10 @@ class loggedfs(Operations):
 		}
 
 
+	_ST_FIELDS = tuple(i for i in dir(os.stat_result) if i.startswith('st_'))
+	_STVFS_FIELDS = tuple(i for i in dir(os.statvfs_result) if i.startswith('f_'))
+
+
 	def __init__(self,
 		directory,
 		log_filter = None,
@@ -176,9 +180,6 @@ class loggedfs(Operations):
 				'flag_' + flag_name,
 				self.requested_features[flag_name] and fuse_features.get(flag_name, False)
 				)
-
-		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
-		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
 
 		if len(kwargs) > 0:
 			raise ValueError('unknown keyword argument(s)')
@@ -277,7 +278,7 @@ class loggedfs(Operations):
 		else:
 			st = os.fstat(fip.fh)
 
-		ret_dict = {key: getattr(st, key) for key in self.st_fields}
+		ret_dict = {key: getattr(st, key) for key in self._ST_FIELDS}
 
 		for key in ['st_atime', 'st_ctime', 'st_mtime']:
 			if self.flag_nanosecond_int:
@@ -412,7 +413,7 @@ class loggedfs(Operations):
 		stv = os.statvfs(fd)
 		os.close(fd)
 
-		return {key: getattr(stv, key) for key in self.stvfs_fields}
+		return {key: getattr(stv, key) for key in self._STVFS_FIELDS}
 
 
 	@event(format_pattern = 'from {param_source_path} to {param_target_path_}')
