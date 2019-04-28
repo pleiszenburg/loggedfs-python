@@ -71,11 +71,17 @@ from .filter import filter_pipeline_class
 	is_flag = True,
 	help = 'Format output as JSON instead of traditional loggedfs format.'
 	)
+@click.option(
+	'--lib',
+	is_flag = True,
+	help = 'Run in library mode. DO NOT USE THIS FROM THE COMMAND LINE!',
+	hidden = True
+	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, json, directory):
+def cli_entry(f, p, c, s, l, json, lib, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operations that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
