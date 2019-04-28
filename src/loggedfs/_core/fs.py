@@ -135,6 +135,11 @@ class loggedfs(Operations):
 			raise ValueError('"directory" must be a path to an existing directory')
 		if not isinstance(log_filter, filter_pipeline_class):
 			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
+		if log_file is not None:
+			if not os.path.isdir(os.path.dirname(log_file)):
+				raise ValueError('path to logfile directory does not exist')
+			if os.path.exists(log_file) and not os.path.isfile(log_file):
+				raise ValueError('logfile exists and is not a file')
 
 		self._log_printprocessname = log_printprocessname
 		self._log_json = bool(log_json)
