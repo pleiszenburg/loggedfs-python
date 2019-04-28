@@ -88,12 +88,11 @@ from .filter import filter_pipeline_class
 	)
 def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
-	every operations that happens in the backend filesystem. Logs can be written
-	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
+	every operation that happens in the backend filesystem. Logs can be written
+	to syslog, to a file, or to the standard output. LoggedFS-python allows to specify an XML
 	configuration file in which you can choose exactly what you want to log and
 	what you don't want to log. You can add filters on users, operations (open,
-	read, write, chown, chmod, etc.), filenames and return code. Filename
-	filters are regular expressions.
+	read, write, chown, chmod, etc.), filenames, commands and return code.
 	"""
 
 	loggedfs_factory(
