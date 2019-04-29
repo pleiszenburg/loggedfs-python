@@ -26,6 +26,7 @@ class _receiver_class:
         self._t = threading.Thread(target = decoder_func, args = (self._id, self._s, self._q))
         self._t.daemon = True
         self._t.start()
+        self.join = self._t.join
 
     def flush(self):
         while not self._q.empty():
@@ -73,6 +74,8 @@ class _receiver_manager_class:
             self._out_r.flush()
             self._err_r.flush()
             self._proc_alive = self._proc.poll() is None
+        self._out_r.join()
+        self._err_r.join()
         self._exit_func()
 
 def main():

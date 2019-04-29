@@ -32,7 +32,6 @@ specific language governing rights and limitations under the License.
 import errno
 import os
 import stat
-import sys
 
 from fuse import (
 	FUSE,
@@ -47,6 +46,15 @@ try:
 except ImportError:
 	fuse_features = {}
 
+from .defaults import (
+	FUSE_ALLOWOTHER_DEFAULT,
+	FUSE_FOREGROUND_DEFAULT,
+	LOG_BUFFERS_DEFAULT,
+	LOG_ENABLED_DEFAULT,
+	LOG_JSON_DEFAULT,
+	LOG_PRINTPROCESSNAME_DEFAULT,
+	LOG_SYSLOG_DEFAULT
+	)
 from .filter import filter_pipeline_class
 from .log import get_logger, log_msg
 from .out import event
@@ -59,17 +67,27 @@ from .timing import time
 
 def loggedfs_factory(directory, **kwargs):
 
+	if not isinstance(directory, str):
+		raise TypeError('"directory" must be of type string')
+	if not os.path.isdir(directory):
+		raise ValueError('"directory" must be a path to an existing directory')
+
+	if not isinstance(kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT), bool):
+		raise TypeError('"fuse_foreground" must be of type bool')
+	if not isinstance(kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT), bool):
+		raise TypeError('"fuse_allowother" must be of type bool')
+
 	return FUSE(
-		loggedfs(
+		_loggedfs(
 			directory,
 			**kwargs
 			),
 		directory,
 		raw_fi = True,
 		nothreads = True,
-		foreground = kwargs.get('fuse_foreground_bool', False),
-		allow_other = kwargs.get('fuse_allowother_bool', False),
-		default_permissions = kwargs.get('fuse_allowother_bool', False),
+		foreground = kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT),
+		allow_other = kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT),
+		default_permissions = kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT),
 		attr_timeout = 0,
 		entry_timeout = 0,
 		negative_timeout = 0,
@@ -85,7 +103,7 @@ def loggedfs_factory(directory, **kwargs):
 # CORE CLASS: Init and internal routines
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class loggedfs(Operations):
+class _loggedfs(Operations):
 
 
 	flag_utime_omit_ok = 1
@@ -98,39 +116,85 @@ class loggedfs(Operations):
 		}
 
 
+	_ST_FIELDS = tuple(i for i in dir(os.stat_result) if i.startswith('st_'))
+	_STVFS_FIELDS = tuple(i for i in dir(os.statvfs_result) if i.startswith('f_'))
+
+
 	def __init__(self,
 		directory,
-		log_filter = None,
+		fuse_foreground = FUSE_FOREGROUND_DEFAULT,
+		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
+		log_buffers = LOG_BUFFERS_DEFAULT,
+		log_enabled = LOG_ENABLED_DEFAULT,
 		log_file = None,
-		log_syslog = False,
-		log_enabled = True,
-		log_printprocessname = True,
-		log_configmsg = None,
-		log_json = False,
-		fuse_foreground_bool = None,
-		fuse_allowother_bool = None
+		log_filter = None,
+		log_json = LOG_JSON_DEFAULT,
+		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
+		log_syslog = LOG_SYSLOG_DEFAULT,
+		**kwargs
 		):
 
-		self._log_printprocessname = bool(log_printprocessname)
-		self._log_json = bool(log_json)
-		self.logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
+		if log_filter is None:
+			log_filter = filter_pipeline_class()
 
-		if bool(fuse_foreground_bool):
-			self.logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
-		if bool(fuse_allowother_bool):
-			self.logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
-		if bool(log_file):
-			self.logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
+		if not isinstance(directory, str):
+			raise TypeError('"directory" must be of type string')
+		if not os.path.isdir(directory):
+			raise ValueError('"directory" must be a path to an existing directory')
+		if not os.access(directory, os.W_OK | os.R_OK):
+			raise ValueError('not sufficient permissions on "directory"')
 
-		self.logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
+		if not isinstance(log_filter, filter_pipeline_class):
+			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
+		if log_file is not None:
+			if not os.path.isdir(os.path.dirname(log_file)):
+				raise ValueError('path to logfile directory does not exist')
+			if os.path.exists(log_file) and not os.path.isfile(log_file):
+				raise ValueError('logfile exists and is not a file')
+		if not isinstance(log_syslog, bool):
+			raise TypeError('"log_syslog" must be of type bool')
+		if not isinstance(log_enabled, bool):
+			raise TypeError('"log_enabled" must be of type bool')
+		if not isinstance(log_printprocessname, bool):
+			raise TypeError('"log_printprocessname" must be of type bool')
+		if not isinstance(log_json, bool):
+			raise TypeError('"log_json" must be of type bool')
+		if not isinstance(log_buffers, bool):
+			raise TypeError('"log_buffers" must be of type bool')
+
+		if not isinstance(fuse_foreground, bool):
+			raise TypeError('"fuse_foreground" must be of type bool')
+		if not isinstance(fuse_foreground, bool):
+			raise TypeError('"fuse_allowother" must be of type bool')
+
+		self._root_path = directory
+		self._log_printprocessname = log_printprocessname
+		self._log_json = log_json
+		self._log_buffers = log_buffers
+		self._log_filter = log_filter
+
+		self._logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
+
+		if fuse_foreground:
+			self._logger.info(log_msg(self._log_json, 'LoggedFS-python not running as a daemon'))
+		if fuse_allowother:
+			self._logger.info(log_msg(self._log_json, 'LoggedFS-python running as a public filesystem'))
+		if log_file is not None:
+			self._logger.info(log_msg(self._log_json, 'LoggedFS-python log file: %s' % log_file))
+
+		self._logger.info(log_msg(self._log_json, 'LoggedFS-python starting at %s' % directory))
+
 		try:
-			self.root_path = directory # TODO check: permissions, existence
-			self.root_path_fd = os.open(directory, os.O_RDONLY)
-		except:
-			self.logger.exception('Directory access failed.')
-			sys.exit(1)
+			self._root_path_fd = os.open(directory, os.O_RDONLY)
+		except Exception as e:
+			self._logger.exception('Directory access failed.')
+			raise e
 
-		self.logger.info(log_msg(self._log_json, log_configmsg))
+		log_configfile = kwargs.pop('_log_configfile', None)
+		if log_configfile is not None:
+			self._logger.info(log_msg(self._log_json,
+				'LoggedFS-python using configuration file %s' % log_configfile
+				))
 
 		for flag_name in self.requested_features.keys():
 			setattr(
@@ -139,20 +203,15 @@ class loggedfs(Operations):
 				self.requested_features[flag_name] and fuse_features.get(flag_name, False)
 				)
 
-		self.st_fields = [i for i in dir(os.stat_result) if i.startswith('st_')]
-		self.stvfs_fields = [i for i in dir(os.statvfs_result) if i.startswith('f_')]
-
-		if log_filter is None:
-			self._filter = filter_pipeline_class()
-		else:
-			self._filter = log_filter
+		if len(kwargs) > 0:
+			raise ValueError('unknown keyword argument(s)')
 
 
 	def _full_path(self, partial_path):
 
 		if partial_path.startswith('/'):
 			partial_path = partial_path[1:]
-		path = os.path.join(self.root_path, partial_path)
+		path = os.path.join(self._root_path, partial_path)
 		return path
 
 
@@ -208,26 +267,26 @@ class loggedfs(Operations):
 	@event(format_pattern = '{param_path}')
 	def access(self, path, mode):
 
-		if not os.access(self._rel_path(path), mode, dir_fd = self.root_path_fd):
+		if not os.access(self._rel_path(path), mode, dir_fd = self._root_path_fd):
 			raise FuseOSError(errno.EACCES)
 
 
 	@event(format_pattern = '{param_path} to {param_mode}')
 	def chmod(self, path, mode):
 
-		os.chmod(self._rel_path(path), mode, dir_fd = self.root_path_fd)
+		os.chmod(self._rel_path(path), mode, dir_fd = self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path} to {param_uid_name}({param_uid}):{param_gid_name}({param_gid})')
 	def chown(self, path, uid, gid):
 
-		os.chown(self._rel_path(path), uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(self._rel_path(path), uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_path}')
 	def destroy(self, path):
 
-		os.close(self.root_path_fd)
+		os.close(self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path} (fh={param_fip})')
@@ -235,13 +294,13 @@ class loggedfs(Operations):
 
 		if not fip:
 			try:
-				st = os.lstat(self._rel_path(path), dir_fd = self.root_path_fd)
+				st = os.lstat(self._rel_path(path), dir_fd = self._root_path_fd)
 			except FileNotFoundError:
 				raise FuseOSError(errno.ENOENT)
 		else:
 			st = os.fstat(fip.fh)
 
-		ret_dict = {key: getattr(st, key) for key in self.st_fields}
+		ret_dict = {key: getattr(st, key) for key in self._ST_FIELDS}
 
 		for key in ['st_atime', 'st_ctime', 'st_mtime']:
 			if self.flag_nanosecond_int:
@@ -265,11 +324,11 @@ class loggedfs(Operations):
 
 		os.link(
 			self._rel_path(source_path), target_rel_path,
-			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
+			src_dir_fd = self._root_path_fd, dst_dir_fd = self._root_path_fd
 			)
 
 		uid, gid, pid = fuse_get_context()
-		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(target_rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_path} {param_mode}')
@@ -277,12 +336,12 @@ class loggedfs(Operations):
 
 		rel_path = self._rel_path(path)
 
-		os.mkdir(rel_path, mode, dir_fd = self.root_path_fd)
+		os.mkdir(rel_path, mode, dir_fd = self._root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
 
-		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
+		os.chown(rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self._root_path_fd) # follow_symlinks = False
 
 
 	@event(format_pattern = '{param_path} {param_mode}')
@@ -293,24 +352,24 @@ class loggedfs(Operations):
 		if stat.S_ISREG(mode):
 			res = os.open(
 				rel_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, mode,
-				dir_fd = self.root_path_fd
+				dir_fd = self._root_path_fd
 				) # TODO broken, applies umask to mode no matter what ...
 			if res >= 0:
 				os.close(res)
 		elif stat.S_ISFIFO(mode):
-			os.mkfifo(rel_path, mode, dir_fd = self.root_path_fd)
+			os.mkfifo(rel_path, mode, dir_fd = self._root_path_fd)
 		else:
-			os.mknod(rel_path, mode, dev, dir_fd = self.root_path_fd)
+			os.mknod(rel_path, mode, dev, dir_fd = self._root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.chown(rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
-		os.chmod(rel_path, mode, dir_fd = self.root_path_fd) # follow_symlinks = False
+		os.chown(rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
+		os.chmod(rel_path, mode, dir_fd = self._root_path_fd) # follow_symlinks = False
 
 
 	@event(format_pattern = '({param_fip}) {param_path} (fh={param_fip})')
 	def open(self, path, fip):
 
-		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self.root_path_fd)
+		fip.fh = os.open(self._rel_path(path), fip.flags, dir_fd = self._root_path_fd)
 
 		return 0
 
@@ -329,8 +388,8 @@ class loggedfs(Operations):
 		rel_path = self._rel_path(path)
 
 		dirents = ['.', '..']
-		if stat.S_ISDIR(os.lstat(rel_path, dir_fd = self.root_path_fd).st_mode):
-			dir_fd = os.open(rel_path, os.O_RDONLY, dir_fd = self.root_path_fd)
+		if stat.S_ISDIR(os.lstat(rel_path, dir_fd = self._root_path_fd).st_mode):
+			dir_fd = os.open(rel_path, os.O_RDONLY, dir_fd = self._root_path_fd)
 			dirents.extend(os.listdir(dir_fd))
 			os.close(dir_fd)
 
@@ -340,10 +399,10 @@ class loggedfs(Operations):
 	@event(format_pattern = '{param_path}')
 	def readlink(self, path):
 
-		pathname = os.readlink(self._rel_path(path), dir_fd = self.root_path_fd)
+		pathname = os.readlink(self._rel_path(path), dir_fd = self._root_path_fd)
 
 		if pathname.startswith('/'): # TODO check this ... actually required?
-			return os.path.relpath(pathname, self.root_path)
+			return os.path.relpath(pathname, self._root_path)
 		else:
 			return pathname
 
@@ -359,24 +418,24 @@ class loggedfs(Operations):
 
 		os.rename(
 			self._rel_path(old_path), self._rel_path(new_path),
-			src_dir_fd = self.root_path_fd, dst_dir_fd = self.root_path_fd
+			src_dir_fd = self._root_path_fd, dst_dir_fd = self._root_path_fd
 			)
 
 
 	@event(format_pattern = '{param_path}')
 	def rmdir(self, path):
 
-		os.rmdir(self._rel_path(path), dir_fd = self.root_path_fd)
+		os.rmdir(self._rel_path(path), dir_fd = self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path}')
 	def statfs(self, path):
 
-		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self.root_path_fd)
+		fd = os.open(self._rel_path(path), os.O_RDONLY, dir_fd = self._root_path_fd)
 		stv = os.statvfs(fd)
 		os.close(fd)
 
-		return {key: getattr(stv, key) for key in self.stvfs_fields}
+		return {key: getattr(stv, key) for key in self._STVFS_FIELDS}
 
 
 	@event(format_pattern = 'from {param_source_path} to {param_target_path_}')
@@ -384,10 +443,10 @@ class loggedfs(Operations):
 
 		target_rel_path = self._rel_path(target_path_)
 
-		os.symlink(source_path, target_rel_path, dir_fd = self.root_path_fd)
+		os.symlink(source_path, target_rel_path, dir_fd = self._root_path_fd)
 
 		uid, gid, pid = fuse_get_context()
-		os.chown(target_rel_path, uid, gid, dir_fd = self.root_path_fd, follow_symlinks = False)
+		os.chown(target_rel_path, uid, gid, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_path} to {param_length} bytes (fh={param_fip})')
@@ -395,7 +454,7 @@ class loggedfs(Operations):
 
 		if fip is None:
 
-			fd = os.open(self._rel_path(path), flags = os.O_WRONLY, dir_fd = self.root_path_fd)
+			fd = os.open(self._rel_path(path), flags = os.O_WRONLY, dir_fd = self._root_path_fd)
 			ret = os.ftruncate(fd, length)
 			os.close(fd)
 			return ret
@@ -408,7 +467,7 @@ class loggedfs(Operations):
 	@event(format_pattern = '{param_path}')
 	def unlink(self, path):
 
-		os.unlink(self._rel_path(path), dir_fd = self.root_path_fd)
+		os.unlink(self._rel_path(path), dir_fd = self._root_path_fd)
 
 
 	@event(format_pattern = '{param_path}')
@@ -416,7 +475,7 @@ class loggedfs(Operations):
 
 		def _fix_time_(atime, mtime):
 			if any(val in (atime, mtime) for val in [UTIME_OMIT, None]):
-				st = os.lstat(relpath, dir_fd = self.root_path_fd)
+				st = os.lstat(relpath, dir_fd = self._root_path_fd)
 				if atime in [UTIME_OMIT, None]:
 					atime = st.st_atime_ns
 				if mtime in [UTIME_OMIT, None]:
@@ -432,9 +491,9 @@ class loggedfs(Operations):
 		relpath = self._rel_path(path)
 
 		if self.flag_nanosecond_int:
-			os.utime(relpath, ns = _fix_time_(*times), dir_fd = self.root_path_fd, follow_symlinks = False)
+			os.utime(relpath, ns = _fix_time_(*times), dir_fd = self._root_path_fd, follow_symlinks = False)
 		else:
-			os.utime(relpath, times = times, dir_fd = self.root_path_fd, follow_symlinks = False)
+			os.utime(relpath, times = times, dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_buf_len} bytes to {param_path} at offset {param_offset} (fh={param_fip})')

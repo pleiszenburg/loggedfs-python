@@ -31,6 +31,6 @@ specific language governing rights and limitations under the License.
 
 from ._core.cli import cli_entry
 from ._core.fs import (
-	loggedfs,
+	_loggedfs,
 	loggedfs_factory
 	)

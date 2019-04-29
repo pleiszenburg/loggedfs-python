@@ -29,5 +29,11 @@ specific language governing rights and limitations under the License.
 # CONST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+FUSE_ALLOWOTHER_DEFAULT = False
+FUSE_FOREGROUND_DEFAULT = False
+
+LOG_BUFFERS_DEFAULT = False
 LOG_ENABLED_DEFAULT = True
+LOG_JSON_DEFAULT = False
 LOG_PRINTPROCESSNAME_DEFAULT = True
+LOG_SYSLOG_DEFAULT = False

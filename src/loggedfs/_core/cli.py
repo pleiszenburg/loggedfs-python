@@ -72,6 +72,11 @@ from .filter import filter_pipeline_class
 	help = 'Format output as JSON instead of traditional loggedfs format.'
 	)
 @click.option(
+	'-b', '--buffers',
+	is_flag = True,
+	help = 'Include read/write-buffers (compressed, BASE64) in log.'
+	)
+@click.option(
 	'--lib',
 	is_flag = True,
 	help = 'Run in library mode. DO NOT USE THIS FROM THE COMMAND LINE!',
@@ -81,19 +86,18 @@ from .filter import filter_pipeline_class
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, json, lib, directory):
+def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
-	every operations that happens in the backend filesystem. Logs can be written
-	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
+	every operation that happens in the backend filesystem. Logs can be written
+	to syslog, to a file, or to the standard output. LoggedFS-python allows to specify an XML
 	configuration file in which you can choose exactly what you want to log and
 	what you don't want to log. You can add filters on users, operations (open,
-	read, write, chown, chmod, etc.), filenames and return code. Filename
-	filters are regular expressions.
+	read, write, chown, chmod, etc.), filenames, commands and return code.
 	"""
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p, json)
+		**__process_config__(c, l, s, f, p, json, buffers)
 		)
 
 
@@ -101,9 +105,10 @@ def __process_config__(
 	config_fh,
 	log_file,
 	log_syslog_off,
-	fuse_foreground_bool,
-	fuse_allowother_bool,
-	log_json
+	fuse_foreground,
+	fuse_allowother,
+	log_json,
+	log_buffers
 	):
 
 	if config_fh is not None:
@@ -117,16 +122,17 @@ def __process_config__(
 		log_enabled = LOG_ENABLED_DEFAULT
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT
 		filter_obj = filter_pipeline_class()
-		config_file = '[None]'
+		config_file = None
 
 	return {
-		'log_filter': filter_obj,
+		'fuse_foreground': fuse_foreground,
+		'fuse_allowother': fuse_allowother,
+		'log_buffers': log_buffers,
+		'_log_configfile' : config_file,
 		'log_enabled': log_enabled,
-		'log_printprocessname': log_printprocessname,
 		'log_file': log_file,
-		'log_syslog': not log_syslog_off,
-		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
+		'log_filter': filter_obj,
 		'log_json': log_json,
-		'fuse_foreground_bool': fuse_foreground_bool,
-		'fuse_allowother_bool': fuse_allowother_bool
+		'log_printprocessname': log_printprocessname,
+		'log_syslog': not log_syslog_off
 		}

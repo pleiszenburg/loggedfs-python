@@ -5,6 +5,7 @@ Changes
 ------------------
 
 * FEATURE: New programmable filter pipeline
+* FEATURE: New flag ``-b``, explicitly activating logging of read and write buffers
 * FEATURE: In "traditional" logging mode (not JSON), read and write buffers are also logged zlib-compressed and BASE64 encoded.
 * FIX: LoggedFS-python would have crashed if no XML configuration file had been specified.
 * FIX: Directory listing (``ls``) was broken.
