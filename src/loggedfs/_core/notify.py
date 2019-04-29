@@ -70,7 +70,7 @@ class notify_class:
 			raise TypeError('background must be of type bool')
 
 		self._directory = os.path.abspath(directory)
-		self._exit_func = exit_func
+		self._exit_func = exit_func if exit_func is not None else lambda: None
 		self._consumer_func = consumer_func
 		self._log_buffers = log_buffers
 		self._background = background
@@ -83,6 +83,8 @@ class notify_class:
 			]
 		if self._log_buffers:
 			command.append('-b') # also log read and write buffers
+
+		self._background
 
 
 	def terminate(self):
