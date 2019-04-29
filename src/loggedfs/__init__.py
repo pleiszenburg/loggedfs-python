@@ -41,3 +41,4 @@ from ._core.fs import (
 	)
 from ._core.ipc import end_of_transmission
 from ._core.notify import notify_class as loggedfs_notify
+from ._core.out import decode_buffer
