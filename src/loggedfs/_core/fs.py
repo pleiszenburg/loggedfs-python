@@ -153,6 +153,10 @@ class _loggedfs(Operations):
 				raise ValueError('path to logfile directory does not exist')
 			if os.path.exists(log_file) and not os.path.isfile(log_file):
 				raise ValueError('logfile exists and is not a file')
+			if os.path.isfile(log_file) and not os.access(log_file, os.W_OK):
+				raise ValueError('logfile exists and is not writeable')
+			if not os.path.exists(log_file) and not os.access(directory, os.W_OK):
+				raise ValueError('path to logfile directory is not writeable')
 		if not isinstance(log_syslog, bool):
 			raise TypeError('"log_syslog" must be of type bool')
 		if not isinstance(log_enabled, bool):
