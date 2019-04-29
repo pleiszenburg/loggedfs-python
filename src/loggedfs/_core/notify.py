@@ -64,6 +64,9 @@ c = {
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 class notify_class:
+	"""Simple wrapper for using LoggedFS-python as a library.
+	Attach a method of your choice to filesystem events.
+	"""
 
 
 	def __init__(self,
@@ -73,6 +76,14 @@ class notify_class:
 		log_buffers = LOG_BUFFERS_DEFAULT,
 		background = False # thread in background
 		):
+		"""Creates a filesystem notifier object.
+
+		- directory: Relative or absolute path as a string
+		- consumer_func: None or callable, consumes events provided as a dictionary
+		- post_exit_func: None or callable, called when notifier was terminated
+		- log_buffers: Boolean, activates logging of read and write buffers
+		- background: Boolean, starts notifier in a thread
+		"""
 
 		if not isinstance(directory, str):
 			raise TypeError('directory must be of type string')
