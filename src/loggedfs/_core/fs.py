@@ -69,14 +69,14 @@ from .timing import time
 def loggedfs_factory(directory, **kwargs):
 
 	if not isinstance(directory, str):
-		raise TypeError('"directory" must be of type string')
+		raise TypeError('directory must be of type string')
 	if not os.path.isdir(directory):
-		raise ValueError('"directory" must be a path to an existing directory')
+		raise ValueError('directory must be a path to an existing directory')
 
 	if not isinstance(kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT), bool):
-		raise TypeError('"fuse_foreground" must be of type bool')
+		raise TypeError('fuse_foreground must be of type bool')
 	if not isinstance(kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT), bool):
-		raise TypeError('"fuse_allowother" must be of type bool')
+		raise TypeError('fuse_allowother must be of type bool')
 
 	return FUSE(
 		_loggedfs(
@@ -140,14 +140,14 @@ class _loggedfs(Operations):
 			log_filter = filter_pipeline_class()
 
 		if not isinstance(directory, str):
-			raise TypeError('"directory" must be of type string')
+			raise TypeError('directory must be of type string')
 		if not os.path.isdir(directory):
-			raise ValueError('"directory" must be a path to an existing directory')
+			raise ValueError('directory must be a path to an existing directory')
 		if not os.access(directory, os.W_OK | os.R_OK):
 			raise ValueError('not sufficient permissions on "directory"')
 
 		if not isinstance(log_filter, filter_pipeline_class):
-			raise TypeError('"log_filter" must either be None or of type filter_pipeline_class')
+			raise TypeError('log_filter must either be None or of type filter_pipeline_class')
 		if log_file is not None:
 			if not os.path.isdir(os.path.dirname(log_file)):
 				raise ValueError('path to logfile directory does not exist')
@@ -158,22 +158,22 @@ class _loggedfs(Operations):
 			if not os.path.exists(log_file) and not os.access(directory, os.W_OK):
 				raise ValueError('path to logfile directory is not writeable')
 		if not isinstance(log_syslog, bool):
-			raise TypeError('"log_syslog" must be of type bool')
+			raise TypeError('log_syslog must be of type bool')
 		if not isinstance(log_enabled, bool):
-			raise TypeError('"log_enabled" must be of type bool')
+			raise TypeError('log_enabled must be of type bool')
 		if not isinstance(log_printprocessname, bool):
-			raise TypeError('"log_printprocessname" must be of type bool')
+			raise TypeError('log_printprocessname must be of type bool')
 		if not isinstance(log_json, bool):
-			raise TypeError('"log_json" must be of type bool')
+			raise TypeError('log_json must be of type bool')
 		if not isinstance(log_buffers, bool):
-			raise TypeError('"log_buffers" must be of type bool')
+			raise TypeError('log_buffers must be of type bool')
 		if not isinstance(lib_mode, bool):
-			raise TypeError('"lib_mode" must be of type bool')
+			raise TypeError('lib_mode must be of type bool')
 
 		if not isinstance(fuse_foreground, bool):
-			raise TypeError('"fuse_foreground" must be of type bool')
+			raise TypeError('fuse_foreground must be of type bool')
 		if not isinstance(fuse_allowother, bool):
-			raise TypeError('"fuse_allowother" must be of type bool')
+			raise TypeError('fuse_allowother must be of type bool')
 
 		self._root_path = directory
 		self._log_printprocessname = log_printprocessname
