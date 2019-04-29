@@ -135,7 +135,7 @@ def _err_decoder(_id, _s, _q):
 # ROUTINES: SEND AND RECEIVE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def receive(cmd_list, out_func, err_func, exit_func):
+def receive(cmd_list, out_func, err_func, post_exit_func):
 
 		proc = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 		proc_alive = True
@@ -150,7 +150,7 @@ def receive(cmd_list, out_func, err_func, exit_func):
 
 		out_r.join()
 		err_r.join()
-		exit_func()
+		post_exit_func()
 
 
 def send(data):
