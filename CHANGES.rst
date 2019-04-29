@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.0.3 (2019-XX-XX)
+0.0.3 (2019-04-29)
 ------------------
 
 * FEATURE: LoggedFS-python can be used as a library in other Python software, enabling a user to specify callback functions on filesystem events. The relevant infrastructure is exported as ``loggedfs.loggedfs_notify``.
