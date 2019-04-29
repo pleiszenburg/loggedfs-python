@@ -30,7 +30,15 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from ._core.cli import cli_entry
+from ._core.filter import (
+	filter_field_class,
+	filter_item_class,
+	filter_pipeline_class
+	)
 from ._core.fs import (
 	_loggedfs,
 	loggedfs_factory
 	)
+from ._core.ipc import end_of_transmission
+from ._core.notify import notify_class as loggedfs_notify
+from ._core.out import decode_buffer

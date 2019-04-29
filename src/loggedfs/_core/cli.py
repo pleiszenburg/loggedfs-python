@@ -97,7 +97,7 @@ def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p, json, buffers)
+		**__process_config__(c, l, s, f, p, json, buffers, lib)
 		)
 
 
@@ -108,7 +108,8 @@ def __process_config__(
 	fuse_foreground,
 	fuse_allowother,
 	log_json,
-	log_buffers
+	log_buffers,
+	lib_mode
 	):
 
 	if config_fh is not None:
@@ -127,6 +128,7 @@ def __process_config__(
 	return {
 		'fuse_foreground': fuse_foreground,
 		'fuse_allowother': fuse_allowother,
+		'lib_mode': lib_mode,
 		'log_buffers': log_buffers,
 		'_log_configfile' : config_file,
 		'log_enabled': log_enabled,

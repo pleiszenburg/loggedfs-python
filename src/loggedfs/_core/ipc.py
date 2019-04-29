@@ -32,7 +32,7 @@ specific language governing rights and limitations under the License.
 import pickle
 import queue
 import struct
-from subprocess import Popen, PIPE
+import subprocess
 import sys
 import threading
 import time
@@ -82,8 +82,11 @@ class _receiver_class:
 		self._s = in_stream
 		self._f = processing_func
 		self._q = queue.Queue()
-		self._t = threading.Thread(target = decoder_func, args = (self._id, self._s, self._q))
-		self._t.daemon = True
+		self._t = threading.Thread(
+			target = decoder_func,
+			args = (self._id, self._s, self._q),
+			daemon = True
+			)
 		self._t.start()
 		self.join = self._t.join
 
@@ -129,37 +132,26 @@ def _err_decoder(_id, _s, _q):
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CLASS: MANAGING RECEIVERS (MULTIPLE STREAMS)
+# ROUTINES: SEND AND RECEIVE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class receiver_manager_class:
+def receive(cmd_list, out_func, err_func, post_exit_func):
 
+		proc = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+		proc_alive = True
+		out_r = _receiver_class('out', proc.stdout, _out_decoder, out_func)
+		err_r = _receiver_class('err', proc.stderr, _err_decoder, err_func)
 
-	def __init__(self, cmd_list, out_func, err_func, exit_func):
-
-		self._exit_func = exit_func
-		self._proc = Popen(cmd_list, stdout = PIPE, stderr = PIPE)
-		self._proc_alive = True
-		self._out_r = _receiver_class('out', self._proc.stdout, _out_decoder, out_func)
-		self._err_r = _receiver_class('err', self._proc.stderr, _err_decoder, err_func)
-		self._receive()
-
-
-	def _receive(self):
-
-		while self._proc_alive:
+		while proc_alive:
 			time.sleep(WAIT_TIMEOUT)
-			self._out_r.flush()
-			self._err_r.flush()
-			self._proc_alive = self._proc.poll() is None
-		self._out_r.join()
-		self._err_r.join()
-		self._exit_func()
+			out_r.flush()
+			err_r.flush()
+			proc_alive = proc.poll() is None
 
+		out_r.join()
+		err_r.join()
+		post_exit_func()
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES: SEND
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def send(data):
 

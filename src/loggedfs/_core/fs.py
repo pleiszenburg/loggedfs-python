@@ -49,6 +49,7 @@ except ImportError:
 from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
 	FUSE_FOREGROUND_DEFAULT,
+	LIB_MODE_DEFAULT,
 	LOG_BUFFERS_DEFAULT,
 	LOG_ENABLED_DEFAULT,
 	LOG_JSON_DEFAULT,
@@ -68,14 +69,14 @@ from .timing import time
 def loggedfs_factory(directory, **kwargs):
 
 	if not isinstance(directory, str):
-		raise TypeError('"directory" must be of type string')
+		raise TypeError('directory must be of type string')
 	if not os.path.isdir(directory):
-		raise ValueError('"directory" must be a path to an existing directory')
+		raise ValueError('directory must be a path to an existing directory')
 
 	if not isinstance(kwargs.get('fuse_foreground', FUSE_FOREGROUND_DEFAULT), bool):
-		raise TypeError('"fuse_foreground" must be of type bool')
+		raise TypeError('fuse_foreground must be of type bool')
 	if not isinstance(kwargs.get('fuse_allowother', FUSE_ALLOWOTHER_DEFAULT), bool):
-		raise TypeError('"fuse_allowother" must be of type bool')
+		raise TypeError('fuse_allowother must be of type bool')
 
 	return FUSE(
 		_loggedfs(
@@ -124,6 +125,7 @@ class _loggedfs(Operations):
 		directory,
 		fuse_foreground = FUSE_FOREGROUND_DEFAULT,
 		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
+		lib_mode = LIB_MODE_DEFAULT,
 		log_buffers = LOG_BUFFERS_DEFAULT,
 		log_enabled = LOG_ENABLED_DEFAULT,
 		log_file = None,
@@ -138,40 +140,47 @@ class _loggedfs(Operations):
 			log_filter = filter_pipeline_class()
 
 		if not isinstance(directory, str):
-			raise TypeError('"directory" must be of type string')
+			raise TypeError('directory must be of type string')
 		if not os.path.isdir(directory):
-			raise ValueError('"directory" must be a path to an existing directory')
+			raise ValueError('directory must be a path to an existing directory')
 		if not os.access(directory, os.W_OK | os.R_OK):
 			raise ValueError('not sufficient permissions on "directory"')
 
 		if not isinstance(log_filter, filter_pipeline_class):
-			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
+			raise TypeError('log_filter must either be None or of type filter_pipeline_class')
 		if log_file is not None:
 			if not os.path.isdir(os.path.dirname(log_file)):
 				raise ValueError('path to logfile directory does not exist')
 			if os.path.exists(log_file) and not os.path.isfile(log_file):
 				raise ValueError('logfile exists and is not a file')
+			if os.path.isfile(log_file) and not os.access(log_file, os.W_OK):
+				raise ValueError('logfile exists and is not writeable')
+			if not os.path.exists(log_file) and not os.access(directory, os.W_OK):
+				raise ValueError('path to logfile directory is not writeable')
 		if not isinstance(log_syslog, bool):
-			raise TypeError('"log_syslog" must be of type bool')
+			raise TypeError('log_syslog must be of type bool')
 		if not isinstance(log_enabled, bool):
-			raise TypeError('"log_enabled" must be of type bool')
+			raise TypeError('log_enabled must be of type bool')
 		if not isinstance(log_printprocessname, bool):
-			raise TypeError('"log_printprocessname" must be of type bool')
+			raise TypeError('log_printprocessname must be of type bool')
 		if not isinstance(log_json, bool):
-			raise TypeError('"log_json" must be of type bool')
+			raise TypeError('log_json must be of type bool')
 		if not isinstance(log_buffers, bool):
-			raise TypeError('"log_buffers" must be of type bool')
+			raise TypeError('log_buffers must be of type bool')
+		if not isinstance(lib_mode, bool):
+			raise TypeError('lib_mode must be of type bool')
 
 		if not isinstance(fuse_foreground, bool):
-			raise TypeError('"fuse_foreground" must be of type bool')
-		if not isinstance(fuse_foreground, bool):
-			raise TypeError('"fuse_allowother" must be of type bool')
+			raise TypeError('fuse_foreground must be of type bool')
+		if not isinstance(fuse_allowother, bool):
+			raise TypeError('fuse_allowother must be of type bool')
 
 		self._root_path = directory
 		self._log_printprocessname = log_printprocessname
 		self._log_json = log_json
 		self._log_buffers = log_buffers
 		self._log_filter = log_filter
+		self._lib_mode = lib_mode
 
 		self._logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 

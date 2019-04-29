@@ -43,7 +43,10 @@ from fuse import (
 	FuseOSError,
 	)
 
+from .ipc import send
 from .log import log_msg
+from .timing import time
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CONST
@@ -123,7 +126,15 @@ def event(format_pattern = ''):
 	return wrapper
 
 
-def _encode_bytes_(in_bytes):
+def decode_buffer(in_buffer):
+
+	if not isinstance(in_buffer, str):
+		raise TypeError('in_buffer must be a string')
+
+	return zlib.decompress(base64.b64decode(in_buffer.encode('utf-8')))
+
+
+def _encode_buffer_(in_bytes):
 
 	return base64.b64encode(zlib.compress(in_bytes, 1)).decode('utf-8') # compress level 1 (weak)
 
@@ -215,7 +226,7 @@ def _log_event_(
 			arg_dict[k] = self._full_path(arg_dict[k])
 	try:
 		arg_dict['buf_len'] = len(arg_dict['buf'])
-		arg_dict['buf'] = _encode_bytes_(arg_dict['buf']) if self._log_buffers else ''
+		arg_dict['buf'] = _encode_buffer_(arg_dict['buf']) if self._log_buffers else ''
 	except KeyError:
 		pass
 
@@ -232,7 +243,7 @@ def _log_event_(
 			log_dict['return'] = ret_value
 		elif isinstance(ret_value, bytes):
 			log_dict['return_len'] = len(ret_value)
-			log_dict['return'] = _encode_bytes_(ret_value) if self._log_buffers else ''
+			log_dict['return'] = _encode_buffer_(ret_value) if self._log_buffers else ''
 
 	else: # FAILURE
 		log_dict.update({
@@ -242,11 +253,16 @@ def _log_event_(
 			'return_errorcode': errno.errorcode[ret_value[1]]
 			})
 
-	if not self._log_filter.match(log_dict):
-		return
+	if not self._lib_mode:
+		if not self._log_filter.match(log_dict):
+			return
 
-	if self._log_json:
+	if self._log_json and not self._lib_mode:
 		self._logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
+		return
+	elif self._lib_mode:
+		log_dict['time'] = time.time_ns()
+		send(log_dict)
 		return
 
 	log_out = ' '.join([

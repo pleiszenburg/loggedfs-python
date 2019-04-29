@@ -60,7 +60,7 @@ class filter_field_class:
 	def __repr__(self):
 
 		return '<filter_field name="%s" value="%s"/>' % (
-			name if not self._name_is_func else '{callable:' + getattr(self._name, '__name__', 'NONAME') + '}',
+			self._name if not self._name_is_func else '{callable:' + getattr(self._name, '__name__', 'NONAME') + '}',
 			'{callable:' + getattr(self._value, '__name__', 'NONAME') + '}'
 			)
 
