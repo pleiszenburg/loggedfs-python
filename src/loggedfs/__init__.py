@@ -34,3 +34,4 @@ from ._core.fs import (
 	_loggedfs,
 	loggedfs_factory
 	)
+from ._core.notify import notify_class as loggedfs_notify
