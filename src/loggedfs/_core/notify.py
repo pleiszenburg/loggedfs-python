@@ -81,7 +81,7 @@ class notify_class:
 		if not os.access(directory, os.W_OK | os.R_OK):
 			raise ValueError('not sufficient permissions on directory')
 
-		if consumer_func is not None or not hasattr(consumer_func, '__call__'):
+		if consumer_func is not None and not hasattr(consumer_func, '__call__'):
 			raise ValueError('consumer_func must either be None or callable')
 		if hasattr(consumer_func, '__call__'):
 			if len(inspect.signature(consumer_func).parameters.keys()) != 1:
@@ -99,9 +99,11 @@ class notify_class:
 		self._log_buffers = log_buffers
 		self._background = background
 
+		self._up = True
+
 		command = ['loggedfs',
 			'-f', # foreground
-			'-p', # allow other users
+			# '-p', # allow other users
 			'-s', # no syslog
 			'--lib' # "hidden" library mode
 			]
@@ -120,7 +122,7 @@ class notify_class:
 
 	def _handle_stderr(self, msg):
 
-		sys.stdout.write(c['RED'] + str(msg) + c['RESET'] + '\n')
+		sys.stdout.write(c['RED'] + str(msg).rstrip('\n') + c['RESET'] + '\n')
 		sys.stdout.flush()
 
 
@@ -137,6 +139,11 @@ class notify_class:
 
 
 	def terminate(self):
+
+		if not self._up:
+			return
+
+		self._up = False
 
 		command = ['fusermount', '-u', self._directory]
 		proc = subprocess.Popen(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
