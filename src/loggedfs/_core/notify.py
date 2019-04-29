@@ -33,7 +33,7 @@ import inspect
 import os
 
 from .defaults import LOG_BUFFERS_DEFAULT
-from .ipc import receive
+from .ipc import receive, end_of_transmission
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
