@@ -45,8 +45,8 @@ class notify_class:
 
 	def __init__(self,
 		directory,
-		exit_func = None, # called on exit
 		consumer_func = None, # consumes signals
+		exit_func = None, # called on exit
 		log_buffers = LOG_BUFFERS_DEFAULT,
 		background = False # thread in background
 		):
@@ -58,12 +58,12 @@ class notify_class:
 		if not os.access(directory, os.W_OK | os.R_OK):
 			raise ValueError('not sufficient permissions on directory')
 
-		if exit_func is not None and not hasattr(exit_func, '__call__'):
-			raise ValueError('exit_func must either be None or callable')
 		if consumer_func is None or not hasattr(consumer_func, '__call__'):
 			raise ValueError('consumer_func must be callable')
 		if len(inspect.signature(consumer_func).parameters.keys()) != 1:
 			raise ValueError('consumer_func must have one parameter')
+		if exit_func is not None and not hasattr(exit_func, '__call__'):
+			raise ValueError('exit_func must either be None or callable')
 		if not isinstance(log_buffers, bool):
 			raise TypeError('log_buffers must be of type bool')
 		if not isinstance(background, bool):
