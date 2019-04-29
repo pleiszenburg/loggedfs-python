@@ -74,7 +74,7 @@ Every single event is represented as a dictionary. ``demo_data`` is therefore a 
 - return: Return value of operation. ``None`` if there is none.
 - time: System time, nanoseconds, UTC
 
-Other columns / keys are optional and depend on the operation and its status. With this knowlege, you can run typical Python data analysis frameworks across this data. Pandas for instance:
+Other columns / keys are optional and depend on the operation and its status. With this knowledge, you can run typical Python data analysis frameworks across this data. Pandas for instance:
 
 .. highlight:: python
 
