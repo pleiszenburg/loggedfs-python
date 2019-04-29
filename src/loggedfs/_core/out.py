@@ -45,6 +45,7 @@ from fuse import (
 
 from .ipc import send
 from .log import log_msg
+from .timing import time
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -260,6 +261,7 @@ def _log_event_(
 		self._logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
 		return
 	elif self._lib_mode:
+		log_dict['time'] = time.time_ns()
 		send(log_dict)
 		return
 
