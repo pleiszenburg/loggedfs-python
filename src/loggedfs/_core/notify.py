@@ -112,8 +112,8 @@ class notify_class:
 			raise TypeError('background must be of type bool')
 
 		self._directory = os.path.abspath(directory)
-		self._post_exit_func = post_exit_func if post_exit_func is not None else lambda: None
-		self._consumer_func = consumer_func if consumer_func is not None else self._handle_stdout
+		self._post_exit_func = post_exit_func
+		self._consumer_func = consumer_func
 		self._log_buffers = log_buffers
 		self._fuse_allowother = fuse_allowother
 		self._background = background
@@ -131,7 +131,7 @@ class notify_class:
 			command.append('-p')
 		command.append(self._directory)
 
-		args = (command, self._consumer_func, self._handle_stderr, self._handle_exit)
+		args = (command, self._handle_stdout, self._handle_stderr, self._handle_exit)
 
 		if self._background:
 			self._t = threading.Thread(target = receive, args = args, daemon = False)
@@ -148,8 +148,11 @@ class notify_class:
 
 	def _handle_stdout(self, msg):
 
-		sys.stdout.write(c['GREEN'] + str(msg) + c['RESET'] + '\n')
-		sys.stdout.flush()
+		if self._consumer_func is not None:
+			self._consumer_func()
+		else:
+			sys.stdout.write(c['GREEN'] + str(msg) + c['RESET'] + '\n')
+			sys.stdout.flush()
 
 
 	def _handle_exit(self):
