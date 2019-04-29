@@ -39,6 +39,7 @@ from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
 	LOG_BUFFERS_DEFAULT
 	)
+from .filter import filter_pipeline_class
 from .ipc import receive, end_of_transmission
 
 
@@ -74,8 +75,10 @@ class notify_class:
 
 	def __init__(self,
 		directory,
-		consumer_func = None, # consumes signals
+		consumer_out_func = None, # consumes signals
+		consumer_err_func = None, # consumes anything on stderr
 		post_exit_func = None, # called on exit
+		log_filter = None,
 		log_buffers = LOG_BUFFERS_DEFAULT,
 		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
 		background = False # thread in background
@@ -83,12 +86,17 @@ class notify_class:
 		"""Creates a filesystem notifier object.
 
 		- directory: Relative or absolute path as a string
-		- consumer_func: None or callable, consumes events provided as a dictionary
+		- consumer_out_func: None or callable, consumes events provided as a dictionary
+		- consumer_err_func: None or callable, consumes output from stderr
 		- post_exit_func: None or callable, called when notifier was terminated
+		- log_filter: None or instance of filter_pipeline_class
 		- log_buffers: Boolean, activates logging of read and write buffers
 		- fuse_allowother: Boolean, allows other users to see the LoggedFS filesystem
 		- background: Boolean, starts notifier in a thread
 		"""
+
+		if log_filter is None:
+			log_filter = filter_pipeline_class()
 
 		if not isinstance(directory, str):
 			raise TypeError('directory must be of type string')
@@ -97,13 +105,20 @@ class notify_class:
 		if not os.access(directory, os.W_OK | os.R_OK):
 			raise ValueError('not sufficient permissions on directory')
 
-		if consumer_func is not None and not hasattr(consumer_func, '__call__'):
-			raise ValueError('consumer_func must either be None or callable')
-		if hasattr(consumer_func, '__call__'):
-			if len(inspect.signature(consumer_func).parameters.keys()) != 1:
-				raise ValueError('consumer_func must have one parameter')
+		if consumer_out_func is not None and not hasattr(consumer_out_func, '__call__'):
+			raise TypeError('consumer_out_func must either be None or callable')
+		if hasattr(consumer_out_func, '__call__'):
+			if len(inspect.signature(consumer_out_func).parameters.keys()) != 1:
+				raise ValueError('consumer_out_func must have one parameter')
+		if consumer_err_func is not None and not hasattr(consumer_err_func, '__call__'):
+			raise TypeError('consumer_err_func must either be None or callable')
+		if hasattr(consumer_err_func, '__call__'):
+			if len(inspect.signature(consumer_err_func).parameters.keys()) != 1:
+				raise ValueError('consumer_err_func must have one parameter')
 		if post_exit_func is not None and not hasattr(post_exit_func, '__call__'):
-			raise ValueError('post_exit_func must either be None or callable')
+			raise TypeError('post_exit_func must either be None or callable')
+		if not isinstance(log_filter, filter_pipeline_class):
+			raise TypeError('log_filter must either be None or of type filter_pipeline_class')
 		if not isinstance(log_buffers, bool):
 			raise TypeError('log_buffers must be of type bool')
 		if not isinstance(fuse_allowother, bool):
@@ -113,7 +128,9 @@ class notify_class:
 
 		self._directory = os.path.abspath(directory)
 		self._post_exit_func = post_exit_func
-		self._consumer_func = consumer_func
+		self._consumer_out_func = consumer_out_func
+		self._consumer_err_func = consumer_err_func
+		self._log_filter = log_filter
 		self._log_buffers = log_buffers
 		self._fuse_allowother = fuse_allowother
 		self._background = background
@@ -142,14 +159,21 @@ class notify_class:
 
 	def _handle_stderr(self, msg):
 
-		sys.stdout.write(c['RED'] + str(msg).rstrip('\n') + c['RESET'] + '\n')
-		sys.stdout.flush()
+		if self._consumer_err_func is not None:
+			self._consumer_err_func(msg)
+		else:
+			sys.stderr.write(c['RED'] + str(msg).rstrip('\n') + c['RESET'] + '\n')
+			sys.stderr.flush()
 
 
 	def _handle_stdout(self, msg):
 
-		if self._consumer_func is not None:
-			self._consumer_func()
+		if not isinstance(msg, end_of_transmission):
+			if not self._log_filter.match(msg):
+				return
+
+		if self._consumer_out_func is not None:
+			self._consumer_out_func(msg)
 		else:
 			sys.stdout.write(c['GREEN'] + str(msg) + c['RESET'] + '\n')
 			sys.stdout.flush()

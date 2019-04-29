@@ -244,8 +244,9 @@ def _log_event_(
 			'return_errorcode': errno.errorcode[ret_value[1]]
 			})
 
-	if not self._log_filter.match(log_dict):
-		return
+	if not self._lib_mode:
+		if not self._log_filter.match(log_dict):
+			return
 
 	if self._log_json and not self._lib_mode:
 		self._logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )

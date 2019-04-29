@@ -147,7 +147,7 @@ class _loggedfs(Operations):
 			raise ValueError('not sufficient permissions on "directory"')
 
 		if not isinstance(log_filter, filter_pipeline_class):
-			raise ValueError('"log_filter" must either be None or of type filter_pipeline_class')
+			raise TypeError('"log_filter" must either be None or of type filter_pipeline_class')
 		if log_file is not None:
 			if not os.path.isdir(os.path.dirname(log_file)):
 				raise ValueError('path to logfile directory does not exist')
