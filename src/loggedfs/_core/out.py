@@ -43,7 +43,9 @@ from fuse import (
 	FuseOSError,
 	)
 
+from .ipc import send
 from .log import log_msg
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # CONST
@@ -245,8 +247,11 @@ def _log_event_(
 	if not self._log_filter.match(log_dict):
 		return
 
-	if self._log_json:
+	if self._log_json and not self._lib_mode:
 		self._logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
+		return
+	elif self._lib_mode:
+		send(log_dict)
 		return
 
 	log_out = ' '.join([
