@@ -33,7 +33,7 @@ import inspect
 import os
 
 from .defaults import LOG_BUFFERS_DEFAULT
-from .ipc import receiver_manager_class
+from .ipc import receive
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

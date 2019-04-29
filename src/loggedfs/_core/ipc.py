@@ -129,37 +129,26 @@ def _err_decoder(_id, _s, _q):
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# CLASS: MANAGING RECEIVERS (MULTIPLE STREAMS)
+# ROUTINES: SEND AND RECEIVE
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class receiver_manager_class:
+def receive(cmd_list, out_func, err_func, exit_func):
 
+		proc = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+		proc_alive = True
+		out_r = _receiver_class('out', proc.stdout, _out_decoder, out_func)
+		err_r = _receiver_class('err', proc.stderr, _err_decoder, err_func)
 
-	def __init__(self, cmd_list, out_func, err_func, exit_func):
-
-		self._exit_func = exit_func
-		self._proc = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-		self._proc_alive = True
-		self._out_r = _receiver_class('out', self._proc.stdout, _out_decoder, out_func)
-		self._err_r = _receiver_class('err', self._proc.stderr, _err_decoder, err_func)
-		self._receive()
-
-
-	def _receive(self):
-
-		while self._proc_alive:
+		while proc_alive:
 			time.sleep(WAIT_TIMEOUT)
-			self._out_r.flush()
-			self._err_r.flush()
-			self._proc_alive = self._proc.poll() is None
-		self._out_r.join()
-		self._err_r.join()
-		self._exit_func()
+			out_r.flush()
+			err_r.flush()
+			proc_alive = proc.poll() is None
 
+		out_r.join()
+		err_r.join()
+		exit_func()
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# ROUTINES: SEND
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def send(data):
 
