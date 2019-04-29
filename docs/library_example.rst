@@ -3,7 +3,7 @@ Using LoggedFS-python as a library
 
 Create a new directory, for instance in your current working directory, named ``demo_dir``. Then fire up an interactive Python shell such as Jupyter Notebook or Jupyter Lab. Now you can try the following:
 
-.. highlight:: python
+.. code:: python
 
     import re
     import loggedfs
@@ -26,22 +26,22 @@ Create a new directory, for instance in your current working directory, named ``
 
 You have just stated recording all filesystem events that involve a command containing the string ``kate``. Leave the Python shell and write some stuff into the ``demo_dir`` using ``Kate``, the KDE text editor. Once you are finished, go back to your Python shell and terminate the recording.
 
-.. highlight:: python
+.. code:: python
 
     demo.terminate()
 
 Notice that the recorded data ends with an "end of transmission" marker. For convenience, remove it first:
 
-.. highlight:: python
+.. code:: python
 
     assert isinstance(demo_data[-1], loggedfs.end_of_transmission)
     demo_data = demo_data[:-1]
 
 Let's have a look at what you have recorded:
 
-.. highlight:: python
+.. code:: python
 
-    print(demo_data[44]) # actual index might show something different in your case
+    print(demo_data[44]) # index 44 might show something different in your case
 
 ::
 
@@ -76,7 +76,7 @@ Every single event is represented as a dictionary. ``demo_data`` is therefore a 
 
 Other columns / keys are optional and depend on the operation and its status. With this knowledge, you can run typical Python data analysis frameworks across this data. Pandas for instance:
 
-.. highlight:: python
+.. code:: python
 
     import pandas as pd
     data_df = pd.DataFrame.from_records(demo_data, index = 'time')
