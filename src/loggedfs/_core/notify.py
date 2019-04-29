@@ -29,6 +29,7 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import atexit
 import inspect
 import os
 import subprocess
@@ -150,6 +151,7 @@ class notify_class:
 
 		args = (command, self._handle_stdout, self._handle_stderr, self._handle_exit)
 
+		atexit.register(self.terminate)
 		if self._background:
 			self._t = threading.Thread(target = receive, args = args, daemon = False)
 			self._t.start()
