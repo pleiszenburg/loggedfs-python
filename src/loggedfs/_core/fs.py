@@ -172,7 +172,7 @@ class _loggedfs(Operations):
 
 		if not isinstance(fuse_foreground, bool):
 			raise TypeError('"fuse_foreground" must be of type bool')
-		if not isinstance(fuse_foreground, bool):
+		if not isinstance(fuse_allowother, bool):
 			raise TypeError('"fuse_allowother" must be of type bool')
 
 		self._root_path = directory

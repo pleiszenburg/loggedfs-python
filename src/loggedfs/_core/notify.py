@@ -35,7 +35,10 @@ import subprocess
 import sys
 import threading
 
-from .defaults import LOG_BUFFERS_DEFAULT
+from .defaults import (
+	FUSE_ALLOWOTHER_DEFAULT,
+	LOG_BUFFERS_DEFAULT
+	)
 from .ipc import receive, end_of_transmission
 
 
@@ -74,6 +77,7 @@ class notify_class:
 		consumer_func = None, # consumes signals
 		post_exit_func = None, # called on exit
 		log_buffers = LOG_BUFFERS_DEFAULT,
+		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
 		background = False # thread in background
 		):
 		"""Creates a filesystem notifier object.
@@ -82,6 +86,7 @@ class notify_class:
 		- consumer_func: None or callable, consumes events provided as a dictionary
 		- post_exit_func: None or callable, called when notifier was terminated
 		- log_buffers: Boolean, activates logging of read and write buffers
+		- fuse_allowother: Boolean, allows other users to see the LoggedFS filesystem
 		- background: Boolean, starts notifier in a thread
 		"""
 
@@ -101,6 +106,8 @@ class notify_class:
 			raise ValueError('post_exit_func must either be None or callable')
 		if not isinstance(log_buffers, bool):
 			raise TypeError('log_buffers must be of type bool')
+		if not isinstance(fuse_allowother, bool):
+			raise TypeError('fuse_allowother must be of type bool')
 		if not isinstance(background, bool):
 			raise TypeError('background must be of type bool')
 
@@ -108,18 +115,20 @@ class notify_class:
 		self._post_exit_func = post_exit_func if post_exit_func is not None else lambda: None
 		self._consumer_func = consumer_func if consumer_func is not None else self._handle_stdout
 		self._log_buffers = log_buffers
+		self._fuse_allowother = fuse_allowother
 		self._background = background
 
 		self._up = True
 
 		command = ['loggedfs',
 			'-f', # foreground
-			# '-p', # allow other users
 			'-s', # no syslog
 			'--lib' # "hidden" library mode
 			]
 		if self._log_buffers:
 			command.append('-b') # also log read and write buffers
+		if self._fuse_allowother:
+			command.append('-p')
 		command.append(self._directory)
 
 		args = (command, self._consumer_func, self._handle_stderr, self._handle_exit)
