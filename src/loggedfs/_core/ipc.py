@@ -32,7 +32,7 @@ specific language governing rights and limitations under the License.
 import pickle
 import queue
 import struct
-from subprocess import Popen, PIPE
+import subprocess
 import sys
 import threading
 import time
@@ -138,7 +138,7 @@ class receiver_manager_class:
 	def __init__(self, cmd_list, out_func, err_func, exit_func):
 
 		self._exit_func = exit_func
-		self._proc = Popen(cmd_list, stdout = PIPE, stderr = PIPE)
+		self._proc = subprocess.Popen(cmd_list, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 		self._proc_alive = True
 		self._out_r = _receiver_class('out', self._proc.stdout, _out_decoder, out_func)
 		self._err_r = _receiver_class('err', self._proc.stderr, _err_decoder, err_func)
