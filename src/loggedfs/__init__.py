@@ -30,6 +30,11 @@ specific language governing rights and limitations under the License.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 from ._core.cli import cli_entry
+from ._core.filter import (
+	filter_field_class,
+	filter_item_class,
+	filter_pipeline_class
+	)
 from ._core.fs import (
 	_loggedfs,
 	loggedfs_factory
