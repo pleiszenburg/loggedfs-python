@@ -82,8 +82,11 @@ class _receiver_class:
 		self._s = in_stream
 		self._f = processing_func
 		self._q = queue.Queue()
-		self._t = threading.Thread(target = decoder_func, args = (self._id, self._s, self._q))
-		self._t.daemon = True
+		self._t = threading.Thread(
+			target = decoder_func,
+			args = (self._id, self._s, self._q),
+			daemon = True
+			)
 		self._t.start()
 		self.join = self._t.join
 
