@@ -49,6 +49,7 @@ except ImportError:
 from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
 	FUSE_FOREGROUND_DEFAULT,
+	LIB_MODE_DEFAULT,
 	LOG_BUFFERS_DEFAULT,
 	LOG_ENABLED_DEFAULT,
 	LOG_JSON_DEFAULT,
@@ -124,6 +125,7 @@ class _loggedfs(Operations):
 		directory,
 		fuse_foreground = FUSE_FOREGROUND_DEFAULT,
 		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
+		lib_mode = LIB_MODE_DEFAULT,
 		log_buffers = LOG_BUFFERS_DEFAULT,
 		log_enabled = LOG_ENABLED_DEFAULT,
 		log_file = None,
@@ -161,6 +163,8 @@ class _loggedfs(Operations):
 			raise TypeError('"log_json" must be of type bool')
 		if not isinstance(log_buffers, bool):
 			raise TypeError('"log_buffers" must be of type bool')
+		if not isinstance(lib_mode, bool):
+			raise TypeError('"lib_mode" must be of type bool')
 
 		if not isinstance(fuse_foreground, bool):
 			raise TypeError('"fuse_foreground" must be of type bool')
@@ -172,6 +176,7 @@ class _loggedfs(Operations):
 		self._log_json = log_json
 		self._log_buffers = log_buffers
 		self._log_filter = log_filter
+		self._lib_mode = lib_mode
 
 		self._logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
