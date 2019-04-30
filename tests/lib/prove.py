@@ -31,6 +31,7 @@ specific language governing rights and limitations under the License.
 
 import base64
 import os
+import time
 import zlib
 
 from .const import (
@@ -123,7 +124,10 @@ class fstest_prove_class:
 		print('len_expected = {:d}\nlen_passed = {:d}\nlen_passed_todo = {:d}\nlen_failed = {:d}\nlen_failed_todo = {:d}'.format(
 			len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo
 			))
-		print(base64.encodebytes(zlib.compress(report_str.encode('utf-8'), 7)).decode('utf-8')) # compress level 7 (high)
+		packed = base64.encodebytes(zlib.compress(report_str.encode('utf-8'), 7)).decode('utf-8') # compress level 7 (high)
+		for line in packed.split('\n'):
+			print(line)
+			time.sleep(0.05)
 
 		self.__clear_loggedfs_log__()
 
