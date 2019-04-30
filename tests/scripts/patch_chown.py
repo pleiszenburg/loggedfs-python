@@ -15,16 +15,31 @@ TEST_NAME = '00.t'
 TEST_PATH = 'tests/test_suite/tests/chown'
 TEST_BACKUP = 'tests/scripts'
 
+PATCH_ROUTINES = [
+	'expect',
+	'jexpect',
+	'test_check'
+	]
+
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ROUTINES
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def patch_script(in_data):
+def patch_script(in_str):
 
-	# TODO
+	old_lines = in_str.split('\n')
+	new_lines = []
 
-	return in_data
+	test_count = 1
+	for line in old_lines:
+		tabs_num = len(line) - len(line.lstrip('\t'))
+		if any((line.lstrip('\t').startswith(item) for item in PATCH_ROUTINES)):
+			new_lines.append('\t' * tabs_num + 'todo Linux "PJD COUNT %d"' % test_count)
+			test_count += 1
+		new_lines.append(line)
+
+	return '\n'.join(new_lines) + '\n'
 
 
 def main():

@@ -67,6 +67,7 @@ install_link:
 
 install_fstest:
 	python3 -c 'import tests; tests.lib.install_fstest()'
+	python tests/scripts/patch_chown.py
 
 install_fsx:
 	python3 -c 'import tests; tests.lib.install_fsx()'
