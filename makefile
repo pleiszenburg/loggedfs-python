@@ -91,6 +91,9 @@ destroy_force:
 	-sudo umount tests/test_mount
 
 test:
+	make test_posix T="-T chown/00.t"
+
+test_original:
 	make test_posix
 	make test_stress
 
