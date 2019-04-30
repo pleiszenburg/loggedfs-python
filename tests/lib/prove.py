@@ -84,7 +84,8 @@ class fstest_prove_class:
 			len_failed == 0, # ASSERT BELOW!
 			len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo), # ASSERT BELOW!
 			len_expected != 0, # ASSERT BELOW!
-			'Traceback (most recent call last)' not in grp_log # ASSERT BELOW!
+			'Traceback (most recent call last)' not in grp_log, # ASSERT BELOW!
+			'chown/00.t' not in test_path
 			])
 		# pass_condition_err = err.strip() == ''
 
