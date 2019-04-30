@@ -18,7 +18,8 @@ TEST_BACKUP = 'tests/scripts'
 PATCH_ROUTINES = [
 	'expect',
 	'jexpect',
-	'test_check'
+	'test_check',
+	'create_file'
 	]
 
 
