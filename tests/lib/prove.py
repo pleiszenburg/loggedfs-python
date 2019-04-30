@@ -29,7 +29,9 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import base64
 import os
+import zlib
 
 from .const import (
 	TEST_FS_LOGGEDFS,
@@ -65,17 +67,24 @@ class fstest_prove_class:
 		append_to_file(self.fstest_log_abs_path, test_path + '\n')
 
 		status, out, err = self.__run_fstest__(test_path)
-		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)
+		(
+			len_expected,
+			len_passed,
+			len_passed_todo,
+			len_failed,
+			len_failed_todo,
+			res_dict
+			) = self.__process_raw_results__(out)
 
 		grp_dir, grp_nr = self.__get_group_id_from_path__(test_path)
 		grp_code = read_file(test_path)
 		grp_log = read_file(self.loggedfs_log_abs_path)
 
 		pass_condition = all([
-			len_failed == 0,
-			len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo),
-			len_expected != 0,
-			'Traceback (most recent call last)' not in grp_log
+			len_failed == 0, # ASSERT BELOW!
+			len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo), # ASSERT BELOW!
+			len_expected != 0, # ASSERT BELOW!
+			'Traceback (most recent call last)' not in grp_log # ASSERT BELOW!
 			])
 		# pass_condition_err = err.strip() == ''
 
@@ -110,11 +119,17 @@ class fstest_prove_class:
 		write_file(os.path.join(self.logs_abs_path, report_fn), report_str)
 
 		print('=== %s ===' % report_fn)
-		print(report_str)
+		print('len_expected = {:d}\nlen_passed = {:d}\nlen_passed_todo = {:d}\nlen_failed = {:d}\nlen_failed_todo = {:d}'.format(
+			len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo
+			))
+		print(base64.encodebytes(zlib.compress(report_str.encode('utf-8'), 7)).decode('utf-8')) # compress level 7 (high)
 
 		self.__clear_loggedfs_log__()
 
-		assert pass_condition
+		assert len_failed == 0 # ASSERT ABOVE!
+		assert len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) # ASSERT ABOVE!
+		assert len_expected != 0 # ASSERT ABOVE!
+		assert 'Traceback (most recent call last)' not in grp_log # ASSERT ABOVE!
 
 
 	def __clear_loggedfs_log__(self):
