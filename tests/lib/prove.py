@@ -82,6 +82,7 @@ class fstest_prove_class:
 		grp_log = read_file(self.loggedfs_log_abs_path)
 
 		pass_condition = all([
+			status,
 			len_failed == 0, # ASSERT BELOW!
 			len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo), # ASSERT BELOW!
 			len_expected != 0, # ASSERT BELOW!
@@ -131,6 +132,7 @@ class fstest_prove_class:
 
 		self.__clear_loggedfs_log__()
 
+		assert status
 		assert len_failed == 0 # ASSERT ABOVE!
 		assert len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) # ASSERT ABOVE!
 		assert len_expected != 0 # ASSERT ABOVE!
