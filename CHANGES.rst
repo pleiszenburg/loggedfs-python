@@ -1,16 +1,18 @@
 Changes
 =======
 
-0.0.3 (2019-XX-XX)
+0.0.3 (2019-05-01)
 ------------------
 
-* FEATURE: LoggedFS-python can be used as a library in other Python software, enabling a user to specify callback functions on filesystem events. The relevant infrastructure is exported as ``loggedfs.loggedfs_notify``.
-* FEATURE: New programmable filter pipeline
+* FEATURE: LoggedFS-python can be used as a library in other Python software, enabling a user to specify callback functions on filesystem events. The relevant infrastructure is exported as ``loggedfs.loggedfs_notify``. See library example under ``docs``.
+* FEATURE: New programmable filter pipeline, see ``loggedfs.filter_field_class``, ``loggedfs.filter_item_class`` and ``loggedfs.filter_pipeline_class``
 * FEATURE: New flag ``-b``, explicitly activating logging of read and write buffers
 * FEATURE: In "traditional" logging mode (not JSON), read and write buffers are also logged zlib-compressed and BASE64 encoded.
+* FEATURE: Convenience function for decoding logged buffers, see ``loggedfs.decode_buffer``
 * FIX: LoggedFS-python would have crashed if no XML configuration file had been specified.
-* FIX: Directory listing (``ls``) was broken.
+* FIX: **Directory listing (``ls``) was broken.**
 * FIX: Testing infrastructure did not catch all exceptions in tests.
+* FIX: Testing infrastructure did not handle timeouts on individual tests correctly.
 
 0.0.2 (2019-04-23)
 ------------------
