@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/out.py: Log output formatting and filtering
+	src/loggedfs/_core/out.py: Log output formatting and filtering
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -43,8 +43,29 @@ from fuse import (
 	FuseOSError,
 	)
 
-from .filter import match_filters
+from .ipc import send
 from .log import log_msg
+from .timing import time
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# CONST
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+STATUS_DICT = {
+	True: 'SUCCESS',
+	False: 'FAILURE'
+	}
+
+ATTR_NAME = '__name__'
+ATTR_ERRNO = 'errno'
+
+NAME_OSERROR = 'OSError'
+NAME_FUSEOSERROR = 'FuseOSError'
+NAME_UNKNOWN = 'Unknown Exception'
+
+ERROR_STAGE1 = 'UNEXPECTED in operation stage (1)'
+ERROR_STAGE2 = 'UNEXPECTED in log stage (2)'
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,26 +90,22 @@ def event(format_pattern = ''):
 		def wrapped(self, *func_args, **func_kwargs):
 
 			ret_value = None
+			ret_status = False
 			try:
 				ret_value = func(self, *func_args, **func_kwargs)
-				ret_str = 'r = %s' % str(ret_value)
-				ret_status = 'SUCCESS'
+				ret_status = True
 			except FuseOSError as e:
-				ret_status = 'FAILURE'
-				ret_str = 'FuseOS_e = %s' % errno.errorcode[e.errno]
+				ret_value = (NAME_FUSEOSERROR, e.errno)
 				raise e
 			except OSError as e:
-				ret_status = 'FAILURE'
-				ret_str = 'OS_e = %s' % errno.errorcode[e.errno]
+				ret_value = (NAME_OSERROR, e.errno)
 				raise FuseOSError(e.errno)
 			except Exception as e:
-				ret_status = 'FAILURE'
-				if hasattr(e, 'errno'): # all subclasses of OSError
-					ret_str = 'e = %s' % errno.errorcode[e.errno]
+				if hasattr(e, ATTR_ERRNO): # all subclasses of OSError
+					ret_value = (getattr(type(e), ATTR_NAME, NAME_UNKNOWN), e.errno)
 					raise FuseOSError(e.errno)
 				else:
-					ret_str = '?'
-					self.logger.exception(log_msg(self._log_json, 'UNEXPECTED in operation stage (1)'))
+					self._logger.exception(log_msg(self._log_json, ERROR_STAGE1))
 					raise e
 			else:
 				return ret_value
@@ -98,10 +115,10 @@ def event(format_pattern = ''):
 						self,
 						func, func_arg_names, func_arg_abspath, func_arg_defaults, func_args, func_kwargs,
 						format_pattern,
-						ret_status, ret_str, ret_value
+						ret_status, ret_value
 						)
 				except Exception as e:
-					self.logger.exception(log_msg(self._log_json, 'UNEXPECTED in log stage (2)'))
+					self._logger.exception(log_msg(self._log_json, ERROR_STAGE2))
 					raise e
 
 		return wrapped
@@ -109,7 +126,15 @@ def event(format_pattern = ''):
 	return wrapper
 
 
-def _encode_bytes_(in_bytes):
+def decode_buffer(in_buffer):
+
+	if not isinstance(in_buffer, str):
+		raise TypeError('in_buffer must be a string')
+
+	return zlib.decompress(base64.b64decode(in_buffer.encode('utf-8')))
+
+
+def _encode_buffer_(in_bytes):
 
 	return base64.b64encode(zlib.compress(in_bytes, 1)).decode('utf-8') # compress level 1 (weak)
 
@@ -155,7 +180,7 @@ def _log_event_(
 	self,
 	func, func_arg_names, func_arg_abspath, func_arg_defaults, func_args, func_kwargs,
 	format_pattern,
-	ret_status, ret_str, ret_value
+	ret_status, ret_value
 	):
 
 	uid, gid, pid = fuse_get_context()
@@ -172,7 +197,7 @@ def _log_event_(
 		'proc_gid_name': _get_group_name_from_gid_(gid),
 		'proc_pid': pid,
 		'action': func.__name__,
-		'status': ret_status == 'SUCCESS',
+		'status': ret_status,
 		}
 
 	arg_dict = {
@@ -201,36 +226,52 @@ def _log_event_(
 			arg_dict[k] = self._full_path(arg_dict[k])
 	try:
 		arg_dict['buf_len'] = len(arg_dict['buf'])
-		arg_dict['buf'] = _encode_bytes_(arg_dict['buf'])
+		arg_dict['buf'] = _encode_buffer_(arg_dict['buf']) if self._log_buffers else ''
 	except KeyError:
 		pass
 
 	log_dict.update({'param_%s' % k: v for k, v in arg_dict.items()})
 
 	if log_dict['status']: # SUCCESS
-		if isinstance(ret_value, int) or isinstance(ret_value, dict):
+		if any((
+			ret_value is None,
+			isinstance(ret_value, int),
+			isinstance(ret_value, str),
+			isinstance(ret_value, dict),
+			isinstance(ret_value, list)
+			)):
 			log_dict['return'] = ret_value
 		elif isinstance(ret_value, bytes):
-			log_dict['return'] = _encode_bytes_(ret_value)
 			log_dict['return_len'] = len(ret_value)
+			log_dict['return'] = _encode_buffer_(ret_value) if self._log_buffers else ''
+
 	else: # FAILURE
-		log_dict['return'] = ret_str
+		log_dict.update({
+			'return': None,
+			'return_exception': ret_value[0],
+			'return_errno': ret_value[1],
+			'return_errorcode': errno.errorcode[ret_value[1]]
+			})
 
-	if not match_filters(
-		log_dict['param_%s' % func_arg_abspath], uid, func.__name__, ret_status, p_cmdname,
-		self._f_incl, self._f_excl
-		):
+	if not self._lib_mode:
+		if not self._log_filter.match(log_dict):
+			return
+
+	if self._log_json and not self._lib_mode:
+		self._logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
 		return
-
-	if self._log_json:
-		self.logger.info( json.dumps(log_dict, sort_keys = True)[1:-1] )
+	elif self._lib_mode:
+		log_dict['time'] = time.time_ns()
+		send(log_dict)
 		return
 
 	log_out = ' '.join([
 		'%s %s' % (func.__name__, format_pattern.format(**log_dict)),
-		'{%s}' % ret_status,
+		'{%s}' % STATUS_DICT[ret_status],
 		'[ pid = %d %suid = %d ]' % (pid, ('%s ' % p_cmdname) if len(p_cmdname) > 0 else '', uid),
-		'( %s )' % ret_str
+		'( r = %s )' % str(log_dict['return'])
+			if log_dict['status'] else
+		'( %s = %d )' % ret_value
 		])
 
-	self.logger.info(log_out)
+	self._logger.info(log_out)

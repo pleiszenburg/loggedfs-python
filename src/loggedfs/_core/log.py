@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/log.py: Logging
+	src/loggedfs/_core/log.py: Logging
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 

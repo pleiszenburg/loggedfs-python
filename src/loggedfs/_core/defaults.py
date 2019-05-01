@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/__init__.py: Module init
+	src/loggedfs/_core/defaults.py: Default configurations
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -26,19 +26,16 @@ specific language governing rights and limitations under the License.
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# IMPORT
+# CONST
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-from ._core.cli import cli_entry
-from ._core.filter import (
-	filter_field_class,
-	filter_item_class,
-	filter_pipeline_class
-	)
-from ._core.fs import (
-	_loggedfs,
-	loggedfs_factory
-	)
-from ._core.ipc import end_of_transmission
-from ._core.notify import notify_class as loggedfs_notify
-from ._core.out import decode_buffer
+FUSE_ALLOWOTHER_DEFAULT = False
+FUSE_FOREGROUND_DEFAULT = False
+
+LIB_MODE_DEFAULT = False
+
+LOG_BUFFERS_DEFAULT = False
+LOG_ENABLED_DEFAULT = True
+LOG_JSON_DEFAULT = False
+LOG_PRINTPROCESSNAME_DEFAULT = True
+LOG_SYSLOG_DEFAULT = False

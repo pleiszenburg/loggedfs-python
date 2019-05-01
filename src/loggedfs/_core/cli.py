@@ -6,7 +6,7 @@ LoggedFS-python
 Filesystem monitoring with Fuse and Python
 https://github.com/pleiszenburg/loggedfs-python
 
-	src/loggedfs/cli.py: Command line interface
+	src/loggedfs/_core/cli.py: Command line interface
 
 	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
@@ -31,8 +31,9 @@ specific language governing rights and limitations under the License.
 
 import click
 
-from .core import loggedfs_factory
-from .filter import parse_filters
+from .defaults import LOG_ENABLED_DEFAULT, LOG_PRINTPROCESSNAME_DEFAULT
+from .fs import loggedfs_factory
+from .filter import filter_pipeline_class
 
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -70,23 +71,33 @@ from .filter import parse_filters
 	is_flag = True,
 	help = 'Format output as JSON instead of traditional loggedfs format.'
 	)
+@click.option(
+	'-b', '--buffers',
+	is_flag = True,
+	help = 'Include read/write-buffers (compressed, BASE64) in log.'
+	)
+@click.option(
+	'--lib',
+	is_flag = True,
+	help = 'Run in library mode. DO NOT USE THIS FROM THE COMMAND LINE!',
+	hidden = True
+	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, json, directory):
+def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
-	every operations that happens in the backend filesystem. Logs can be written
-	to syslog, to a file, or to the standard output. LoggedFS comes with an XML
+	every operation that happens in the backend filesystem. Logs can be written
+	to syslog, to a file, or to the standard output. LoggedFS-python allows to specify an XML
 	configuration file in which you can choose exactly what you want to log and
 	what you don't want to log. You can add filters on users, operations (open,
-	read, write, chown, chmod, etc.), filenames and return code. Filename
-	filters are regular expressions.
+	read, write, chown, chmod, etc.), filenames, commands and return code.
 	"""
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p, json)
+		**__process_config__(c, l, s, f, p, json, buffers, lib)
 		)
 
 
@@ -94,30 +105,36 @@ def __process_config__(
 	config_fh,
 	log_file,
 	log_syslog_off,
-	fuse_foreground_bool,
-	fuse_allowother_bool,
-	log_json
+	fuse_foreground,
+	fuse_allowother,
+	log_json,
+	log_buffers,
+	lib_mode
 	):
 
 	if config_fh is not None:
-		config_xml_str = config_fh.read()
+		config_data = config_fh.read()
 		config_fh.close()
+		(
+			log_enabled, log_printprocessname, filter_obj
+			) = filter_pipeline_class.from_xmlstring(config_data)
 		config_file = config_fh.name
 	else:
-		config_file = '[None]'
-		config_xml_str = None
-
-	config_dict = parse_filters(config_xml_str)
+		log_enabled = LOG_ENABLED_DEFAULT
+		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT
+		filter_obj = filter_pipeline_class()
+		config_file = None
 
 	return {
-		'log_includes': config_dict['log_includes'],
-		'log_excludes': config_dict['log_excludes'],
-		'log_enabled': config_dict['log_enabled'],
-		'log_printprocessname': config_dict['log_printprocessname'],
+		'fuse_foreground': fuse_foreground,
+		'fuse_allowother': fuse_allowother,
+		'lib_mode': lib_mode,
+		'log_buffers': log_buffers,
+		'_log_configfile' : config_file,
+		'log_enabled': log_enabled,
 		'log_file': log_file,
-		'log_syslog': not log_syslog_off,
-		'log_configmsg': 'LoggedFS-python using configuration file %s' % config_file,
+		'log_filter': filter_obj,
 		'log_json': log_json,
-		'fuse_foreground_bool': fuse_foreground_bool,
-		'fuse_allowother_bool': fuse_allowother_bool
+		'log_printprocessname': log_printprocessname,
+		'log_syslog': not log_syslog_off
 		}

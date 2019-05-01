@@ -43,7 +43,7 @@ import sys
 
 
 # Bump version HERE!
-_version_ = '0.0.2'
+_version_ = '0.0.3'
 
 
 # List all versions of Python which are supported
@@ -99,7 +99,7 @@ setup(
 	keywords = ['filesystem', 'fuse', 'logging', 'monitoring'],
 	include_package_data = True,
 	install_requires = [
-		'click',
+		'click>=7.0',
 		'fusepy @ git+https://github.com/s-m-e/fusepy@master#egg=fusepy-2.0.99',
 		'xmltodict'
 		],

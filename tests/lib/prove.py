@@ -29,7 +29,10 @@ specific language governing rights and limitations under the License.
 # IMPORT
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import base64
 import os
+import time
+import zlib
 
 from .const import (
 	TEST_FS_LOGGEDFS,
@@ -65,19 +68,32 @@ class fstest_prove_class:
 		append_to_file(self.fstest_log_abs_path, test_path + '\n')
 
 		status, out, err = self.__run_fstest__(test_path)
-		len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo, res_dict = self.__process_raw_results__(out)
+		(
+			len_expected,
+			len_passed,
+			len_passed_todo,
+			len_failed,
+			len_failed_todo,
+			res_dict
+			) = self.__process_raw_results__(out)
 
-		pass_condition = len_failed == 0 and len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) and len_expected != 0
-		pass_condition_err = err.strip() == ''
+		grp_dir, grp_nr = self.__get_group_id_from_path__(test_path)
+		grp_code = read_file(test_path)
+		grp_log = read_file(self.loggedfs_log_abs_path)
+
+		pass_condition = all([
+			status, # ASSERT BELOW!
+			len_failed == 0, # ASSERT BELOW!
+			len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo), # ASSERT BELOW!
+			len_expected != 0, # ASSERT BELOW!
+			'Traceback (most recent call last)' not in grp_log # ASSERT BELOW!
+			])
+		# pass_condition_err = err.strip() == ''
 
 		if pass_condition: # and pass_condition_err:
 			self.__clear_loggedfs_log__()
 			assert True # Test is good, nothing more to do
 			return # Get out of here ...
-
-		grp_dir, grp_nr = self.__get_group_id_from_path__(test_path)
-		grp_code = read_file(test_path)
-		grp_log = read_file(self.loggedfs_log_abs_path)
 
 		report = []
 
@@ -99,14 +115,27 @@ class fstest_prove_class:
 		report.append(TEST_LOG_HEAD % 'LOGGEDFS LOG')
 		report.append(grp_log)
 
-		write_file(os.path.join(
-			self.logs_abs_path,
-			'test_%s_%02d_err.log' % (grp_dir, grp_nr)
-			), '\n'.join(report))
+		report_fn = 'test_%s_%02d_err.log' % (grp_dir, grp_nr)
+		report_str = '\n'.join(report)
+
+		write_file(os.path.join(self.logs_abs_path, report_fn), report_str)
+
+		print('=== %s ===' % report_fn)
+		print('len_expected = {:d}\nlen_passed = {:d}\nlen_passed_todo = {:d}\nlen_failed = {:d}\nlen_failed_todo = {:d}'.format(
+			len_expected, len_passed, len_passed_todo, len_failed, len_failed_todo
+			))
+		report_str = base64.encodebytes(zlib.compress(report_str.encode('utf-8'), 7)).decode('utf-8') # compress level 7 (high)
+		for line in report_str.split('\n'):
+			print(line)
+			time.sleep(0.002) # HACK avoid Travis buffering issues
 
 		self.__clear_loggedfs_log__()
 
-		assert pass_condition and 'Traceback (most recent call last)' not in grp_log
+		assert status # ASSERT ABOVE!
+		assert len_failed == 0 # ASSERT ABOVE!
+		assert len_expected == (len_passed + len_passed_todo + len_failed + len_failed_todo) # ASSERT ABOVE!
+		assert len_expected != 0 # ASSERT ABOVE!
+		assert 'Traceback (most recent call last)' not in grp_log # ASSERT ABOVE!
 
 
 	def __clear_loggedfs_log__(self):
@@ -164,5 +193,5 @@ class fstest_prove_class:
 		return run_command(
 			# ['prove', '-v', abs_test_path],
 			['bash', abs_test_path],
-			return_output = True, sudo = self.with_sudo, timeout = 90, setsid = True
+			return_output = True, sudo = self.with_sudo, timeout = 120, setsid = True
 			)
