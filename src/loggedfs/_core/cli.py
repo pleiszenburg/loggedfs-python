@@ -82,11 +82,16 @@ from .filter import filter_pipeline_class
 	help = 'Run in library mode. DO NOT USE THIS FROM THE COMMAND LINE!',
 	hidden = True
 	)
+@click.option(
+	'-m', '--only-modify-operations',
+	is_flag = True,
+	help = 'Exclude logging of all operations that can not cause changes in the filesystem. Convenience flag for accelerated logging.'
+	)
 @click.argument(
 	'directory',
 	type = click.Path(exists = True, file_okay = False, dir_okay = True, resolve_path = True)
 	)
-def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
+def cli_entry(f, p, c, s, l, json, buffers, lib, only_modify_operations, directory):
 	"""LoggedFS-python is a transparent fuse-filesystem which allows to log
 	every operation that happens in the backend filesystem. Logs can be written
 	to syslog, to a file, or to the standard output. LoggedFS-python allows to specify an XML
@@ -97,7 +102,7 @@ def cli_entry(f, p, c, s, l, json, buffers, lib, directory):
 
 	loggedfs_factory(
 		directory,
-		**__process_config__(c, l, s, f, p, json, buffers, lib)
+		**__process_config__(c, l, s, f, p, json, buffers, lib, only_modify_operations)
 		)
 
 
@@ -109,7 +114,8 @@ def __process_config__(
 	fuse_allowother,
 	log_json,
 	log_buffers,
-	lib_mode
+	lib_mode,
+	log_only_modify_operations
 	):
 
 	if config_fh is not None:
@@ -135,6 +141,7 @@ def __process_config__(
 		'log_file': log_file,
 		'log_filter': filter_obj,
 		'log_json': log_json,
+		'log_only_modify_operations': log_only_modify_operations,
 		'log_printprocessname': log_printprocessname,
 		'log_syslog': not log_syslog_off
 		}

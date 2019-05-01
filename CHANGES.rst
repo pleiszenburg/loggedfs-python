@@ -4,7 +4,7 @@ Changes
 0.0.4 (2019-XX-XX)
 ------------------
 
-* (TBD)
+* FEATURE: New flag ``-m``, explicitly excluding all operations from the log that do not have the potential to change the filesystem. Added for convenience.
 
 0.0.3 (2019-05-01)
 ------------------
