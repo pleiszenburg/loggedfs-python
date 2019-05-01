@@ -205,5 +205,5 @@ class notify_class:
 		proc = subprocess.Popen(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 		proc.wait()
 
-		if not self._background:
+		if self._background:
 			self._t.join()
