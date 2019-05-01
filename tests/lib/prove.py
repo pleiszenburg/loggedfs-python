@@ -128,7 +128,7 @@ class fstest_prove_class:
 		packed = base64.encodebytes(zlib.compress(report_str.encode('utf-8'), 7)).decode('utf-8') # compress level 7 (high)
 		for line in packed.split('\n'):
 			print(line)
-			time.sleep(0.05)
+			time.sleep(0.005)
 
 		self.__clear_loggedfs_log__()
 
