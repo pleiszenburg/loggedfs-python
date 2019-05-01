@@ -24,7 +24,7 @@ Create a new directory, for instance in your current working directory, named ``
         consumer_err_func = demo_err.append
         )
 
-You have just stated recording all filesystem events that involve a command containing the string ``kate``. Leave the Python shell and write some stuff into the ``demo_dir`` using ``Kate``, the KDE text editor. Once you are finished, go back to your Python shell and terminate the recording.
+You have just started recording all filesystem events that involve a command containing the string ``kate``. Put the Python shell aside and write some stuff into the ``demo_dir`` using ``Kate``, the KDE text editor. Once you are finished, go back to your Python shell and terminate the recording.
 
 .. code:: python
 

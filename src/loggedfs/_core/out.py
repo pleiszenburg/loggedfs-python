@@ -183,6 +183,23 @@ def _log_event_(
 	ret_status, ret_value
 	):
 
+	if self._log_only_modify_operations:
+		if func.__name__ not in (
+			'chmod',
+			'chown',
+			'link',
+			'mkdir',
+			'mknod',
+			'rename',
+			'rmdir',
+			'symlink',
+			'truncate',
+			'unlink',
+			'utimens',
+			'write'
+			):
+			return
+
 	uid, gid, pid = fuse_get_context()
 
 	p_cmdname = ''

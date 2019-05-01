@@ -38,7 +38,8 @@ import threading
 
 from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
-	LOG_BUFFERS_DEFAULT
+	LOG_BUFFERS_DEFAULT,
+	LOG_ONLYMODIFYOPERATIONS_DEFAULT
 	)
 from .filter import filter_pipeline_class
 from .ipc import receive, end_of_transmission
@@ -81,6 +82,7 @@ class notify_class:
 		post_exit_func = None, # called on exit
 		log_filter = None,
 		log_buffers = LOG_BUFFERS_DEFAULT,
+		log_only_modify_operations = LOG_ONLYMODIFYOPERATIONS_DEFAULT,
 		fuse_allowother = FUSE_ALLOWOTHER_DEFAULT,
 		background = False # thread in background
 		):
@@ -122,6 +124,8 @@ class notify_class:
 			raise TypeError('log_filter must either be None or of type filter_pipeline_class')
 		if not isinstance(log_buffers, bool):
 			raise TypeError('log_buffers must be of type bool')
+		if not isinstance(log_only_modify_operations, bool):
+			raise TypeError('log_only_modify_operations must be of type bool')
 		if not isinstance(fuse_allowother, bool):
 			raise TypeError('fuse_allowother must be of type bool')
 		if not isinstance(background, bool):
@@ -133,6 +137,7 @@ class notify_class:
 		self._consumer_err_func = consumer_err_func
 		self._log_filter = log_filter
 		self._log_buffers = log_buffers
+		self._log_only_modify_operations = log_only_modify_operations
 		self._fuse_allowother = fuse_allowother
 		self._background = background
 
@@ -145,6 +150,8 @@ class notify_class:
 			]
 		if self._log_buffers:
 			command.append('-b') # also log read and write buffers
+		if self._log_only_modify_operations:
+			command.append('-m')
 		if self._fuse_allowother:
 			command.append('-p')
 		command.append(self._directory)
@@ -198,5 +205,5 @@ class notify_class:
 		proc = subprocess.Popen(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 		proc.wait()
 
-		if not self._background:
+		if self._background:
 			self._t.join()

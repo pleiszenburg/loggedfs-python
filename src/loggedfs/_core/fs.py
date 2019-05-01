@@ -53,6 +53,7 @@ from .defaults import (
 	LOG_BUFFERS_DEFAULT,
 	LOG_ENABLED_DEFAULT,
 	LOG_JSON_DEFAULT,
+	LOG_ONLYMODIFYOPERATIONS_DEFAULT,
 	LOG_PRINTPROCESSNAME_DEFAULT,
 	LOG_SYSLOG_DEFAULT
 	)
@@ -131,6 +132,7 @@ class _loggedfs(Operations):
 		log_file = None,
 		log_filter = None,
 		log_json = LOG_JSON_DEFAULT,
+		log_only_modify_operations = LOG_ONLYMODIFYOPERATIONS_DEFAULT,
 		log_printprocessname = LOG_PRINTPROCESSNAME_DEFAULT,
 		log_syslog = LOG_SYSLOG_DEFAULT,
 		**kwargs
@@ -169,6 +171,8 @@ class _loggedfs(Operations):
 			raise TypeError('log_buffers must be of type bool')
 		if not isinstance(lib_mode, bool):
 			raise TypeError('lib_mode must be of type bool')
+		if not isinstance(log_only_modify_operations, bool):
+			raise TypeError('log_only_modify_operations must be of type bool')
 
 		if not isinstance(fuse_foreground, bool):
 			raise TypeError('fuse_foreground must be of type bool')
@@ -181,6 +185,7 @@ class _loggedfs(Operations):
 		self._log_buffers = log_buffers
 		self._log_filter = log_filter
 		self._lib_mode = lib_mode
+		self._log_only_modify_operations = log_only_modify_operations
 
 		self._logger = get_logger('LoggedFS-python', log_enabled, log_file, log_syslog, self._log_json)
 
