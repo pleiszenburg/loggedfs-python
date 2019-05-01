@@ -5,6 +5,7 @@ Changes
 ------------------
 
 * FEATURE: New flag ``-m``, explicitly excluding all operations from the log that do not have the potential to change the filesystem. Added for convenience.
+* FIX: Terminating a notify session stared in the background would not join all relevant threads properly. Terminating a notify session started in the foreground would cause an exception due to it attempting to join non-existing threads.
 
 0.0.3 (2019-05-01)
 ------------------
