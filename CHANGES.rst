@@ -1,7 +1,7 @@
 Changes
 =======
 
-0.0.5 (2019-XX-XX)
+0.0.5 (2019-05-06)
 ------------------
 
 * Switched from `fusepy`_ to `refuse`_
