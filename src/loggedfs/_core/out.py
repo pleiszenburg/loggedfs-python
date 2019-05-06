@@ -38,7 +38,7 @@ import json
 import pwd
 import zlib
 
-from fuse import (
+from refuse.high import (
 	fuse_get_context,
 	FuseOSError,
 	)

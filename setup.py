@@ -43,7 +43,7 @@ import sys
 
 
 # Bump version HERE!
-_version_ = '0.0.4'
+_version_ = '0.0.5'
 
 
 # List all versions of Python which are supported
@@ -100,7 +100,7 @@ setup(
 	include_package_data = True,
 	install_requires = [
 		'click>=7.0',
-		'fusepy @ git+https://github.com/s-m-e/fusepy@master#egg=fusepy-2.0.99',
+		'refuse==0.0.2',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},

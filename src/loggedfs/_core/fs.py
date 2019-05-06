@@ -33,18 +33,12 @@ import errno
 import os
 import stat
 
-from fuse import (
+from refuse.high import (
 	FUSE,
 	fuse_get_context,
 	FuseOSError,
-	Operations,
-	UTIME_NOW,
-	UTIME_OMIT,
+	Operations
 	)
-try:
-	from fuse import __features__ as fuse_features
-except ImportError:
-	fuse_features = {}
 
 from .defaults import (
 	FUSE_ALLOWOTHER_DEFAULT,
@@ -109,13 +103,7 @@ class _loggedfs(Operations):
 
 
 	flag_utime_omit_ok = 1
-
-
-	requested_features = {
-		'nanosecond_int': True,
-		'utime_omit_none': True,
-		'utime_now_auto': True
-		}
+	use_ns = True
 
 
 	_ST_FIELDS = tuple(i for i in dir(os.stat_result) if i.startswith('st_'))
@@ -209,13 +197,6 @@ class _loggedfs(Operations):
 			self._logger.info(log_msg(self._log_json,
 				'LoggedFS-python using configuration file %s' % log_configfile
 				))
-
-		for flag_name in self.requested_features.keys():
-			setattr(
-				self,
-				'flag_' + flag_name,
-				self.requested_features[flag_name] and fuse_features.get(flag_name, False)
-				)
 
 		if len(kwargs) > 0:
 			raise ValueError('unknown keyword argument(s)')
@@ -317,10 +298,7 @@ class _loggedfs(Operations):
 		ret_dict = {key: getattr(st, key) for key in self._ST_FIELDS}
 
 		for key in ['st_atime', 'st_ctime', 'st_mtime']:
-			if self.flag_nanosecond_int:
-				ret_dict[key] = ret_dict.pop(key + '_ns')
-			else:
-				ret_dict.pop(key + '_ns')
+			ret_dict[key] = ret_dict.pop(key + '_ns')
 
 		return ret_dict
 
@@ -488,26 +466,17 @@ class _loggedfs(Operations):
 	def utimens(self, path, times = None):
 
 		def _fix_time_(atime, mtime):
-			if any(val in (atime, mtime) for val in [UTIME_OMIT, None]):
+			if None in (atime, mtime):
 				st = os.lstat(relpath, dir_fd = self._root_path_fd)
-				if atime in [UTIME_OMIT, None]:
+				if atime is None:
 					atime = st.st_atime_ns
-				if mtime in [UTIME_OMIT, None]:
+				if mtime is None:
 					mtime = st.st_mtime_ns
-			if UTIME_NOW in (atime, mtime):
-				now = time.time_ns()
-				if atime == UTIME_NOW:
-					atime = now
-				if mtime == UTIME_NOW:
-					mtime = now
 			return (atime, mtime)
 
 		relpath = self._rel_path(path)
 
-		if self.flag_nanosecond_int:
-			os.utime(relpath, ns = _fix_time_(*times), dir_fd = self._root_path_fd, follow_symlinks = False)
-		else:
-			os.utime(relpath, times = times, dir_fd = self._root_path_fd, follow_symlinks = False)
+		os.utime(relpath, ns = _fix_time_(*times), dir_fd = self._root_path_fd, follow_symlinks = False)
 
 
 	@event(format_pattern = '{param_buf_len} bytes to {param_path} at offset {param_offset} (fh={param_fip})')

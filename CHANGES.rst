@@ -1,6 +1,14 @@
 Changes
 =======
 
+0.0.5 (2019-05-06)
+------------------
+
+* Switched from `fusepy`_ to `refuse`_
+
+.. _fusepy: https://github.com/fusepy/fusepy
+.. _refuse: https://github.com/pleiszenburg/refuse
+
 0.0.4 (2019-05-01)
 ------------------
 
