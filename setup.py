@@ -100,7 +100,7 @@ setup(
 	include_package_data = True,
 	install_requires = [
 		'click>=7.0',
-		'refuse==0.0.2',
+		'refuse==0.0.4',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},
