@@ -32,14 +32,14 @@ language: python
 # Ubuntu & Python versions
 matrix:
     include:
-        - dist: trusty
-          python: "3.4"
         - dist: xenial
           python: "3.5"
         - dist: xenial
           python: "3.6"
         - dist: xenial
           python: "3.7"
+        - dist: xenial
+          python: "3.8"
 
 # Install dependencies
 addons:
