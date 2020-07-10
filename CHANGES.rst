@@ -5,6 +5,7 @@ Changes
 ------------------
 
 * Dropped Python 3.4 support
+* Updated dependency to ``refuse`` 0.0.5.
 
 0.0.5 (2019-05-06)
 ------------------
