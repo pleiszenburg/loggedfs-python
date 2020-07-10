@@ -4,6 +4,7 @@ Changes
 0.0.6 (2019-XX-XX)
 ------------------
 
+* Added Python 3.8 support
 * Dropped Python 3.4 support
 * Updated dependency to ``refuse`` 0.0.5.
 
