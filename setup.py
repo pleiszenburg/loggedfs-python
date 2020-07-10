@@ -63,7 +63,7 @@ development_deps_list = [
 	'coverage',
 	'psutil',
 	'pytest',
-	'python-language-server',
+	'python-language-server[all]',
 	'PyYAML',
 	'setuptools',
 	'Sphinx',
