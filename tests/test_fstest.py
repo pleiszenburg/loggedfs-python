@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	tests/test_fstest.py: Runs the fstest-suite
 
-	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2020 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
