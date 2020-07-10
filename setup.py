@@ -103,7 +103,7 @@ setup(
 	python_requires = '>=3.{MINOR:d}'.format(MINOR = python_minor_min),
 	install_requires = [
 		'click>=7.0',
-		'refuse==0.0.5',
+		'refuse==0.0.4',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},
