@@ -26,19 +26,12 @@ Issues are tracked on `Gitbub`_.
 Submitting patches
 ------------------
 
-- Run ``make test`` before submission and attach the resulting
-  ``tests/test_status_diff.yaml`` file to your pull request (indicating which
-  tests the file-system now passes that did worked before).
+- Run ``make test`` before submission and indicate which tests the file-system now passes that did worked before.
 - Use **tabs** for indentation.
 - No, there is no line limit. Let your editor wrap the lines for you, if you want.
 - Add as many comments as you can - code-readability matters.
-- The ``master`` branch is supposed to be stable - request merges into the
-  ``develop`` branch instead.
+- The ``master`` branch is supposed to be stable - request merges into the ``develop`` branch instead.
 - Commits are preferred to be signed (GPG). Seriously, sign your code.
-
-Looking for work? Check `tests flagged as false`_. There are plenty of them.
-
-.. _tests flagged as false: https://github.com/pleiszenburg/loggedfs-python/blob/develop/tests/test_status_frozen.yaml
 
 First time setup
 ----------------

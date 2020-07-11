@@ -1,6 +1,13 @@
 Changes
 =======
 
+0.0.6 (2020-07-11)
+------------------
+
+* FEATURE: Added Python 3.8 support
+* Dropped Python 3.4 support
+* Updated dependency to ``refuse`` 0.0.4
+
 0.0.5 (2019-05-06)
 ------------------
 

@@ -76,10 +76,10 @@ From GitHub:
 
 	pip install git+https://github.com/pleiszenburg/loggedfs-python.git@master
 
-**Supports Python 3.{4,5,6,7}.**
+**Supports Python 3.{5,6,7,8}.**
 
 **Supports Linux.**
-Support for MAC OS X is implemented but has yet not been tested.
+Support for MAC OS X and BSD is implemented but has yet not been tested.
 
 .. _Python Package Index: https://pypi.org/
 
@@ -98,6 +98,37 @@ To stop recording, just unmount as usual:
 .. code:: bash
 
 	sudo fusermount -u /tmp/TEST
+
+
+CLI usage
+=========
+
+.. code:: bash
+
+	loggedfs --help
+	Usage: loggedfs [OPTIONS] DIRECTORY
+
+	Options:
+	  -f                            Do not start as a daemon. Write logs to stdout
+	                                if no log file is specified.
+
+	  -p                            Allow every user to see the new loggedfs.
+	  -c FILENAME                   Use the "config-file" to filter what you want
+	                                to log.
+
+	  -s                            Deactivate logging to syslog.
+	  -l FILE                       Use the "log-file" to write logs to.
+	  -j, --json                    Format output as JSON instead of traditional
+	                                loggedfs format.
+
+	  -b, --buffers                 Include read/write-buffers (compressed,
+	                                BASE64) in log.
+
+	  -m, --only-modify-operations  Exclude logging of all operations that can not
+	                                cause changes in the filesystem. Convenience
+	                                flag for accelerated logging.
+
+	  --help                        Show this message and exit.
 
 
 Configuration
@@ -143,24 +174,17 @@ Please report bugs in LoggedFS-python here in its `GitHub issue tracker`_.
 Miscellaneous
 =============
 
-- Full project documentation
-
-  - at `Read the Docs`_
-  - at `LoggedFS-python repository`_
-
+- Library documentation: `LoggedFS-python Jupyter Notebook`_
 - `License`_ (**Apache License 2.0**)
 - `Contributing`_ (**Contributions are highly welcomed!**)
-- `FAQ`_
 - `Authors`_
 - `Changes`_
 - `Long-term ideas`_
 - `Upstream issues`_ (relevant bugs in dependencies)
 
-.. _Read the Docs: http://loggedfs-python.readthedocs.io/en/latest/
-.. _LoggedFS-python repository: https://github.com/pleiszenburg/loggedfs-python/blob/master/docs/index.rst
+.. _LoggedFS-python Jupyter Notebook: https://github.com/pleiszenburg/loggedfs-python/blob/master/docs/library_demo.ipynb
 .. _License: https://github.com/pleiszenburg/loggedfs-python/blob/master/LICENSE
 .. _Contributing: https://github.com/pleiszenburg/loggedfs-python/blob/master/CONTRIBUTING.rst
-.. _FAQ: http://loggedfs-python.readthedocs.io/en/stable/faq.html
 .. _Authors: https://github.com/pleiszenburg/loggedfs-python/blob/master/AUTHORS.rst
 .. _Changes: https://github.com/pleiszenburg/loggedfs-python/blob/master/CHANGES.rst
 .. _Long-term ideas: https://github.com/pleiszenburg/loggedfs-python/milestone/2

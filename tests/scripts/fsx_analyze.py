@@ -9,7 +9,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	tests/scripts/fsx_analyze.py: Merge the output of fsx-linux and LoggedFS, then display result
 
-	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2020 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License

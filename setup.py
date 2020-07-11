@@ -8,7 +8,7 @@ https://github.com/pleiszenburg/loggedfs-python
 
 	setup.py: Used for package distribution
 
-	Copyright (C) 2017-2019 Sebastian M. Ernst <ernst@pleiszenburg.de>
+	Copyright (C) 2017-2020 Sebastian M. Ernst <ernst@pleiszenburg.de>
 
 <LICENSE_BLOCK>
 The contents of this file are subject to the Apache License
@@ -43,14 +43,16 @@ import sys
 
 
 # Bump version HERE!
-_version_ = '0.0.5'
+_version_ = '0.0.6'
 
 
 # List all versions of Python which are supported
+python_minor_min = 5
+python_minor_max = 8
 confirmed_python_versions = [
-	('Programming Language :: Python :: %s' % x)
-	for x in '3.4 3.5 3.6 3.7'.split(' ')
-	]
+    'Programming Language :: Python :: 3.{MINOR:d}'.format(MINOR = minor)
+    for minor in range(python_minor_min, python_minor_max + 1)
+    ]
 
 
 # Fetch readme file
@@ -63,7 +65,7 @@ development_deps_list = [
 	'coverage',
 	'psutil',
 	'pytest',
-	'python-language-server',
+	'python-language-server[all]',
 	'PyYAML',
 	'setuptools',
 	'Sphinx',
@@ -98,9 +100,10 @@ setup(
 	license = 'Apache License 2.0',
 	keywords = ['filesystem', 'fuse', 'logging', 'monitoring'],
 	include_package_data = True,
+	python_requires = '>=3.{MINOR:d}'.format(MINOR = python_minor_min),
 	install_requires = [
 		'click>=7.0',
-		'refuse==0.0.2',
+		'refuse==0.0.4',
 		'xmltodict'
 		],
 	extras_require = {'dev': development_deps_list},
