@@ -100,6 +100,37 @@ To stop recording, just unmount as usual:
 	sudo fusermount -u /tmp/TEST
 
 
+CLI usage
+=========
+
+.. code:: bash
+
+	loggedfs --help
+	Usage: loggedfs [OPTIONS] DIRECTORY
+
+	Options:
+	  -f                            Do not start as a daemon. Write logs to stdout
+	                                if no log file is specified.
+
+	  -p                            Allow every user to see the new loggedfs.
+	  -c FILENAME                   Use the "config-file" to filter what you want
+	                                to log.
+
+	  -s                            Deactivate logging to syslog.
+	  -l FILE                       Use the "log-file" to write logs to.
+	  -j, --json                    Format output as JSON instead of traditional
+	                                loggedfs format.
+
+	  -b, --buffers                 Include read/write-buffers (compressed,
+	                                BASE64) in log.
+
+	  -m, --only-modify-operations  Exclude logging of all operations that can not
+	                                cause changes in the filesystem. Convenience
+	                                flag for accelerated logging.
+
+	  --help                        Show this message and exit.
+
+
 Configuration
 =============
 
