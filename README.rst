@@ -143,24 +143,17 @@ Please report bugs in LoggedFS-python here in its `GitHub issue tracker`_.
 Miscellaneous
 =============
 
-- Full project documentation
-
-  - at `Read the Docs`_
-  - at `LoggedFS-python repository`_
-
+- Library documentation: `LoggedFS-python Jupyter Notebook`_
 - `License`_ (**Apache License 2.0**)
 - `Contributing`_ (**Contributions are highly welcomed!**)
-- `FAQ`_
 - `Authors`_
 - `Changes`_
 - `Long-term ideas`_
 - `Upstream issues`_ (relevant bugs in dependencies)
 
-.. _Read the Docs: http://loggedfs-python.readthedocs.io/en/latest/
-.. _LoggedFS-python repository: https://github.com/pleiszenburg/loggedfs-python/blob/master/docs/index.rst
+.. _LoggedFS-python Jupyter Notebook: https://github.com/pleiszenburg/loggedfs-python/blob/master/docs/library_demo.ipynb
 .. _License: https://github.com/pleiszenburg/loggedfs-python/blob/master/LICENSE
 .. _Contributing: https://github.com/pleiszenburg/loggedfs-python/blob/master/CONTRIBUTING.rst
-.. _FAQ: http://loggedfs-python.readthedocs.io/en/stable/faq.html
 .. _Authors: https://github.com/pleiszenburg/loggedfs-python/blob/master/AUTHORS.rst
 .. _Changes: https://github.com/pleiszenburg/loggedfs-python/blob/master/CHANGES.rst
 .. _Long-term ideas: https://github.com/pleiszenburg/loggedfs-python/milestone/2
