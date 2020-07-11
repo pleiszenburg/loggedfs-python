@@ -79,7 +79,7 @@ From GitHub:
 **Supports Python 3.{5,6,7,8}.**
 
 **Supports Linux.**
-Support for MAC OS X is implemented but has yet not been tested.
+Support for MAC OS X and BSD is implemented but has yet not been tested.
 
 .. _Python Package Index: https://pypi.org/
 
